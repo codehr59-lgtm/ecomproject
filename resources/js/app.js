@@ -13,7 +13,10 @@ Alpine.store('cart', {
   add(product, qty = 1) {
     const found = this.items.find(i => i.slug === product.slug);
     if (found) { found.qty += qty; }
-    else { this.items.push({ ...product, qty }); }
+    else {
+      const { slug, name, price, image } = product;
+      this.items.push({ slug, name, price, image, qty });
+    }
     this.show();
   },
   remove(slug) { this.items = this.items.filter(i => i.slug !== slug); },
@@ -22,7 +25,7 @@ Alpine.store('cart', {
     if (it) it.qty = Math.max(1, qty);
   },
   get count() { return this.items.reduce((n, i) => n + i.qty, 0); },
-  get total() { return this.items.reduce((s, i) => s + i.price * i.qty, 0); },
+  get total() { return Math.round(this.items.reduce((s, i) => s + i.price * i.qty, 0)); },
   get remaining() { return Math.max(0, this.threshold - this.total); },
   get giftProgress() { return Math.min(100, this.threshold ? (this.total / this.threshold) * 100 : 0); },
 });
