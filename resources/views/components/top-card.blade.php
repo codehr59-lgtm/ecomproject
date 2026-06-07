@@ -1,7 +1,7 @@
-@props(['product', 'buyNow' => false])
+@props(['product'])
 @php
-  $p   = $product;
-  $pct = !empty($p['old_price']) ? round((1 - $p['price'] / $p['old_price']) * 100) : 0;
+  $p    = $product;
+  $pct  = !empty($p['old_price']) ? round((1 - $p['price'] / $p['old_price']) * 100) : 0;
   $save = !empty($p['old_price']) ? $p['old_price'] - $p['price'] : 0;
   $jsP  = \Illuminate\Support\Js::from([
       'id'     => $p['id'],
@@ -11,34 +11,20 @@
       'cat'    => $p['cat'],
   ]);
 @endphp
-<div class="pcard" x-data="{ added: false }">
-  <div class="pcard-media">
-    <div class="pcard-badges">
-      @if($pct > 0)<span class="badge badge-save">Save {{ $pct }}%</span>@endif
-      @if(($p['badge'] ?? null) === 'new')<span class="badge badge-new">New</span>@endif
-      @if(($p['badge'] ?? null) === 'preorder')<span class="badge badge-pre">Pre-order</span>@endif
-    </div>
+<div class="top-card" x-data="{ added: false }">
+  <a class="top-card-img" href="{{ route('product', $p['id']) }}" style="--ph-bg: var(--cream);">
     @if(($p['badge'] ?? null) === 'best')<span class="ribbon-best">Best Selling</span>@endif
-    <button class="pcard-wish"
-            :class="$store.shop.isWished({{ $p['id'] }}) ? 'on' : ''"
-            @click.stop="$store.shop.toggleWish({{ $p['id'] }})"
-            aria-label="Add to wishlist">
-      <svg viewBox="0 0 24 24" :fill="$store.shop.isWished({{ $p['id'] }}) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/>
-      </svg>
-    </button>
-    <a href="{{ route('product', $p['id']) }}">
-      <x-photo :cat="$p['cat']" :label="strtoupper($p['cat'] . ' · ' . $p['weight'])" />
-    </a>
-  </div>
-  <div class="pcard-body">
-    <a href="{{ route('product', $p['id']) }}"><h3 class="pcard-title">{{ $p['name'] }}</h3></a>
+    <x-photo :cat="$p['cat']" />
+  </a>
+  <div class="top-card-info">
+    @if($pct > 0)<span class="badge badge-save">Save {{ $pct }}%</span>@endif
+    <a href="{{ route('product', $p['id']) }}"><h4>{{ $p['name'] }}</h4></a>
     <div class="price-row">
       <span class="price"><span class="tk">৳</span>{{ number_format($p['price']) }}</span>
       @if(!empty($p['old_price']))<span class="price-old">৳{{ number_format($p['old_price']) }}</span>@endif
       @if($save > 0)<span class="save-pill">Save ৳{{ number_format($save) }}</span>@endif
     </div>
-    <div class="pcard-foot">
+    <div class="top-card-foot">
       <button class="add-btn"
               :class="added ? 'added' : ''"
               @click="$store.shop.add({{ $jsP }}); added = true; setTimeout(() => added = false, 1100)">
@@ -51,9 +37,7 @@
         </svg>
         <span x-text="added ? 'Added' : 'Add To Cart'"></span>
       </button>
-      @if($buyNow)
-        <button class="buy-btn" @click="$store.shop.buyNow({{ $jsP }})">Buy now</button>
-      @endif
+      <button class="buy-btn" @click="$store.shop.buyNow({{ $jsP }})">Buy now</button>
     </div>
   </div>
 </div>
