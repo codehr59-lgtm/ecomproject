@@ -1,141 +1,130 @@
-@php
-    $cats = \App\Support\Catalog::categories();
-    $firstCat = $cats[0] ?? ['slug' => 'cooking-essentials', 'name' => 'Categories'];
-@endphp
+<header class="hdr" x-data>
 
-<header class="sticky top-0 z-40" x-data="{ m: false }">
-
-    {{-- ── ROW 1: Dark green sticky navigation bar ── --}}
-    <div class="bg-dark text-white">
-        <div class="max-w-content mx-auto px-4 h-14 flex items-center justify-between">
-
-            {{-- Logo --}}
-            <a href="{{ route('home') }}" class="text-xl font-extrabold text-white shrink-0">
-                Ghorer <span class="text-primary">Bazar</span>
-            </a>
-
-            {{-- Desktop nav --}}
-            <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
-                <a href="{{ route('home') }}"
-                   class="text-white hover:text-primary transition-colors">Home</a>
-
-                <a href="{{ route('category', $firstCat['slug']) }}"
-                   class="text-white hover:text-primary transition-colors">Categories</a>
-
-                @foreach(array_slice($cats, 1, 2) as $cat)
-                    <a href="{{ route('category', $cat['slug']) }}"
-                       class="text-white hover:text-primary transition-colors">{{ $cat['name'] }}</a>
-                @endforeach
-
-                <a href="#" class="text-white hover:text-primary transition-colors">Offers</a>
-                <a href="#" class="text-white hover:text-primary transition-colors">Contact</a>
-            </nav>
-
-            {{-- Mobile hamburger --}}
-            <button type="button"
-                    class="md:hidden text-white p-1"
-                    @click="m = !m"
-                    aria-label="Toggle menu"
-                    :aria-expanded="m.toString()"
-                    aria-controls="mobile-nav">
-                {{-- Hamburger (closed state) --}}
-                <svg x-show="!m" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
-                {{-- Close X (open state) --}}
-                <svg x-show="m" x-cloak xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-        </div>
-
-        {{-- Mobile dropdown menu --}}
-        <div id="mobile-nav" x-show="m" x-cloak
-             x-transition:enter="transition ease-out duration-150"
-             x-transition:enter-start="opacity-0 -translate-y-1"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-100"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 -translate-y-1"
-             class="md:hidden bg-dark border-t border-white/10">
-            <nav class="max-w-content mx-auto px-4 py-3 flex flex-col gap-1 text-sm font-medium">
-                <a href="{{ route('home') }}"
-                   class="py-2 text-white hover:text-primary transition-colors"
-                   @click="m = false">Home</a>
-
-                <a href="{{ route('category', $firstCat['slug']) }}"
-                   class="py-2 text-white hover:text-primary transition-colors"
-                   @click="m = false">Categories</a>
-
-                @foreach(array_slice($cats, 1, 2) as $cat)
-                    <a href="{{ route('category', $cat['slug']) }}"
-                       class="py-2 text-white hover:text-primary transition-colors"
-                       @click="m = false">{{ $cat['name'] }}</a>
-                @endforeach
-
-                <a href="#"
-                   class="py-2 text-white hover:text-primary transition-colors"
-                   @click="m = false">Offers</a>
-                <a href="#"
-                   class="py-2 text-white hover:text-primary transition-colors"
-                   @click="m = false">Contact</a>
-            </nav>
-        </div>
+    {{-- ── Announce bar ── --}}
+    <div class="announce">
+        {{-- Truck icon --}}
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 6h11v9H3z"/>
+            <path d="M14 9h4l3 3v3h-7"/>
+            <path d="M7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+            <path d="M17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+        </svg>
+        <span>Free delivery over <strong>৳1,500</strong> in Dhaka</span>
+        <span class="dot" aria-hidden="true"></span>
+        <span>Cash on delivery available</span>
+        <span class="dot" aria-hidden="true"></span>
+        <span>Add <strong>৳3,000</strong> &amp; unlock a free gift</span>
     </div>
 
-    {{-- ── ROW 2: White utility row (search + icons) ── --}}
-    <div class="bg-white border-b border-border-light">
-        <div class="max-w-content mx-auto px-4 h-14 flex items-center gap-4">
+    {{-- ── Main header row ── --}}
+    <div class="wrap">
+        <div class="hdr-main">
 
-            {{-- Search form --}}
-            <form action="#" class="flex flex-1 max-w-xl">
+            {{-- Logo --}}
+            <a href="{{ route('home') }}" class="brand" aria-label="Shuvo — home">
+                <span class="brand-mark">
+                    {{-- Leaf icon --}}
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 21c0-7 4-13 14-14 0 9-5 14-14 14z"/>
+                        <path d="M5 21c2-5 5-8 9-10"/>
+                    </svg>
+                </span>
+                <span>
+                    <span class="brand-name">Shuvo<b>.</b></span>
+                    <span class="brand-tag" style="display:block">Pure · Organic · Halal</span>
+                </span>
+            </a>
+
+            {{-- Search --}}
+            <form action="{{ route('shop') }}" method="get" class="search" role="search">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"/>
+                    <path d="M21 21l-4.3-4.3"/>
+                </svg>
                 <label for="site-search" class="sr-only">Search products</label>
-                <input type="search"
-                       id="site-search"
-                       placeholder="Search products..."
-                       class="field rounded-r-none flex-1">
-                <button type="submit"
-                        class="btn-primary rounded-l-none px-5 shrink-0">Search</button>
+                <input
+                    type="search"
+                    id="site-search"
+                    name="q"
+                    placeholder="Search honey, dates, ghee…"
+                    value="{{ request('q') }}"
+                    autocomplete="off"
+                >
             </form>
 
-            {{-- Utility links (hidden on very small screens, visible from sm) --}}
-            <div class="flex items-center gap-4 text-sm text-text">
-                <a href="#"
-                   class="hidden sm:block hover:text-primary transition-colors whitespace-nowrap">
-                    Track Order
+            {{-- Header actions --}}
+            <div class="hdr-actions">
+
+                {{-- Track --}}
+                <a href="{{ route('track') }}" class="icon-btn" title="Track order" aria-label="Track order">
+                    <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 6h11v9H3z"/>
+                        <path d="M14 9h4l3 3v3h-7"/>
+                        <path d="M7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+                        <path d="M17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+                    </svg>
+                    <span class="icon-label">Track</span>
                 </a>
-                <a href="#"
-                   class="hidden sm:block hover:text-primary transition-colors whitespace-nowrap">
-                    Sign In
+
+                {{-- Sign in --}}
+                <a href="{{ route('login') }}" class="icon-btn" title="Sign in" aria-label="Sign in to your account">
+                    <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
+                        <path d="M5 20a7 7 0 0 1 14 0"/>
+                    </svg>
+                    <span class="icon-label">Sign in</span>
                 </a>
 
                 {{-- Wishlist --}}
-                <a href="#" aria-label="Wishlist"
-                   class="hover:text-primary transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/>
+                <a href="{{ route('wishlist') }}" class="icon-btn" title="Wishlist" aria-label="Your wishlist">
+                    <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 20s-7-4.5-9.5-9A4.7 4.7 0 0 1 12 6a4.7 4.7 0 0 1 9.5 5c-2.5 4.5-9.5 9-9.5 9z"/>
                     </svg>
+                    <span class="count" x-show="$store.shop.wishCount > 0" x-text="$store.shop.wishCount" x-cloak aria-label="wishlist count"></span>
+                    <span class="icon-label">Wishlist</span>
                 </a>
 
-                {{-- Cart button --}}
-                <button type="button"
-                        class="relative"
-                        @click="$store.cart.toggle()"
-                        aria-label="Open cart">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-.532 2.067-1.42 2.67-2.535m0 0a23.86 23.86 0 0 0 1.087-2.25M6.106 5.272l1.394 8.978m0 0L9 6.75"/>
+                {{-- Cart --}}
+                <button type="button" class="icon-btn" title="Cart" aria-label="Open cart" @click="$store.shop.toggle()">
+                    <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M6 6h15l-1.5 9h-12L5 3H2"/>
+                        <path d="M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+                        <path d="M18 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
                     </svg>
-                    <span class="absolute -top-2 -right-2 bg-primary text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center"
-                          x-text="$store.cart.count"
-                          x-show="$store.cart.count > 0"
-                          x-cloak></span>
+                    <span class="count" x-show="$store.shop.count > 0" x-text="$store.shop.count" x-cloak aria-label="cart item count"></span>
+                    <span class="icon-label">Cart</span>
                 </button>
+
             </div>
         </div>
     </div>
+
+    {{-- ── Category nav ── --}}
+    <nav class="nav" aria-label="Product categories">
+        <div class="wrap">
+            <div class="nav-row">
+
+                {{-- All Categories --}}
+                <a href="{{ route('shop') }}" class="nav-all" aria-label="All categories">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 3h7v7H3z"/>
+                        <path d="M14 3h7v7h-7z"/>
+                        <path d="M14 14h7v7h-7z"/>
+                        <path d="M3 14h7v7H3z"/>
+                    </svg>
+                    All Categories
+                </a>
+
+                {{-- Offer Zone --}}
+                <a href="{{ route('shop', ['deal' => 1]) }}" class="nav-link hot">Offer Zone</a>
+
+                {{-- Dynamic categories --}}
+                @foreach(\App\Support\Catalog::categories() as $c)
+                    <a href="{{ route('category', $c['id']) }}" class="nav-link">{{ $c['name'] }}</a>
+                @endforeach
+
+            </div>
+        </div>
+    </nav>
 
 </header>
