@@ -34,26 +34,25 @@ class PageController extends Controller
         return view('pages.terms');
     }
 
-    public function login(): \Illuminate\View\View
-    {
-        return view('pages.login');
-    }
-
-    public function register(): \Illuminate\View\View
-    {
-        return view('pages.register');
-    }
-
     public function account(): \Illuminate\View\View
     {
-        return view('pages.account');
+        $user = auth()->user();
+        $addresses = $user->addresses()->orderByDesc('is_default')->orderBy('created_at')->get();
+        return view('pages.account', compact('user', 'addresses'));
     }
 
     public function wishlist(): \Illuminate\View\View
     {
-        return view('pages.wishlist', [
-            'products' => \App\Support\Catalog::products(),
-        ]);
+        $user = auth()->user();
+        $products = $user->wishlists()
+            ->with('product.category')
+            ->get()
+            ->pluck('product')
+            ->filter()
+            ->map(fn ($p) => $p->toCardArray())
+            ->values();
+
+        return view('pages.wishlist', ['products' => $products, 'serverWishlist' => true]);
     }
 
     public function track(): \Illuminate\View\View

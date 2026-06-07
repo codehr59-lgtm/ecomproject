@@ -20,35 +20,51 @@
             <p style="color:var(--ink-soft);font-size:15px;margin:0">Fresh, organic goodness — one sign-up away</p>
         </div>
 
-        {{-- Register form (action="#" — frontend only) --}}
-        <form action="#" method="POST" novalidate>
+        {{-- Register form --}}
+        <form method="POST" action="{{ route('register') }}">
             @csrf
 
             {{-- First / Last name row --}}
             <div class="field-row">
                 <div class="field">
                     <label for="reg-first">First name</label>
-                    <input id="reg-first" type="text" name="first_name" placeholder="Rahim" autocomplete="given-name" required>
+                    <input id="reg-first" type="text" name="first_name" value="{{ old('first_name') }}" placeholder="Rahim" autocomplete="given-name" required>
+                    @error('first_name')
+                        <span style="color:var(--sale);font-size:13px;margin-top:4px;display:block">{{ $message }}</span>
+                    @enderror
                 </div>
                 <div class="field">
                     <label for="reg-last">Last name</label>
-                    <input id="reg-last" type="text" name="last_name" placeholder="Ahmed" autocomplete="family-name" required>
+                    <input id="reg-last" type="text" name="last_name" value="{{ old('last_name') }}" placeholder="Ahmed" autocomplete="family-name">
                 </div>
             </div>
 
+            @error('name')
+                <span style="color:var(--sale);font-size:13px;margin-bottom:12px;display:block">{{ $message }}</span>
+            @enderror
+
             <div class="field">
                 <label for="reg-email">Email address</label>
-                <input id="reg-email" type="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+                <input id="reg-email" type="email" name="email" value="{{ old('email') }}" placeholder="you@example.com" autocomplete="email" required>
+                @error('email')
+                    <span style="color:var(--sale);font-size:13px;margin-top:4px;display:block">{{ $message }}</span>
+                @enderror
             </div>
 
             <div class="field">
                 <label for="reg-phone">Phone number</label>
-                <input id="reg-phone" type="tel" name="phone" placeholder="01XXXXXXXXX" autocomplete="tel">
+                <input id="reg-phone" type="tel" name="phone" value="{{ old('phone') }}" placeholder="01XXXXXXXXX" autocomplete="tel">
+                @error('phone')
+                    <span style="color:var(--sale);font-size:13px;margin-top:4px;display:block">{{ $message }}</span>
+                @enderror
             </div>
 
             <div class="field">
                 <label for="reg-password">Password</label>
                 <input id="reg-password" type="password" name="password" placeholder="Min. 8 characters" autocomplete="new-password" required>
+                @error('password')
+                    <span style="color:var(--sale);font-size:13px;margin-top:4px;display:block">{{ $message }}</span>
+                @enderror
             </div>
 
             <div class="field">

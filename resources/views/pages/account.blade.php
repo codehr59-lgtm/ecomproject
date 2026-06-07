@@ -16,7 +16,7 @@
             <span>Account</span>
         </div>
         <h1>My Account</h1>
-        <p class="sub">Welcome back, Guest</p>
+        <p class="sub">Welcome back, {{ explode(' ', $user->name)[0] }}</p>
     </div>
 </div>
 
@@ -28,7 +28,6 @@
 
         {{-- ── LEFT sidebar ─────────────────────────────────────── --}}
         <nav class="co-card" style="padding:8px 0;margin-bottom:0" aria-label="Account navigation">
-            {{-- Dashboard (active) --}}
             <a href="{{ route('account') }}" class="fopt" style="padding:12px 20px;border-radius:0;color:var(--green-deep);background:var(--green-tint);font-weight:700;border-left:3px solid var(--green)">
                 <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -54,43 +53,54 @@
                 </svg>
                 Track Order
             </a>
-            <a href="#" class="fopt" style="padding:12px 20px;border-radius:0;border-left:3px solid transparent">
+            <a href="#addresses" class="fopt" style="padding:12px 20px;border-radius:0;border-left:3px solid transparent">
                 <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
                 </svg>
                 Addresses
             </a>
-            <a href="#" class="fopt" style="padding:12px 20px;border-radius:0;border-left:3px solid transparent">
+            <a href="#profile" class="fopt" style="padding:12px 20px;border-radius:0;border-left:3px solid transparent">
                 <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
                 </svg>
                 Profile Settings
             </a>
             <div style="height:1px;background:var(--line);margin:8px 0"></div>
-            <a href="#" class="fopt" style="padding:12px 20px;border-radius:0;border-left:3px solid transparent;color:var(--sale)">
-                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-                </svg>
-                Logout
-            </a>
+            <form method="POST" action="{{ route('logout') }}" style="margin:0">
+                @csrf
+                <button type="submit" class="fopt" style="width:100%;padding:12px 20px;border-radius:0;border-left:3px solid transparent;color:var(--sale);background:none;border-top:none;border-right:none;border-bottom:none;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600">
+                    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    Logout
+                </button>
+            </form>
         </nav>
         {{-- ── END sidebar ──────────────────────────────────────── --}}
 
         {{-- ── RIGHT main ───────────────────────────────────────── --}}
         <div>
 
+            {{-- Status messages --}}
+            @if (session('status'))
+                <div style="background:var(--green-tint);color:var(--green-deep);padding:12px 16px;border-radius:9px;margin-bottom:16px;font-size:14px;font-weight:600">
+                    {{ session('status') }}
+                </div>
+            @endif
+
             {{-- Profile summary card --}}
             <div class="co-card" style="display:flex;align-items:center;gap:20px;margin-bottom:18px">
-                {{-- Avatar circle --}}
                 <div style="width:72px;height:72px;border-radius:50%;background:var(--green-soft);color:var(--green-deep);display:grid;place-items:center;font-family:var(--font-display);font-weight:800;font-size:28px;flex-shrink:0;border:2px solid var(--green-soft)">
-                    G
+                    {{ strtoupper(substr($user->name, 0, 1)) }}
                 </div>
                 <div style="flex:1;min-width:0">
-                    <div style="font-family:var(--font-display);font-weight:800;font-size:20px;margin-bottom:4px">Guest User</div>
-                    <div style="font-size:14px;color:var(--muted);margin-bottom:2px">guest@shuvo.com</div>
-                    <div style="font-size:14px;color:var(--muted)">+880 1700-000000</div>
+                    <div style="font-family:var(--font-display);font-weight:800;font-size:20px;margin-bottom:4px">{{ $user->name }}</div>
+                    <div style="font-size:14px;color:var(--muted);margin-bottom:2px">{{ $user->email }}</div>
+                    @if($user->phone)
+                        <div style="font-size:14px;color:var(--muted)">{{ $user->phone }}</div>
+                    @endif
                 </div>
-                <a href="#" class="btn btn-ghost" style="flex-shrink:0">
+                <a href="#profile" class="btn btn-ghost" style="flex-shrink:0">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                         <path d="M18.5 2.5a2.1 2.1 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -102,21 +112,21 @@
             {{-- Stats row --}}
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px">
                 <div class="co-card" style="text-align:center;padding:20px 16px;margin-bottom:0">
-                    <div style="font-family:var(--font-display);font-weight:800;font-size:32px;color:var(--green-deep);margin-bottom:4px">12</div>
+                    <div style="font-family:var(--font-display);font-weight:800;font-size:32px;color:var(--green-deep);margin-bottom:4px">0</div>
                     <div style="font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.03em">Total Orders</div>
                 </div>
                 <div class="co-card" style="text-align:center;padding:20px 16px;margin-bottom:0">
-                    <div style="font-family:var(--font-display);font-weight:800;font-size:32px;color:var(--sale);margin-bottom:4px">5</div>
+                    <div style="font-family:var(--font-display);font-weight:800;font-size:32px;color:var(--sale);margin-bottom:4px">{{ $user->wishlists()->count() }}</div>
                     <div style="font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.03em">Wishlist Items</div>
                 </div>
                 <div class="co-card" style="text-align:center;padding:20px 16px;margin-bottom:0">
-                    <div style="font-family:var(--font-display);font-weight:800;font-size:32px;color:var(--honey);margin-bottom:4px">340</div>
-                    <div style="font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.03em">Reward Points</div>
+                    <div style="font-family:var(--font-display);font-weight:800;font-size:32px;color:var(--honey);margin-bottom:4px">{{ $addresses->count() }}</div>
+                    <div style="font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.03em">Saved Addresses</div>
                 </div>
             </div>
 
-            {{-- Recent orders --}}
-            <div class="co-card" style="margin-bottom:0">
+            {{-- Recent orders placeholder --}}
+            <div class="co-card" style="margin-bottom:18px">
                 <h3 style="font-size:18px;margin-bottom:18px;display:flex;align-items:center;gap:10px">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--green)">
                         <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>
@@ -124,71 +134,136 @@
                     </svg>
                     Recent Orders
                 </h3>
-
-                {{-- Table header --}}
-                <div style="display:grid;grid-template-columns:1.4fr 1fr 0.8fr 1.1fr 0.8fr 0.5fr;gap:12px;padding:10px 14px;background:var(--surface-2);border-radius:9px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">
-                    <span>Order</span>
-                    <span>Date</span>
-                    <span>Items</span>
-                    <span>Status</span>
-                    <span>Total</span>
-                    <span></span>
+                <div style="text-align:center;padding:32px 16px;color:var(--muted)">
+                    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin:0 auto 12px;display:block;color:var(--line)">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>
+                    </svg>
+                    <p style="font-size:15px;font-weight:600;color:var(--ink-soft);margin:0 0 6px">No orders yet</p>
+                    <p style="font-size:13.5px;margin:0">Your order history will appear here.</p>
                 </div>
+            </div>
 
-                {{-- Order row 1 — Delivered --}}
-                <div style="display:grid;grid-template-columns:1.4fr 1fr 0.8fr 1.1fr 0.8fr 0.5fr;gap:12px;align-items:center;padding:14px;border-bottom:1px solid var(--line-soft)">
-                    <span style="font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--ink)">#SHV-984211</span>
-                    <span style="font-size:13.5px;color:var(--ink-soft)">12 May 2026</span>
-                    <span style="font-size:13.5px;color:var(--ink-soft)">3 items</span>
-                    <span>
-                        <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:#E9F5EC;color:#1E6B33">
-                            <span style="width:6px;height:6px;border-radius:50%;background:#2E7D45;flex-shrink:0"></span>
-                            Delivered
-                        </span>
-                    </span>
-                    <span style="font-family:var(--font-display);font-weight:700;font-size:14.5px">৳1,840</span>
-                    <a href="#" style="font-size:13px;font-weight:600;color:var(--green)">View</a>
-                </div>
+            {{-- ── Addresses section ──────────────────────────────── --}}
+            <div id="addresses" class="co-card" style="margin-bottom:18px">
+                <h3 style="font-size:18px;margin-bottom:18px;display:flex;align-items:center;gap:10px">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--green)">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    My Addresses
+                </h3>
 
-                {{-- Order row 2 — Processing --}}
-                <div style="display:grid;grid-template-columns:1.4fr 1fr 0.8fr 1.1fr 0.8fr 0.5fr;gap:12px;align-items:center;padding:14px;border-bottom:1px solid var(--line-soft)">
-                    <span style="font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--ink)">#SHV-776520</span>
-                    <span style="font-size:13.5px;color:var(--ink-soft)">4 Jun 2026</span>
-                    <span style="font-size:13.5px;color:var(--ink-soft)">1 item</span>
-                    <span>
-                        <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--honey-soft);color:var(--honey-deep)">
-                            <span style="width:6px;height:6px;border-radius:50%;background:var(--honey);flex-shrink:0"></span>
-                            Processing
-                        </span>
-                    </span>
-                    <span style="font-family:var(--font-display);font-weight:700;font-size:14.5px">৳620</span>
-                    <a href="#" style="font-size:13px;font-weight:600;color:var(--green)">View</a>
-                </div>
+                @if($addresses->isEmpty())
+                    <p style="color:var(--muted);font-size:14px;margin-bottom:18px">No addresses saved yet.</p>
+                @else
+                    <div style="display:grid;gap:12px;margin-bottom:18px">
+                        @foreach($addresses as $addr)
+                            <div style="border:1px solid var(--line);border-radius:10px;padding:16px;position:relative">
+                                @if($addr->is_default)
+                                    <span style="position:absolute;top:12px;right:12px;font-size:11px;font-weight:700;background:var(--green-tint);color:var(--green-deep);padding:3px 8px;border-radius:99px">Default</span>
+                                @endif
+                                <div style="font-weight:700;margin-bottom:4px">{{ $addr->name }}</div>
+                                @if($addr->phone)<div style="font-size:13.5px;color:var(--muted)">{{ $addr->phone }}</div>@endif
+                                <div style="font-size:13.5px;color:var(--ink-soft);margin-top:4px">{{ $addr->line }}, {{ $addr->thana ? $addr->thana.', ' : '' }}{{ $addr->city }}</div>
+                                <div style="display:flex;gap:10px;margin-top:10px">
+                                    @if(!$addr->is_default)
+                                        <form method="POST" action="{{ route('addresses.default', $addr) }}" style="display:inline">
+                                            @csrf
+                                            <button type="submit" style="font-size:12.5px;color:var(--green);font-weight:600;background:none;border:none;padding:0;cursor:pointer">Set as default</button>
+                                        </form>
+                                    @endif
+                                    <form method="POST" action="{{ route('addresses.destroy', $addr) }}" style="display:inline">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" style="font-size:12.5px;color:var(--sale);font-weight:600;background:none;border:none;padding:0;cursor:pointer" onclick="return confirm('Remove this address?')">Remove</button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
 
-                {{-- Order row 3 — Shipped --}}
-                <div style="display:grid;grid-template-columns:1.4fr 1fr 0.8fr 1.1fr 0.8fr 0.5fr;gap:12px;align-items:center;padding:14px">
-                    <span style="font-family:var(--font-display);font-weight:700;font-size:14px;color:var(--ink)">#SHV-651088</span>
-                    <span style="font-size:13.5px;color:var(--ink-soft)">7 Jun 2026</span>
-                    <span style="font-size:13.5px;color:var(--ink-soft)">5 items</span>
-                    <span>
-                        <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:#E0EEFF;color:#1A5AB8">
-                            <span style="width:6px;height:6px;border-radius:50%;background:#2563EB;flex-shrink:0"></span>
-                            Shipped
-                        </span>
-                    </span>
-                    <span style="font-family:var(--font-display);font-weight:700;font-size:14.5px">৳3,290</span>
-                    <a href="#" style="font-size:13px;font-weight:600;color:var(--green)">View</a>
-                </div>
-
-                {{-- View all link --}}
-                <div style="padding:14px;border-top:1px solid var(--line);text-align:right">
-                    <a href="#" style="font-size:14px;font-weight:600;color:var(--green);display:inline-flex;align-items:center;gap:6px">
-                        View all orders
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M9 18l6-6-6-6"/>
+                {{-- Add address form --}}
+                <details style="margin-top:4px">
+                    <summary style="cursor:pointer;font-weight:700;font-size:14.5px;color:var(--green);list-style:none;display:flex;align-items:center;gap:8px">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                         </svg>
-                    </a>
-                </div>
+                        Add new address
+                    </summary>
+                    <form method="POST" action="{{ route('addresses.store') }}" style="margin-top:16px">
+                        @csrf
+                        <div class="field-row">
+                            <div class="field">
+                                <label>Full Name</label>
+                                <input type="text" name="name" value="{{ old('name', $user->name) }}" placeholder="Recipient name" required>
+                                @error('name')<span style="color:var(--sale);font-size:13px">{{ $message }}</span>@enderror
+                            </div>
+                            <div class="field">
+                                <label>Phone</label>
+                                <input type="tel" name="phone" value="{{ old('phone', $user->phone) }}" placeholder="01XXXXXXXXX">
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label>Address Line</label>
+                            <input type="text" name="line" value="{{ old('line') }}" placeholder="House/Road/Area" required>
+                            @error('line')<span style="color:var(--sale);font-size:13px">{{ $message }}</span>@enderror
+                        </div>
+                        <div class="field-row">
+                            <div class="field">
+                                <label>City</label>
+                                <input type="text" name="city" value="{{ old('city', 'Dhaka') }}" placeholder="Dhaka" required>
+                                @error('city')<span style="color:var(--sale);font-size:13px">{{ $message }}</span>@enderror
+                            </div>
+                            <div class="field">
+                                <label>Thana / Upazila</label>
+                                <input type="text" name="thana" value="{{ old('thana') }}" placeholder="Mirpur">
+                            </div>
+                        </div>
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:var(--ink-soft);font-weight:500;margin-bottom:14px">
+                            <input type="checkbox" name="is_default" value="1" style="accent-color:var(--green)">
+                            Set as default address
+                        </label>
+                        <button type="submit" class="btn btn-primary">Save Address</button>
+                    </form>
+                </details>
+            </div>
+
+            {{-- ── Edit Profile section ────────────────────────────── --}}
+            <div id="profile" class="co-card" style="margin-bottom:0">
+                <h3 style="font-size:18px;margin-bottom:18px;display:flex;align-items:center;gap:10px">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--green)">
+                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    Profile Settings
+                </h3>
+
+                @if($errors->updateProfileInformation->any())
+                    <div style="background:#FEF2F2;color:var(--sale);padding:12px 16px;border-radius:9px;margin-bottom:16px;font-size:14px">
+                        @foreach($errors->updateProfileInformation->all() as $error)
+                            <div>{{ $error }}</div>
+                        @endforeach
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('user-profile-information.update') }}">
+                    @csrf @method('PUT')
+
+                    <div class="field">
+                        <label>Full Name</label>
+                        <input type="text" name="name" value="{{ old('name', $user->name) }}" required>
+                        @error('name')<span style="color:var(--sale);font-size:13px">{{ $message }}</span>@enderror
+                    </div>
+                    <div class="field">
+                        <label>Email address</label>
+                        <input type="email" name="email" value="{{ old('email', $user->email) }}" required>
+                        @error('email')<span style="color:var(--sale);font-size:13px">{{ $message }}</span>@enderror
+                    </div>
+                    <div class="field">
+                        <label>Phone number</label>
+                        <input type="tel" name="phone" value="{{ old('phone', $user->phone) }}" placeholder="01XXXXXXXXX">
+                        @error('phone')<span style="color:var(--sale);font-size:13px">{{ $message }}</span>@enderror
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
             </div>
 
         </div>

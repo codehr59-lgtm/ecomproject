@@ -21,18 +21,31 @@
             <p style="color:var(--ink-soft);font-size:15px;margin:0">Sign in to your Shuvo account</p>
         </div>
 
-        {{-- Login form (action="#" — frontend only) --}}
-        <form action="#" method="POST" novalidate>
+        {{-- Session status --}}
+        @if (session('status'))
+            <div style="background:var(--green-tint);color:var(--green-deep);padding:12px 16px;border-radius:9px;margin-bottom:16px;font-size:14px;font-weight:600">
+                {{ session('status') }}
+            </div>
+        @endif
+
+        {{-- Login form --}}
+        <form method="POST" action="{{ route('login') }}">
             @csrf
 
             <div class="field">
                 <label for="login-email">Email address</label>
-                <input id="login-email" type="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+                <input id="login-email" type="email" name="email" value="{{ old('email') }}" placeholder="you@example.com" autocomplete="email" required>
+                @error('email')
+                    <span style="color:var(--sale);font-size:13px;margin-top:4px;display:block">{{ $message }}</span>
+                @enderror
             </div>
 
             <div class="field">
                 <label for="login-password">Password</label>
                 <input id="login-password" type="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+                @error('password')
+                    <span style="color:var(--sale);font-size:13px;margin-top:4px;display:block">{{ $message }}</span>
+                @enderror
             </div>
 
             {{-- Remember + Forgot row --}}
@@ -41,7 +54,9 @@
                     <input type="checkbox" name="remember" style="width:17px;height:17px;accent-color:var(--green);cursor:pointer">
                     Remember me
                 </label>
-                <a href="#" style="color:var(--green);font-weight:600">Forgot password?</a>
+                @if (Route::has('password.request'))
+                    <a href="{{ route('password.request') }}" style="color:var(--green);font-weight:600">Forgot password?</a>
+                @endif
             </div>
 
             <button type="submit" class="btn btn-primary btn-block btn-lg">

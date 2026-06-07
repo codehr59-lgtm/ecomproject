@@ -66,14 +66,35 @@
                     <span class="icon-label">Track</span>
                 </a>
 
-                {{-- Sign in --}}
-                <a href="{{ route('login') }}" class="icon-btn" title="Sign in" aria-label="Sign in to your account">
-                    <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
-                        <path d="M5 20a7 7 0 0 1 14 0"/>
-                    </svg>
-                    <span class="icon-label">Sign in</span>
-                </a>
+                {{-- Account / Sign in --}}
+                @auth
+                    <a href="{{ route('account') }}" class="icon-btn" title="My Account" aria-label="My Account">
+                        <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
+                            <path d="M5 20a7 7 0 0 1 14 0"/>
+                        </svg>
+                        <span class="icon-label">{{ explode(' ', auth()->user()->name)[0] }}</span>
+                    </a>
+                    <form method="POST" action="{{ route('logout') }}" style="display:inline">
+                        @csrf
+                        <button type="submit" class="icon-btn" title="Sign out" aria-label="Sign out" style="background:none;border:none;cursor:pointer">
+                            <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                                <polyline points="16 17 21 12 16 7"/>
+                                <line x1="21" y1="12" x2="9" y2="12"/>
+                            </svg>
+                            <span class="icon-label">Sign out</span>
+                        </button>
+                    </form>
+                @else
+                    <a href="{{ route('login') }}" class="icon-btn" title="Sign in" aria-label="Sign in to your account">
+                        <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
+                            <path d="M5 20a7 7 0 0 1 14 0"/>
+                        </svg>
+                        <span class="icon-label">Sign in</span>
+                    </a>
+                @endauth
 
                 {{-- Wishlist --}}
                 <a href="{{ route('wishlist') }}" class="icon-btn" title="Wishlist" aria-label="Your wishlist">

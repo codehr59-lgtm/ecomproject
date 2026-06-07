@@ -14,6 +14,13 @@ Alpine.store('shop', {
   toastOn: false,
   _t: null,
 
+  // ── Init (Alpine calls this automatically) ────────────────────────────
+  init() {
+    if (window.WISHLIST && window.WISHLIST.length > 0) {
+      this.wish = window.WISHLIST.map(Number);
+    }
+  },
+
   // ── Cart ──────────────────────────────────────────────────
   add(p) {
     const ex = this.items.find(i => i.id === p.id);
@@ -109,6 +116,20 @@ const CAT_TINT = {
   rice:     '#C9B98E',
   mango:    '#E59A2B',
   tea:      '#6E7F4F',
+};
+
+// ── Wishlist persistence helper ──────────────────────────────────────────
+window.persistWish = (id) => {
+  if (!window.AUTH) return;
+  const token = document.querySelector('meta[name=csrf-token]');
+  if (!token) return;
+  fetch('/wishlist/toggle/' + id, {
+    method: 'POST',
+    headers: {
+      'X-CSRF-TOKEN': token.content,
+      'Accept': 'application/json',
+    },
+  });
 };
 
 window.catTint       = (cat) => CAT_TINT[cat] || '#C9B98E';

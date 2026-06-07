@@ -21,7 +21,7 @@
     @if(($p['badge'] ?? null) === 'best')<span class="ribbon-best">Best Selling</span>@endif
     <button class="pcard-wish"
             :class="$store.shop.isWished({{ $p['id'] }}) ? 'on' : ''"
-            @click.stop="$store.shop.toggleWish({{ $p['id'] }})"
+            @click.stop="$store.shop.toggleWish({{ $p['id'] }}); window.persistWish({{ $p['id'] }})"
             aria-label="Add to wishlist">
       <svg viewBox="0 0 24 24" :fill="$store.shop.isWished({{ $p['id'] }}) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/>

@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\AddressController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [CatalogController::class, 'home'])->name('home');
@@ -18,11 +20,22 @@ Route::get('/blog/{slug}', [PageController::class, 'blogPost'])->name('blog.post
 Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
 Route::get('/terms', [PageController::class, 'terms'])->name('terms');
 
-// account UI shells (frontend only this phase)
-Route::get('/login', [PageController::class, 'login'])->name('login');
-Route::get('/register', [PageController::class, 'register'])->name('register');
-Route::get('/account', [PageController::class, 'account'])->name('account');
-Route::get('/wishlist', [PageController::class, 'wishlist'])->name('wishlist');
+// public auth pages (served by Fortify view callbacks; GET routes handled by Fortify)
 Route::get('/track', [PageController::class, 'track'])->name('track');
+
+// auth-required pages
+Route::middleware('auth')->group(function () {
+    Route::get('/account', [PageController::class, 'account'])->name('account');
+    Route::get('/wishlist', [PageController::class, 'wishlist'])->name('wishlist');
+
+    // Addresses CRUD
+    Route::post('/addresses', [AddressController::class, 'store'])->name('addresses.store');
+    Route::put('/addresses/{address}', [AddressController::class, 'update'])->name('addresses.update');
+    Route::delete('/addresses/{address}', [AddressController::class, 'destroy'])->name('addresses.destroy');
+    Route::post('/addresses/{address}/default', [AddressController::class, 'setDefault'])->name('addresses.default');
+
+    // Wishlist toggle (JSON)
+    Route::post('/wishlist/toggle/{product}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+});
 
 Route::fallback(fn () => response()->view('errors.404', [], 404));
