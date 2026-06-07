@@ -1,324 +1,590 @@
 <?php
 
+/**
+ * Shuvo Organic Grocery — catalog configuration.
+ * Ported verbatim from _design-reference/data.js.
+ * BACKEND SWAP POINT: replace this file with Eloquent queries in Catalog.php when moving to a DB.
+ */
 return [
 
-    'free_gift_threshold' => 1000,
+    'free_gift_threshold' => 3000,
+    'free_ship_threshold' => 1500,
 
+    // ── Categories ────────────────────────────────────────────────────────
     'categories' => [
-        ['slug' => 'cooking-essentials', 'name' => 'Cooking Essentials', 'icon' => 'oil'],
-        ['slug' => 'honey-nuts',         'name' => 'Honey & Nuts',       'icon' => 'honey'],
-        ['slug' => 'spices',             'name' => 'Spices',             'icon' => 'spice'],
-        ['slug' => 'dairy',              'name' => 'Dairy',              'icon' => 'dairy'],
-        ['slug' => 'dates',              'name' => 'Dates',              'icon' => 'dates'],
-        ['slug' => 'beverages',          'name' => 'Beverages',          'icon' => 'tea'],
+        ['id' => 'honey',   'name' => 'Honey',        'tint' => '#E7B84B', 'note' => 'Raw & wild-sourced'],
+        ['id' => 'dates',   'name' => 'Dates',        'tint' => '#A9682F', 'note' => 'Ajwa, Medjool, Sukkari'],
+        ['id' => 'oil-ghee','name' => 'Oil & Ghee',   'tint' => '#D7A53C', 'note' => 'Cold-pressed & pure'],
+        ['id' => 'spices',  'name' => 'Spices',       'tint' => '#C0432F', 'note' => 'Stone-ground fresh'],
+        ['id' => 'nuts',    'name' => 'Nuts & Seeds', 'tint' => '#9C7A4D', 'note' => 'Roasted & raw'],
+        ['id' => 'rice',    'name' => 'Rice',         'tint' => '#C9B98E', 'note' => 'Aromatic & aged'],
+        ['id' => 'mango',   'name' => 'Mango',        'tint' => '#E59A2B', 'note' => 'Seasonal, pre-order'],
+        ['id' => 'tea',     'name' => 'Tea & Coffee', 'tint' => '#6E7F4F', 'note' => 'Garden fresh'],
     ],
 
-    'banners' => [
-        [
-            'image'    => 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1400&q=80',
-            'headline' => 'Pure & Natural Groceries',
-            'sub'      => 'Delivered to your door',
-            'cta'      => 'Shop Now',
-            'href'     => '/category/cooking-essentials',
-        ],
-        [
-            'image'    => 'https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=1400&q=80',
-            'headline' => 'Raw Honey Collection',
-            'sub'      => 'Straight from the hive',
-            'cta'      => 'Explore',
-            'href'     => '/category/honey-nuts',
-        ],
-    ],
-
+    // ── Products ──────────────────────────────────────────────────────────
+    // Ids are 1-based sequential, mirroring the P() counter in data.js.
+    // badge: 'best' | 'new' | 'preorder' | null
+    // certified key present only where data.js sets certified:true
     'products' => [
 
-        // ── beverages (first, will be in featured carousel) ──────────────────
+        // id 1
         [
-            'slug'        => 'green-tea-100g',
-            'name'        => 'Organic Green Tea 100g',
-            'category'    => 'beverages',
-            'price'       => 250,
-            'old_price'   => null,
-            'badge'       => ['type' => 'new', 'label' => 'New Arrival'],
-            'image'       => 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=600&q=80',
-            'gallery'     => [
-                'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=800&q=80',
-                'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=800&q=80',
-            ],
-            'brand'       => 'Teatulia',
-            'rating'      => 4.4,
-            'reviews'     => 112,
-            'in_stock'    => true,
-            'description' => 'Premium loose-leaf organic green tea from the hills of Sylhet, light and antioxidant-rich.',
-        ],
-        [
-            'slug'        => 'rose-water-250ml',
-            'name'        => 'Pure Rose Water 250ml',
-            'category'    => 'beverages',
-            'price'       => 140,
-            'old_price'   => null,
-            'badge'       => null,
-            'image'       => 'https://images.unsplash.com/photo-1559181567-c3190ca9d51c?w=600&q=80',
-            'gallery'     => [
-                'https://images.unsplash.com/photo-1559181567-c3190ca9d51c?w=800&q=80',
-                'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=800&q=80',
-            ],
-            'brand'       => 'Ghorer Bazar',
-            'rating'      => 4.3,
-            'reviews'     => 64,
-            'in_stock'    => false,
-            'description' => 'Food-grade pure rose water, ideal for desserts, sherbets, and biryani.',
+            'id'       => 1,
+            'name'     => 'Sundarban Wild Honey',
+            'weight'   => '1 kg',
+            'price'    => 2300,
+            'old_price'=> 2500,
+            'cat'      => 'honey',
+            'badge'    => 'best',
+            'rating'   => 4.9,
+            'reviews'  => 412,
+            'blurb'    => 'Single-origin wild honey collected from the Sundarban mangrove forest. Unheated, unprocessed, naturally crystallizing.',
         ],
 
-        // ── dates ────────────────────────────────────────────────────────────
+        // id 2
         [
-            'slug'        => 'medjool-dates-500g',
-            'name'        => 'Medjool Dates 500g',
-            'category'    => 'dates',
-            'price'       => 580,
-            'old_price'   => 650,
-            'badge'       => ['type' => 'save', 'label' => 'Save 11%'],
-            'image'       => 'https://images.unsplash.com/photo-1590301157890-4810ed352733?w=600&q=80',
-            'gallery'     => [
-                'https://images.unsplash.com/photo-1590301157890-4810ed352733?w=800&q=80',
-                'https://images.unsplash.com/photo-1562802378-063ec186a863?w=800&q=80',
-            ],
-            'brand'       => 'Al-Madina',
-            'rating'      => 4.9,
-            'reviews'     => 267,
-            'in_stock'    => true,
-            'description' => 'Soft and juicy premium Medjool dates from Saudi Arabia, naturally sweet and fiber-rich.',
+            'id'       => 2,
+            'name'     => 'Black Seed Honey',
+            'weight'   => '500 g',
+            'price'    => 750,
+            'old_price'=> 800,
+            'cat'      => 'honey',
+            'badge'    => null,
+            'rating'   => 4.8,
+            'reviews'  => 188,
+            'blurb'    => 'Infused with cold-pressed black seed (kalonji). Bold, slightly bitter finish prized for daily wellness.',
         ],
 
-        // ── honey-nuts (almond only here; raw-honey and cashew in last 8) ────
+        // id 3
         [
-            'slug'        => 'almond-200g',
-            'name'        => 'California Almonds 200g',
-            'category'    => 'honey-nuts',
-            'price'       => 380,
-            'old_price'   => null,
-            'badge'       => null,
-            'image'       => 'https://images.unsplash.com/photo-1574484284002-952d92456975?w=600&q=80',
-            'gallery'     => [
-                'https://images.unsplash.com/photo-1574484284002-952d92456975?w=800&q=80',
-                'https://images.unsplash.com/photo-1508061253366-f7da158b6d46?w=800&q=80',
-            ],
-            'brand'       => 'Nut Farm',
-            'rating'      => 4.4,
-            'reviews'     => 89,
-            'in_stock'    => true,
-            'description' => 'Raw California almonds, rich in healthy fats and protein, great as a daily snack.',
+            'id'       => 3,
+            'name'     => 'Lychee Flower Honey',
+            'weight'   => '500 g',
+            'price'    => 550,
+            'old_price'=> 600,
+            'cat'      => 'honey',
+            'badge'    => 'new',
+            'rating'   => 4.8,
+            'reviews'  => 96,
+            'blurb'    => 'Light, floral and delicate — harvested during the spring lychee bloom.',
         ],
 
-        // ── spices ───────────────────────────────────────────────────────────
+        // id 4
         [
-            'slug'        => 'turmeric-powder-200g',
-            'name'        => 'Organic Turmeric Powder 200g',
-            'category'    => 'spices',
-            'price'       => 120,
-            'old_price'   => null,
-            'badge'       => ['type' => 'best', 'label' => 'Best Selling'],
-            'image'       => 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=600&q=80',
-            'gallery'     => [
-                'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=800&q=80',
-                'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=800&q=80',
-            ],
-            'brand'       => 'Ghorer Bazar',
-            'rating'      => 4.7,
-            'reviews'     => 195,
-            'in_stock'    => true,
-            'description' => 'Pure organic turmeric powder with high curcumin content, no fillers or artificial color.',
-        ],
-        [
-            'slug'        => 'red-chilli-powder-100g',
-            'name'        => 'Red Chilli Powder 100g',
-            'category'    => 'spices',
-            'price'       => 85,
-            'old_price'   => 100,
-            'badge'       => ['type' => 'save', 'label' => 'Save 15%'],
-            'image'       => 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&q=80',
-            'gallery'     => [
-                'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=800&q=80',
-                'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=800&q=80',
-                'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=800&q=80',
-            ],
-            'brand'       => 'Radhuni',
-            'rating'      => 4.2,
-            'reviews'     => 133,
-            'in_stock'    => true,
-            'description' => 'Fiery red chilli powder, sun-dried and stone-ground for authentic Bangladeshi flavor.',
+            'id'       => 4,
+            'name'     => 'Natural Honeycomb',
+            'weight'   => '1 kg',
+            'price'    => 2250,
+            'old_price'=> 2500,
+            'cat'      => 'honey',
+            'badge'    => null,
+            'rating'   => 4.8,
+            'reviews'  => 54,
+            'blurb'    => 'Cut straight from the hive. Chewable wax comb, raw enzymes intact.',
         ],
 
-        // ── dairy ────────────────────────────────────────────────────────────
+        // id 5
         [
-            'slug'        => 'dahi-500g',
-            'name'        => 'Fresh Dahi (Yogurt) 500g',
-            'category'    => 'dairy',
-            'price'       => 75,
-            'old_price'   => null,
-            'badge'       => ['type' => 'new', 'label' => 'New Arrival'],
-            'image'       => 'https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=600&q=80',
-            'gallery'     => [
-                'https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=800&q=80',
-                'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=800&q=80',
-            ],
-            'brand'       => 'Aarong Dairy',
-            'rating'      => 4.6,
-            'reviews'     => 88,
-            'in_stock'    => true,
-            'description' => 'Creamy fresh dahi made from whole milk, perfect for raita, lassi, or eating plain.',
+            'id'       => 5,
+            'name'     => 'Ajwa Premium Dates',
+            'weight'   => '1 kg',
+            'price'    => 2250,
+            'old_price'=> 2500,
+            'cat'      => 'dates',
+            'badge'    => 'best',
+            'rating'   => 4.9,
+            'reviews'  => 320,
+            'blurb'    => 'Jumbo-grade Ajwa from Madinah. Soft, rich, low-glycemic and deeply sweet.',
         ],
 
-        // ── last 8: cross-category spread surfaced by array_reverse ──────────
+        // id 6
         [
-            'slug'        => 'black-tea-200g',
-            'name'        => 'Sylhet Black Tea 200g',
-            'category'    => 'beverages',
-            'price'       => 180,
-            'old_price'   => 210,
-            'badge'       => ['type' => 'save', 'label' => 'Save 14%'],
-            'image'       => 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=600&q=80',
-            'gallery'     => [
-                'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=800&q=80',
-                'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=800&q=80',
-                'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=800&q=80',
-            ],
-            'brand'       => 'TAAZA',
-            'rating'      => 4.6,
-            'reviews'     => 289,
-            'in_stock'    => true,
-            'description' => 'Strong, full-bodied Sylhet black tea, perfect for brewing a traditional doodh cha.',
-        ],
-        [
-            'slug'        => 'ajwa-dates-250g',
-            'name'        => 'Ajwa Dates 250g',
-            'category'    => 'dates',
-            'price'       => 490,
-            'old_price'   => null,
-            'badge'       => ['type' => 'best', 'label' => 'Best Selling'],
-            'image'       => 'https://images.unsplash.com/photo-1562802378-063ec186a863?w=600&q=80',
-            'gallery'     => [
-                'https://images.unsplash.com/photo-1562802378-063ec186a863?w=800&q=80',
-                'https://images.unsplash.com/photo-1590301157890-4810ed352733?w=800&q=80',
-                'https://images.unsplash.com/photo-1567718379428-f63e3a1c97af?w=800&q=80',
-            ],
-            'brand'       => 'Al-Madina',
-            'rating'      => 4.8,
-            'reviews'     => 183,
-            'in_stock'    => true,
-            'description' => 'Authentic Ajwa dates from Madinah, known for their distinct taste and health benefits.',
-        ],
-        [
-            'slug'        => 'full-cream-milk-1l',
-            'name'        => 'Full Cream Milk 1L',
-            'category'    => 'dairy',
-            'price'       => 95,
-            'old_price'   => null,
-            'badge'       => null,
-            'image'       => 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=600&q=80',
-            'gallery'     => [
-                'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=800&q=80',
-                'https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=800&q=80',
-            ],
-            'brand'       => 'Milk Vita',
-            'rating'      => 4.5,
-            'reviews'     => 302,
-            'in_stock'    => true,
-            'description' => 'Fresh full-cream pasteurized milk, rich in calcium and vitamins for the whole family.',
-        ],
-        [
-            'slug'        => 'cashew-nuts-250g',
-            'name'        => 'Premium Cashew Nuts 250g',
-            'category'    => 'honey-nuts',
-            'price'       => 420,
-            'old_price'   => null,
-            'badge'       => ['type' => 'new', 'label' => 'New Arrival'],
-            'image'       => 'https://images.unsplash.com/photo-1508061253366-f7da158b6d46?w=600&q=80',
-            'gallery'     => [
-                'https://images.unsplash.com/photo-1508061253366-f7da158b6d46?w=800&q=80',
-                'https://images.unsplash.com/photo-1567718379428-f63e3a1c97af?w=800&q=80',
-            ],
-            'brand'       => 'Ghorer Bazar',
-            'rating'      => 4.6,
-            'reviews'     => 57,
-            'in_stock'    => true,
-            'description' => 'Freshly sourced whole cashews, lightly roasted and packed for maximum freshness.',
-        ],
-        [
-            'slug'        => 'raw-honey-500g',
-            'name'        => 'Raw Forest Honey 500g',
-            'category'    => 'honey-nuts',
-            'price'       => 650,
-            'old_price'   => 750,
-            'badge'       => ['type' => 'save', 'label' => 'Save 13%'],
-            'image'       => 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=600&q=80',
-            'gallery'     => [
-                'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=800&q=80',
-                'https://images.unsplash.com/photo-1471943311424-646960669fbc?w=800&q=80',
-                'https://images.unsplash.com/photo-1567718379428-f63e3a1c97af?w=800&q=80',
-            ],
-            'brand'       => 'Sundarban Honey',
-            'rating'      => 4.8,
-            'reviews'     => 342,
-            'in_stock'    => true,
-            'description' => 'Unprocessed raw forest honey harvested from the Sundarbans, full of natural enzymes.',
-        ],
-        [
-            'slug'        => 'rice-bran-oil-1l',
-            'name'        => 'Rice Bran Oil 1L',
-            'category'    => 'cooking-essentials',
-            'price'       => 390,
-            'old_price'   => 430,
-            'badge'       => ['type' => 'save', 'label' => 'Save 9%'],
-            'image'       => 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&q=80',
-            'gallery'     => [
-                'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=800&q=80',
-                'https://images.unsplash.com/photo-1519864600265-abb23847ef2c?w=800&q=80',
-            ],
-            'brand'       => 'Teer',
-            'rating'      => 4.3,
-            'reviews'     => 76,
-            'in_stock'    => true,
-            'description' => 'Light rice bran oil with a high smoke point, perfect for stir-frying and sautéing.',
-        ],
-        [
-            'slug'        => 'soybean-oil-2l',
-            'name'        => 'Soybean Oil 2L',
-            'category'    => 'cooking-essentials',
-            'price'       => 320,
-            'old_price'   => null,
-            'badge'       => ['type' => 'best', 'label' => 'Best Selling'],
-            'image'       => 'https://images.unsplash.com/photo-1519864600265-abb23847ef2c?w=600&q=80',
-            'gallery'     => [
-                'https://images.unsplash.com/photo-1519864600265-abb23847ef2c?w=800&q=80',
-                'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80',
-                'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80',
-            ],
-            'brand'       => 'Rupchanda',
-            'rating'      => 4.5,
-            'reviews'     => 214,
-            'in_stock'    => true,
-            'description' => 'Premium refined soybean oil, ideal for everyday cooking and deep frying.',
-        ],
-        [
-            'slug'        => 'mustard-oil-1l',
-            'name'        => 'Pure Mustard Oil 1L',
-            'category'    => 'cooking-essentials',
-            'price'       => 480,
-            'old_price'   => 550,
-            'badge'       => ['type' => 'save', 'label' => 'Save 13%'],
-            'image'       => 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&q=80',
-            'gallery'     => [
-                'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=800&q=80',
-                'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80',
-            ],
-            'brand'       => 'Ghorer Bazar',
-            'rating'      => 4.7,
-            'reviews'     => 128,
-            'in_stock'    => true,
-            'description' => 'Cold-pressed pure mustard oil, rich aroma, no additives.',
+            'id'       => 6,
+            'name'     => 'Medjool Large Dates',
+            'weight'   => '1 kg',
+            'price'    => 1984,
+            'old_price'=> 2200,
+            'cat'      => 'dates',
+            'badge'    => null,
+            'rating'   => 4.8,
+            'reviews'  => 210,
+            'blurb'    => 'Caramel-soft Egyptian Medjool. The classic snacking date.',
         ],
 
+        // id 7
+        [
+            'id'       => 7,
+            'name'     => 'Safawi / Kalmi Dates',
+            'weight'   => '1 kg',
+            'price'    => 1170,
+            'old_price'=> 1300,
+            'cat'      => 'dates',
+            'badge'    => null,
+            'rating'   => 4.8,
+            'reviews'  => 140,
+            'blurb'    => 'A-grade Safawi — firm texture, dark and not too sweet.',
+        ],
+
+        // id 8
+        [
+            'id'       => 8,
+            'name'     => 'Sukkari Dates',
+            'weight'   => '1 kg',
+            'price'    => 1290,
+            'old_price'=> 1450,
+            'cat'      => 'dates',
+            'badge'    => 'new',
+            'rating'   => 4.8,
+            'reviews'  => 77,
+            'blurb'    => 'Golden, melt-in-mouth Sukkari from the Qassim region.',
+        ],
+
+        // id 9
+        [
+            'id'       => 9,
+            'name'     => 'Gawa Ghee',
+            'weight'   => '1 kg',
+            'price'    => 1700,
+            'old_price'=> 1800,
+            'cat'      => 'oil-ghee',
+            'badge'    => 'best',
+            'rating'   => 4.9,
+            'reviews'  => 530,
+            'blurb'    => "Slow-cooked from pure cow's milk butter. Grainy, golden, deeply aromatic.",
+        ],
+
+        // id 10
+        [
+            'id'       => 10,
+            'name'     => 'Deshi Mustard Oil',
+            'weight'   => '5 L',
+            'price'    => 1550,
+            'old_price'=> null,
+            'cat'      => 'oil-ghee',
+            'badge'    => 'best',
+            'rating'   => 4.8,
+            'reviews'  => 488,
+            'blurb'    => 'Cold-pressed Maghi mustard oil. Pungent, sharp, traditional ghani-milled.',
+        ],
+
+        // id 11
+        [
+            'id'       => 11,
+            'name'     => 'Extra Virgin Coconut Oil',
+            'weight'   => '1 L',
+            'price'    => 2030,
+            'old_price'=> null,
+            'cat'      => 'oil-ghee',
+            'badge'    => null,
+            'rating'   => 4.8,
+            'reviews'  => 132,
+            'blurb'    => 'Organic cold-pressed coconut oil. Cooking, skin and hair.',
+        ],
+
+        // id 12
+        [
+            'id'       => 12,
+            'name'     => 'Black Cumin Seed Oil',
+            'weight'   => '250 ml',
+            'price'    => 980,
+            'old_price'=> 1100,
+            'cat'      => 'oil-ghee',
+            'badge'    => null,
+            'rating'   => 4.8,
+            'reviews'  => 88,
+            'blurb'    => 'Cold-pressed kalonji oil — a wellness staple, taken by the spoon.',
+        ],
+
+        // id 13
+        [
+            'id'       => 13,
+            'name'     => 'Kala Bhuna Masala',
+            'weight'   => '250 g',
+            'price'    => 675,
+            'old_price'=> 750,
+            'cat'      => 'spices',
+            'badge'    => null,
+            'rating'   => 4.8,
+            'reviews'  => 145,
+            'blurb'    => 'Hand-blended Chittagong kala bhuna spice mix. Smoky, dark, complex.',
+        ],
+
+        // id 14
+        [
+            'id'       => 14,
+            'name'     => 'Turmeric Powder',
+            'weight'   => '500 g',
+            'price'    => 295,
+            'old_price'=> null,
+            'cat'      => 'spices',
+            'badge'    => null,
+            'rating'   => 4.8,
+            'reviews'  => 99,
+            'blurb'    => 'Stone-ground sun-dried turmeric. High curcumin, no additives.',
+        ],
+
+        // id 15
+        [
+            'id'       => 15,
+            'name'     => 'Chili Powder',
+            'weight'   => '500 g',
+            'price'    => 400,
+            'old_price'=> null,
+            'cat'      => 'spices',
+            'badge'    => null,
+            'rating'   => 4.8,
+            'reviews'  => 110,
+            'blurb'    => 'Pure red chili, ground fresh. Vivid colour, clean heat.',
+        ],
+
+        // id 16
+        [
+            'id'       => 16,
+            'name'     => 'Cumin Powder',
+            'weight'   => '500 g',
+            'price'    => 880,
+            'old_price'=> null,
+            'cat'      => 'spices',
+            'badge'    => 'new',
+            'rating'   => 4.8,
+            'reviews'  => 61,
+            'blurb'    => 'Roasted then ground whole cumin. Warm, earthy, fragrant.',
+        ],
+
+        // id 17
+        [
+            'id'       => 17,
+            'name'     => 'Honey Roasted Nuts Mix',
+            'weight'   => '800 g',
+            'price'    => 1500,
+            'old_price'=> null,
+            'cat'      => 'nuts',
+            'badge'    => 'best',
+            'rating'   => 4.8,
+            'reviews'  => 240,
+            'blurb'    => 'Almonds, cashews and walnuts tumbled in raw honey.',
+        ],
+
+        // id 18
+        [
+            'id'       => 18,
+            'name'     => 'Raw Cashew Nuts',
+            'weight'   => '500 g',
+            'price'    => 920,
+            'old_price'=> 1000,
+            'cat'      => 'nuts',
+            'badge'    => null,
+            'rating'   => 4.8,
+            'reviews'  => 130,
+            'blurb'    => 'Whole W320 cashews, unsalted and unroasted.',
+        ],
+
+        // id 19
+        [
+            'id'       => 19,
+            'name'     => 'Chia Seeds',
+            'weight'   => '500 g',
+            'price'    => 640,
+            'old_price'=> null,
+            'cat'      => 'nuts',
+            'badge'    => null,
+            'rating'   => 4.8,
+            'reviews'  => 85,
+            'blurb'    => 'Premium black chia. Omega-rich, perfect for puddings and drinks.',
+        ],
+
+        // id 20
+        [
+            'id'       => 20,
+            'name'     => 'Mixed Pumpkin & Sunflower Seeds',
+            'weight'   => '400 g',
+            'price'    => 560,
+            'old_price'=> 620,
+            'cat'      => 'nuts',
+            'badge'    => 'new',
+            'rating'   => 4.8,
+            'reviews'  => 47,
+            'blurb'    => 'Lightly roasted seed mix for salads and snacking.',
+        ],
+
+        // id 21
+        [
+            'id'       => 21,
+            'name'     => 'Aromatic Kalijira Rice',
+            'weight'   => '5 kg',
+            'price'    => 720,
+            'old_price'=> null,
+            'cat'      => 'rice',
+            'badge'    => null,
+            'rating'   => 4.8,
+            'reviews'  => 158,
+            'blurb'    => 'Tiny-grain Bangladeshi kalijira. Fragrant polao and payesh rice.',
+        ],
+
+        // id 22
+        [
+            'id'       => 22,
+            'name'     => 'Aged Basmati Rice',
+            'weight'   => '5 kg',
+            'price'    => 1150,
+            'old_price'=> 1250,
+            'cat'      => 'rice',
+            'badge'    => null,
+            'rating'   => 4.8,
+            'reviews'  => 96,
+            'blurb'    => 'Two-year aged long-grain basmati. Fluffy, separate, aromatic.',
+        ],
+
+        // id 23
+        [
+            'id'       => 23,
+            'name'     => 'Amrapali Mango',
+            'weight'   => '10 kg',
+            'price'    => 1600,
+            'old_price'=> null,
+            'cat'      => 'mango',
+            'badge'    => 'preorder',
+            'rating'   => 4.8,
+            'reviews'  => 70,
+            'blurb'    => 'Naturally ripened Rajshahi Amrapali. Pre-order for peak-season delivery.',
+        ],
+
+        // id 24
+        [
+            'id'       => 24,
+            'name'     => 'Himsagar Mango',
+            'weight'   => '5 kg',
+            'price'    => 850,
+            'old_price'=> null,
+            'cat'      => 'mango',
+            'badge'    => 'preorder',
+            'rating'   => 4.8,
+            'reviews'  => 64,
+            'blurb'    => 'The king of mangoes — fibreless, intensely sweet Himsagar.',
+        ],
+
+        // id 25
+        [
+            'id'       => 25,
+            'name'     => 'Garden Fresh Green Tea',
+            'weight'   => '100 g',
+            'price'    => 480,
+            'old_price'=> null,
+            'cat'      => 'tea',
+            'badge'    => null,
+            'rating'   => 4.8,
+            'reviews'  => 58,
+            'blurb'    => 'Whole-leaf green tea from Sylhet hill gardens.',
+        ],
+
+        // id 26
+        [
+            'id'       => 26,
+            'name'     => 'Single Origin Coffee Beans',
+            'weight'   => '250 g',
+            'price'    => 720,
+            'old_price'=> 800,
+            'cat'      => 'tea',
+            'badge'    => 'new',
+            'rating'   => 4.8,
+            'reviews'  => 39,
+            'blurb'    => 'Medium-roast arabica, ground or whole bean.',
+        ],
+
+        // id 27 — extra mango sizes (seasonal pre-order)
+        [
+            'id'       => 27,
+            'name'     => 'Amrapali Mango',
+            'weight'   => '20 kg',
+            'price'    => 3000,
+            'old_price'=> 3200,
+            'cat'      => 'mango',
+            'badge'    => 'preorder',
+            'rating'   => 4.8,
+            'reviews'  => 52,
+            'blurb'    => 'Bulk Rajshahi Amrapali, naturally ripened. Reserve for peak season.',
+        ],
+
+        // id 28
+        [
+            'id'       => 28,
+            'name'     => 'Amrapali Mango',
+            'weight'   => '5 kg',
+            'price'    => 850,
+            'old_price'=> null,
+            'cat'      => 'mango',
+            'badge'    => 'preorder',
+            'rating'   => 4.8,
+            'reviews'  => 41,
+            'blurb'    => 'A family-size crate of fibreless, intensely sweet Amrapali.',
+        ],
+
+        // id 29
+        [
+            'id'       => 29,
+            'name'     => 'Himsagar Mango',
+            'weight'   => '10 kg',
+            'price'    => 1600,
+            'old_price'=> null,
+            'cat'      => 'mango',
+            'badge'    => 'preorder',
+            'rating'   => 4.8,
+            'reviews'  => 48,
+            'blurb'    => 'The king of mangoes — sweet, aromatic, naturally ripened Himsagar.',
+        ],
+
+        // id 30 — organic certified line
+        [
+            'id'        => 30,
+            'name'      => 'African Organic Wild Honey',
+            'weight'    => '500 g',
+            'price'     => 1100,
+            'old_price' => 1250,
+            'cat'       => 'honey',
+            'badge'     => null,
+            'rating'    => 4.8,
+            'reviews'   => 132,
+            'blurb'     => 'Wild-foraged organic honey from African highlands. Bold and aromatic.',
+            'certified' => true,
+        ],
+
+        // id 31
+        [
+            'id'        => 31,
+            'name'      => 'Organic Spirulina Powder',
+            'weight'    => '250 g',
+            'price'     => 1140,
+            'old_price' => 1200,
+            'cat'       => 'nuts',
+            'badge'     => 'new',
+            'rating'    => 4.8,
+            'reviews'   => 64,
+            'blurb'     => 'Nutrient-dense organic spirulina. A daily green boost.',
+            'certified' => true,
+        ],
+
+        // id 32
+        [
+            'id'        => 32,
+            'name'      => 'Organic Matcha Green Tea',
+            'weight'    => '100 g',
+            'price'     => 1500,
+            'old_price' => null,
+            'cat'       => 'tea',
+            'badge'     => null,
+            'rating'    => 4.8,
+            'reviews'   => 47,
+            'blurb'     => 'Stone-ground ceremonial matcha. Smooth, vivid and earthy.',
+            'certified' => true,
+        ],
+
+        // id 33
+        [
+            'id'        => 33,
+            'name'      => 'Ashwagandha Powder',
+            'weight'    => '100 g',
+            'price'     => 600,
+            'old_price' => null,
+            'cat'       => 'spices',
+            'badge'     => 'new',
+            'rating'    => 4.8,
+            'reviews'   => 38,
+            'blurb'     => 'USDA-organic ashwagandha root powder for calm and balance.',
+            'certified' => true,
+        ],
+
+        // id 34
+        [
+            'id'        => 34,
+            'name'      => 'Organic Apple Cider Vinegar',
+            'weight'    => '250 ml',
+            'price'     => 490,
+            'old_price' => null,
+            'cat'       => 'oil-ghee',
+            'badge'     => null,
+            'rating'    => 4.8,
+            'reviews'   => 55,
+            'blurb'     => 'Raw, unfiltered ACV with the mother. Tangy and bright.',
+            'certified' => true,
+        ],
+
+        // id 35
+        [
+            'id'       => 35,
+            'name'     => 'Ajwa Premium Dates',
+            'weight'   => '500 g',
+            'price'    => 1250,
+            'old_price'=> null,
+            'cat'      => 'dates',
+            'badge'    => null,
+            'rating'   => 4.8,
+            'reviews'  => 73,
+            'blurb'    => 'Half-kilo of soft, rich jumbo Ajwa from Madinah.',
+        ],
+
+    ],
+
+    // ── Brands ────────────────────────────────────────────────────────────
+    'brands' => ['Shuvo Farms', 'Khejuri', 'Honeyraj', 'Glarvest', 'Shosti Food'],
+
+    // ── Testimonials ──────────────────────────────────────────────────────
+    'testimonials' => [
+        [
+            'name' => 'Sultana Yesmin',
+            'role' => 'Homemaker',
+            'text' => 'Ordered twice now — same great quality and fast delivery both times. Completely satisfied.',
+        ],
+        [
+            'name' => 'Ayesha Khan',
+            'role' => 'Banker',
+            'text' => 'In a market full of doubt, Shuvo is a name I actually trust. The honey is the real thing.',
+        ],
+        [
+            'name' => 'Shahriar Abir',
+            'role' => 'Service Holder',
+            'text' => "I don't even like ghee, but my father said this is the best he's ever had.",
+        ],
+        [
+            'name' => 'Fariha Tumpa',
+            'role' => 'Entrepreneur',
+            'text' => 'Clean packaging, honest sourcing, and the dates are unreal. My monthly order now.',
+        ],
+    ],
+
+    // ── Combo Deals ───────────────────────────────────────────────────────
+    // ~11-14 % savings vs sum of individual item prices
+    'combos' => [
+        [
+            'name'      => 'Breakfast Combo',
+            'items'     => 'Sundarban Wild Honey + Ajwa Premium Dates + Gawa Ghee',
+            'price'     => 5500,
+            'old_price' => 6250,
+        ],
+        [
+            'name'      => 'Wellness Combo',
+            'items'     => 'Black Seed Honey + Black Cumin Seed Oil + Ashwagandha Powder',
+            'price'     => 2100,
+            'old_price' => 2380,
+        ],
+        [
+            'name'      => 'Ramadan Special',
+            'items'     => 'Ajwa Premium Dates + Sukkari Dates + Natural Honeycomb',
+            'price'     => 5200,
+            'old_price' => 5990,
+        ],
+        [
+            'name'      => 'Cooking Essentials',
+            'items'     => 'Deshi Mustard Oil + Gawa Ghee + Turmeric Powder + Chili Powder',
+            'price'     => 2750,
+            'old_price' => 3145,
+        ],
+        [
+            'name'      => 'Gift Hamper',
+            'items'     => 'African Organic Wild Honey + Honey Roasted Nuts Mix + Organic Matcha Green Tea',
+            'price'     => 3600,
+            'old_price' => 4100,
+        ],
     ],
 
 ];
