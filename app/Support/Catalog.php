@@ -2,40 +2,82 @@
 
 namespace App\Support;
 
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Product;
+
 /**
- * Static accessor over config/products.php.
- * BACKEND SWAP POINT: replace these method bodies with Eloquent queries when
- * migrating to a database. No Blade view or controller reads config('products.*') directly.
+ * Catalog — DB-backed accessor for Shuvo storefront data.
+ *
+ * Migrated in Phase B1: categories, brands, products now read from the
+ * database via Eloquent models. Every public method returns the SAME array
+ * shapes as the previous config-backed implementation so no Blade view
+ * requires any change.
+ *
+ * Unchanged (still config-backed, migrated in a later phase):
+ *   testimonials(), combos(), giftThreshold(), shipThreshold()
+ *
+ * Array shape for products (toCardArray):
+ *   id, name, weight, price, old_price, cat, badge, rating, reviews, blurb, certified
+ *
+ * Array shape for categories:
+ *   id (= slug), name, tint, note, count
  */
 class Catalog
 {
     // ── Raw data accessors ────────────────────────────────────────────────
 
-    /** @return array<int,array> */
+    /**
+     * All active products as card arrays.
+     *
+     * @return array<int,array>
+     */
     public static function products(): array
     {
-        return config('products.products', []);
+        return Product::active()
+            ->with('category')
+            ->orderBy('sort')
+            ->get()
+            ->map(fn (Product $p) => $p->toCardArray())
+            ->all();
     }
 
     /**
-     * Categories, each enriched with a derived `count` of products in that category.
+     * Categories, each enriched with a derived `count` of active products.
+     * `id` is the category slug to match the old config shape.
      *
      * @return array<int,array>
      */
     public static function categories(): array
     {
-        $products = self::products();
-        return array_map(function (array $cat) use ($products): array {
-            $cat['count'] = count(array_filter($products, fn ($p) => $p['cat'] === $cat['id']));
-            return $cat;
-        }, config('products.categories', []));
+        return Category::active()
+            ->withCount(['products' => fn ($q) => $q->where('is_active', true)])
+            ->orderBy('sort')
+            ->get()
+            ->map(fn (Category $c) => [
+                'id'    => $c->slug,
+                'name'  => $c->name,
+                'tint'  => $c->tint,
+                'note'  => $c->note,
+                'count' => (int) $c->products_count,
+            ])
+            ->all();
     }
 
-    /** @return array<int,string> */
+    /**
+     * Brand names as a plain array of strings.
+     *
+     * @return array<int,string>
+     */
     public static function brands(): array
     {
-        return config('products.brands', []);
+        return Brand::active()
+            ->orderBy('id')
+            ->pluck('name')
+            ->all();
     }
+
+    // ── Config-backed (not migrated in B1) ────────────────────────────────
 
     /** @return array<int,array> */
     public static function testimonials(): array
@@ -63,119 +105,194 @@ class Catalog
 
     // ── Single-item lookups ───────────────────────────────────────────────
 
-    /** Find a product by numeric id. */
+    /**
+     * Find a product by numeric DB id.
+     * Views call route('product', $id) with the numeric id — DB autoincrement
+     * matches 1..35 after a fresh seed.
+     */
     public static function find(mixed $id): ?array
     {
-        $id = (int) $id;
-        foreach (self::products() as $p) {
-            if ((int) $p['id'] === $id) {
-                return $p;
-            }
-        }
-        return null;
+        $product = Product::active()
+            ->with('category')
+            ->find((int) $id);
+
+        return $product?->toCardArray();
     }
 
-    /** Single category by id-slug (with derived count). */
-    public static function category(string $id): ?array
+    /**
+     * Single category by slug (the 'id' in the old config shape).
+     * Returns the same array shape as categories() entries, or null.
+     */
+    public static function category(string $slug): ?array
     {
-        foreach (self::categories() as $c) {
-            if ($c['id'] === $id) {
-                return $c;
-            }
+        $c = Category::active()
+            ->withCount(['products' => fn ($q) => $q->where('is_active', true)])
+            ->where('slug', $slug)
+            ->first();
+
+        if (! $c) {
+            return null;
         }
-        return null;
+
+        return [
+            'id'    => $c->slug,
+            'name'  => $c->name,
+            'tint'  => $c->tint,
+            'note'  => $c->note,
+            'count' => (int) $c->products_count,
+        ];
     }
 
     // ── Collection queries ────────────────────────────────────────────────
 
-    /** Products belonging to a category. */
-    public static function byCategory(string $catId): array
+    /**
+     * Products belonging to a category (identified by slug).
+     */
+    public static function byCategory(string $catSlug): array
     {
-        return array_values(array_filter(self::products(), fn ($p) => $p['cat'] === $catId));
+        $category = Category::where('slug', $catSlug)->first();
+
+        if (! $category) {
+            return [];
+        }
+
+        return Product::active()
+            ->with('category')
+            ->where('category_id', $category->id)
+            ->orderBy('sort')
+            ->get()
+            ->map(fn (Product $p) => $p->toCardArray())
+            ->all();
     }
 
     /**
-     * Top-selling products: badge === 'best'.
-     * If fewer than $limit, pads with the highest-review products not already included.
+     * Top-selling products: badge='best', padded to $limit by highest reviews.
      */
     public static function topSelling(int $limit = 8): array
     {
-        $best = array_values(array_filter(self::products(), fn ($p) => ($p['badge'] ?? null) === 'best'));
+        $best = Product::active()
+            ->with('category')
+            ->where('badge', 'best')
+            ->orderByDesc('reviews')
+            ->get();
 
-        if (count($best) >= $limit) {
-            return array_slice($best, 0, $limit);
+        if ($best->count() >= $limit) {
+            return $best->take($limit)
+                ->map(fn (Product $p) => $p->toCardArray())
+                ->all();
         }
 
-        $bestIds = array_column($best, 'id');
-        $rest    = array_filter(self::products(), fn ($p) => ! in_array($p['id'], $bestIds, true));
-        usort($rest, fn ($a, $b) => ($b['reviews'] ?? 0) <=> ($a['reviews'] ?? 0));
-        $pad = array_slice(array_values($rest), 0, $limit - count($best));
+        $bestIds = $best->pluck('id')->all();
 
-        return array_values(array_merge($best, $pad));
-    }
+        $pad = Product::active()
+            ->with('category')
+            ->whereNotIn('id', $bestIds)
+            ->orderByDesc('reviews')
+            ->take($limit - $best->count())
+            ->get();
 
-    /** Products with badge === 'new'. */
-    public static function newArrivals(int $limit = 10): array
-    {
-        return array_slice(
-            array_values(array_filter(self::products(), fn ($p) => ($p['badge'] ?? null) === 'new')),
-            0,
-            $limit
-        );
-    }
-
-    /** Products with badge === 'preorder'. */
-    public static function preorder(int $limit = 10): array
-    {
-        return array_slice(
-            array_values(array_filter(self::products(), fn ($p) => ($p['badge'] ?? null) === 'preorder')),
-            0,
-            $limit
-        );
-    }
-
-    /** Products with certified === true. */
-    public static function certified(int $limit = 10): array
-    {
-        return array_slice(
-            array_values(array_filter(self::products(), fn ($p) => ! empty($p['certified']))),
-            0,
-            $limit
-        );
+        return $best->concat($pad)
+            ->map(fn (Product $p) => $p->toCardArray())
+            ->all();
     }
 
     /**
-     * Products in the same category as the given id, excluding that product itself.
+     * Products with badge='new'.
+     */
+    public static function newArrivals(int $limit = 10): array
+    {
+        return Product::active()
+            ->with('category')
+            ->where('badge', 'new')
+            ->orderBy('sort')
+            ->take($limit)
+            ->get()
+            ->map(fn (Product $p) => $p->toCardArray())
+            ->all();
+    }
+
+    /**
+     * Products with badge='preorder'.
+     */
+    public static function preorder(int $limit = 10): array
+    {
+        return Product::active()
+            ->with('category')
+            ->where('badge', 'preorder')
+            ->orderBy('sort')
+            ->take($limit)
+            ->get()
+            ->map(fn (Product $p) => $p->toCardArray())
+            ->all();
+    }
+
+    /**
+     * Products with certified=true.
+     */
+    public static function certified(int $limit = 10): array
+    {
+        return Product::active()
+            ->with('category')
+            ->where('certified', true)
+            ->orderBy('sort')
+            ->take($limit)
+            ->get()
+            ->map(fn (Product $p) => $p->toCardArray())
+            ->all();
+    }
+
+    /**
+     * Products in the same category as the given numeric id, excluding that product.
+     * Uses numeric DB id (not slug).
      */
     public static function related(mixed $id, int $limit = 5): array
     {
-        $product = self::find($id);
+        $product = Product::active()->with('category')->find((int) $id);
+
         if (! $product) {
             return [];
         }
-        $rel = array_filter(
-            self::products(),
-            fn ($p) => $p['cat'] === $product['cat'] && (int) $p['id'] !== (int) $id
-        );
-        return array_slice(array_values($rel), 0, $limit);
+
+        return Product::active()
+            ->with('category')
+            ->where('category_id', $product->category_id)
+            ->where('id', '!=', (int) $id)
+            ->orderBy('sort')
+            ->take($limit)
+            ->get()
+            ->map(fn (Product $p) => $p->toCardArray())
+            ->all();
     }
 
-    /** Case-insensitive name search. Empty query returns all products. */
+    /**
+     * Case-insensitive name search. Empty query returns all products.
+     */
     public static function search(string $q): array
     {
         if ($q === '') {
             return self::products();
         }
-        $lower = mb_strtolower($q);
-        return array_values(array_filter(
-            self::products(),
-            fn ($p) => str_contains(mb_strtolower($p['name']), $lower)
-        ));
+
+        return Product::active()
+            ->with('category')
+            ->where('name', 'like', '%' . $q . '%')
+            ->orderBy('sort')
+            ->get()
+            ->map(fn (Product $p) => $p->toCardArray())
+            ->all();
     }
 
-    /** First $limit products — used for "Just For You" rail. */
+    /**
+     * First $limit active products — used for "Just For You" rail.
+     */
     public static function featured(int $limit = 10): array
     {
-        return array_slice(self::products(), 0, $limit);
+        return Product::active()
+            ->with('category')
+            ->orderBy('sort')
+            ->take($limit)
+            ->get()
+            ->map(fn (Product $p) => $p->toCardArray())
+            ->all();
     }
 }
