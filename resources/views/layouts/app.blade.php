@@ -12,9 +12,10 @@
 <body class="bg-white text-text"
       x-data
       x-init="$store.cart.threshold = {{ \App\Support\Catalog::giftThreshold() }}">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:top-2 focus:left-2 focus:bg-primary focus:text-white focus:px-4 focus:py-2 focus:rounded">Skip to content</a>
     @include('partials.header')
 
-    <main>
+    <main id="main-content">
         @yield('content')
     </main>
 

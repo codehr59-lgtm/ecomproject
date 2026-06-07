@@ -36,8 +36,8 @@
             <div class="mb-6">
                 <h3 class="text-sm font-bold text-ink uppercase border-b-2 border-primary pb-1 mb-3">PRICE RANGE</h3>
                 <div class="space-y-2">
-                    <input type="range" min="0" max="1000" step="10" x-model.number="min" class="w-full accent-primary">
-                    <input type="range" min="0" max="1000" step="10" x-model.number="max" class="w-full accent-primary">
+                    <input type="range" min="0" max="1000" step="10" x-model.number="min" aria-label="Minimum price" class="w-full accent-primary">
+                    <input type="range" min="0" max="1000" step="10" x-model.number="max" aria-label="Maximum price" class="w-full accent-primary">
                     <p class="text-sm text-text">৳<span x-text="min"></span> — ৳<span x-text="max"></span></p>
                 </div>
             </div>
@@ -67,8 +67,8 @@
             {{-- Top bar: sort + view toggle --}}
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
-                    <label class="text-sm text-text">Sort By:</label>
-                    <select class="field max-w-[220px]">
+                    <label for="sort-select" class="text-sm text-text">Sort By:</label>
+                    <select id="sort-select" class="field max-w-[220px]">
                         <option>Default Sorting</option>
                         <option>Price: Low to High</option>
                         <option>Price: High to Low</option>

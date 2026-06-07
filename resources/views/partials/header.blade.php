@@ -20,7 +20,7 @@
                    class="text-white hover:text-primary transition-colors">Home</a>
 
                 <a href="{{ route('category', $firstCat['slug']) }}"
-                   class="text-white hover:text-primary transition-colors">{{ $firstCat['name'] }}</a>
+                   class="text-white hover:text-primary transition-colors">Categories</a>
 
                 @foreach(array_slice($cats, 1, 2) as $cat)
                     <a href="{{ route('category', $cat['slug']) }}"
@@ -65,7 +65,7 @@
 
                 <a href="{{ route('category', $firstCat['slug']) }}"
                    class="py-2 text-white hover:text-primary transition-colors"
-                   @click="m = false">{{ $firstCat['name'] }}</a>
+                   @click="m = false">Categories</a>
 
                 @foreach(array_slice($cats, 1, 2) as $cat)
                     <a href="{{ route('category', $cat['slug']) }}"

@@ -7,7 +7,7 @@
             {{-- Shop column --}}
             <div>
                 <h4 class="font-bold text-ink mb-4">Shop</h4>
-                <ul class="space-y-2 text-sm text-text">
+                <ul aria-label="Shop links" class="space-y-2 text-sm text-text">
                     <li><a href="#" class="hover:text-primary transition-colors">All Products</a></li>
                     <li>
                         <a href="{{ route('category', 'cooking-essentials') }}"
@@ -27,7 +27,7 @@
             {{-- Help column --}}
             <div>
                 <h4 class="font-bold text-ink mb-4">Help</h4>
-                <ul class="space-y-2 text-sm text-text">
+                <ul aria-label="Help links" class="space-y-2 text-sm text-text">
                     <li><a href="#" class="hover:text-primary transition-colors">Track Order</a></li>
                     <li><a href="#" class="hover:text-primary transition-colors">Shipping Info</a></li>
                     <li><a href="#" class="hover:text-primary transition-colors">Returns</a></li>
@@ -38,7 +38,7 @@
             {{-- Company column --}}
             <div>
                 <h4 class="font-bold text-ink mb-4">Company</h4>
-                <ul class="space-y-2 text-sm text-text">
+                <ul aria-label="Company links" class="space-y-2 text-sm text-text">
                     <li><a href="#" class="hover:text-primary transition-colors">About Us</a></li>
                     <li><a href="#" class="hover:text-primary transition-colors">Contact</a></li>
                     <li><a href="#" class="hover:text-primary transition-colors">Blog</a></li>
@@ -49,7 +49,7 @@
             {{-- Contact column --}}
             <div>
                 <h4 class="font-bold text-ink mb-4">Contact</h4>
-                <div class="space-y-2 text-sm text-text">
+                <div aria-label="Contact info" class="space-y-2 text-sm text-text">
                     <p>+880 1XXX-XXXXXX</p>
                     <p>support@ghorerbazar.com</p>
                     <p>Dhaka, Bangladesh</p>
@@ -89,10 +89,12 @@
                 {{-- App-store badges --}}
                 <div class="flex gap-3">
                     <a href="#"
+                       aria-label="Download on the App Store"
                        class="bg-dark text-white text-xs rounded px-3 py-2 hover:opacity-80 transition-opacity">
                         App Store
                     </a>
                     <a href="#"
+                       aria-label="Get it on Google Play"
                        class="bg-dark text-white text-xs rounded px-3 py-2 hover:opacity-80 transition-opacity">
                         Google Play
                     </a>
