@@ -6,13 +6,10 @@ use Tests\TestCase;
 
 class CheckoutPageTest extends TestCase
 {
-    public function test_checkout_renders_sections(): void
+    public function test_checkout_renders(): void
     {
-        $this->get('/checkout')
-            ->assertOk()
-            ->assertSee('Order review')
-            ->assertSee('Shipping Address')
-            ->assertSee('Payment method')
-            ->assertSee('Place Order');
+        $this->get('/checkout')->assertOk()
+            ->assertSee('Delivery Details')->assertSee('Payment Method')
+            ->assertSee('Place Order')->assertSee('Order Summary');
     }
 }

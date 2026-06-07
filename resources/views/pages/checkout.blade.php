@@ -1,200 +1,339 @@
 @extends('layouts.app')
-@section('title', 'Checkout — Ghorer Bazar')
+@section('title', 'Checkout — Shuvo')
 
 @section('content')
-<div class="max-w-content mx-auto px-4 py-8">
 
-    {{-- 1. Centered title + breadcrumb --}}
-    <div class="text-center mb-8">
-        <h1 class="text-2xl md:text-3xl font-bold text-ink">Checkout</h1>
-        <nav class="text-sm text-text mt-1"><a href="{{ route('home') }}" class="hover:text-primary">Home</a> <span class="mx-1">›</span> <span>Checkout</span></nav>
-    </div>
+{{-- ============================================================
+     CHECKOUT PAGE — Alpine root (form + success states)
+     ============================================================ --}}
+<div x-data="{
+    step: 1,
+    pay: 'cod',
+    placed: false,
+    orderNo: '',
+    promo: '',
+    name: '',
+    phone: '',
+    address: '',
+    city: '',
+    notes: '',
+    placeOrder() {
+        this.orderNo = 'SHV-' + Math.floor(100000 + Math.random() * 900000);
+        this.placed = true;
+        window.scrollTo({ top: 0 });
+        $store.shop.items = [];
+    }
+}">
 
-    {{-- 2. Login/Register banner --}}
-    <div class="bg-cream border border-border-light rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-3 mb-8">
-        <p class="text-sm text-text">Have any account? please login or register</p>
-        <div class="flex gap-3">
-            <a href="#" class="btn-outline">Login</a>
-            <a href="#" class="btn-primary">Register</a>
+    {{-- ============================================================
+         STATE A — Checkout form (hidden after order placed)
+         ============================================================ --}}
+    <div x-show="!placed">
+
+        {{-- Page head --}}
+        <div class="page-head">
+            <div class="wrap">
+                <div class="crumbs">
+                    <a href="{{ route('home') }}">Home</a>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:13px;height:13px">
+                        <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                    <a href="{{ route('shop') }}">Shop</a>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:13px;height:13px">
+                        <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                    <span>Checkout</span>
+                </div>
+                <h1>Checkout</h1>
+            </div>
         </div>
-    </div>
 
-    {{-- 3. Two-column layout --}}
-    <div class="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
+        <div class="wrap">
 
-        {{-- LEFT COLUMN --}}
-        <div class="space-y-8">
+            {{-- Steps bar --}}
+            <div class="co-steps" style="padding-top:28px">
+                <div class="co-step on">
+                    <span class="n">1</span> Delivery
+                </div>
+                <div class="bar"></div>
+                <div class="co-step" :class="step >= 2 ? 'on' : ''">
+                    <span class="n">2</span> Payment
+                </div>
+                <div class="bar"></div>
+                <div class="co-step" :class="step >= 3 ? 'on' : ''">
+                    <span class="n">3</span> Done
+                </div>
+            </div>
 
-            {{-- Order review --}}
-            <div>
-                <x-section-heading variant="bar">Order review</x-section-heading>
-                <div x-data>
-                    <template x-if="$store.cart.items.length === 0">
-                        <p class="text-text text-sm py-4">Your cart is empty. <a href="{{ route('home') }}" class="text-primary">Continue shopping</a></p>
-                    </template>
-                    <template x-for="item in $store.cart.items" :key="item.slug">
-                        <div class="flex items-center gap-3 py-3 border-b border-border-light">
-                            <img :src="item.image" class="w-14 h-14 object-cover rounded" :alt="item.name">
-                            <span class="flex-1 text-sm text-ink" x-text="item.name"></span>
-                            <div class="inline-flex items-center border border-border rounded text-sm">
-                                <button class="w-7 h-7" @click="$store.cart.setQty(item.slug, item.qty-1)" aria-label="Decrease quantity">−</button>
-                                <span class="w-7 text-center" x-text="item.qty"></span>
-                                <button class="w-7 h-7" @click="$store.cart.setQty(item.slug, item.qty+1)" aria-label="Increase quantity">+</button>
+            {{-- Two-column checkout layout --}}
+            <div class="checkout">
+
+                {{-- ── LEFT: Forms ─────────────────────────────────────── --}}
+                <div>
+
+                    {{-- Delivery Details card --}}
+                    <div class="co-card">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px;color:var(--green)">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            Delivery Details
+                        </h3>
+
+                        {{-- Full Name --}}
+                        <div class="field">
+                            <label for="co-name">Full Name *</label>
+                            <input id="co-name" type="text" x-model="name" placeholder="e.g. Rahim Ahmed" autocomplete="name">
+                        </div>
+
+                        {{-- Phone + City row --}}
+                        <div class="field-row">
+                            <div class="field">
+                                <label for="co-phone">Phone Number *</label>
+                                <input id="co-phone" type="tel" x-model="phone" placeholder="01XXXXXXXXX" autocomplete="tel">
                             </div>
-                            <span class="text-sm text-primary font-semibold w-16 text-right" x-text="`৳${item.price*item.qty}`"></span>
-                            <button class="text-sale" @click="$store.cart.remove(item.slug)" aria-label="Remove item">🗑</button>
+                            <div class="field">
+                                <label for="co-city">City / District</label>
+                                <input id="co-city" type="text" x-model="city" placeholder="e.g. Dhaka" autocomplete="address-level2">
+                            </div>
                         </div>
-                    </template>
-                </div>
-            </div>
 
-            {{-- Shipping Address --}}
-            <div>
-                <x-section-heading variant="bar">Shipping Address</x-section-heading>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {{-- Address --}}
+                        <div class="field">
+                            <label for="co-address">Full Address *</label>
+                            <textarea id="co-address" rows="2" x-model="address" placeholder="House, road, area…" autocomplete="street-address"></textarea>
+                        </div>
 
-                    {{-- Full Name --}}
-                    <div class="sm:col-span-2">
-                        <label for="full_name" class="sr-only">Full Name</label>
-                        <input id="full_name" type="text" class="field" placeholder="Full Name">
-                    </div>
-
-                    {{-- Phone with +88 prefix --}}
-                    <div class="sm:col-span-2">
-                        <label for="phone" class="sr-only">Phone</label>
-                        <div class="flex">
-                            <span class="h-input px-3 flex items-center border border-border rounded-l-lg bg-cream text-sm">+88</span>
-                            <input id="phone" type="tel" class="field rounded-l-none" placeholder="01XXXXXXXXX">
+                        {{-- Notes --}}
+                        <div class="field" style="margin-bottom:0">
+                            <label for="co-notes">Notes (optional)</label>
+                            <textarea id="co-notes" rows="2" x-model="notes" placeholder="Landmark, preferred delivery time…"></textarea>
                         </div>
                     </div>
 
-                    {{-- Address textarea --}}
-                    <div class="sm:col-span-2">
-                        <label for="address" class="sr-only">Address</label>
-                        <textarea id="address" class="field !h-auto py-2" rows="3" placeholder="Full address"></textarea>
-                    </div>
+                    {{-- Payment Method card --}}
+                    <div class="co-card">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px;color:var(--green)">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                            Payment Method
+                        </h3>
 
-                    {{-- District --}}
-                    <div>
-                        <label for="district" class="sr-only">District</label>
-                        <select id="district" class="field">
-                            <option value="">Select District</option>
-                            <option value="dhaka">Dhaka</option>
-                            <option value="chattogram">Chattogram</option>
-                            <option value="khulna">Khulna</option>
-                            <option value="rajshahi">Rajshahi</option>
-                            <option value="sylhet">Sylhet</option>
-                            <option value="barishal">Barishal</option>
-                            <option value="rangpur">Rangpur</option>
-                            <option value="mymensingh">Mymensingh</option>
-                        </select>
-                    </div>
+                        {{-- Cash on Delivery --}}
+                        <div class="pay-opt" :class="pay === 'cod' ? 'on' : ''" @click="pay = 'cod'" role="radio" :aria-checked="pay === 'cod'" tabindex="0" @keydown.enter="pay = 'cod'" @keydown.space.prevent="pay = 'cod'">
+                            <span class="radio"></span>
+                            <span>
+                                <b>Cash on Delivery</b>
+                                <span>Pay when it arrives at your door</span>
+                            </span>
+                            <span class="pay-logo">COD</span>
+                        </div>
 
-                    {{-- Thana --}}
-                    <div>
-                        <label for="thana" class="sr-only">Thana</label>
-                        <select id="thana" class="field">
-                            <option value="">Select Thana</option>
-                            <option value="dhanmondi">Dhanmondi</option>
-                            <option value="gulshan">Gulshan</option>
-                            <option value="mirpur">Mirpur</option>
-                            <option value="mohammadpur">Mohammadpur</option>
-                            <option value="uttara">Uttara</option>
-                        </select>
+                        {{-- Online Payment (−2% discount) --}}
+                        <div class="pay-opt" :class="pay === 'online' ? 'on' : ''" @click="pay = 'online'" role="radio" :aria-checked="pay === 'online'" tabindex="0" @keydown.enter="pay = 'online'" @keydown.space.prevent="pay = 'online'">
+                            <span class="radio"></span>
+                            <span>
+                                <b>Online Payment</b>
+                                <span>−2% instant discount</span>
+                            </span>
+                            <span class="pay-logo" style="color:var(--green)">−2%</span>
+                        </div>
+
+                        {{-- Card --}}
+                        <div class="pay-opt" :class="pay === 'card' ? 'on' : ''" @click="pay = 'card'" role="radio" :aria-checked="pay === 'card'" tabindex="0" @keydown.enter="pay = 'card'" @keydown.space.prevent="pay = 'card'">
+                            <span class="radio"></span>
+                            <span>
+                                <b>Card</b>
+                                <span>Visa · Mastercard</span>
+                            </span>
+                            <span class="pay-logo">POS</span>
+                        </div>
+
+                        {{-- bKash --}}
+                        <div class="pay-opt" :class="pay === 'bkash' ? 'on' : ''" @click="pay = 'bkash'" role="radio" :aria-checked="pay === 'bkash'" tabindex="0" @keydown.enter="pay = 'bkash'" @keydown.space.prevent="pay = 'bkash'">
+                            <span class="radio"></span>
+                            <span>
+                                <b>bKash</b>
+                                <span>Mobile banking payment</span>
+                            </span>
+                            <span class="pay-logo" style="color:#E2136E">bK</span>
+                        </div>
+
+                        {{-- Nagad --}}
+                        <div class="pay-opt" :class="pay === 'nagad' ? 'on' : ''" @click="pay = 'nagad'" role="radio" :aria-checked="pay === 'nagad'" tabindex="0" @keydown.enter="pay = 'nagad'" @keydown.space.prevent="pay = 'nagad'">
+                            <span class="radio"></span>
+                            <span>
+                                <b>Nagad</b>
+                                <span>Bangladesh Post Office MFS</span>
+                            </span>
+                            <span class="pay-logo" style="color:#F6851B">Ng</span>
+                        </div>
+
+                        {{-- Rocket --}}
+                        <div class="pay-opt" :class="pay === 'rocket' ? 'on' : ''" @click="pay = 'rocket'" role="radio" :aria-checked="pay === 'rocket'" tabindex="0" @keydown.enter="pay = 'rocket'" @keydown.space.prevent="pay = 'rocket'" style="margin-bottom:0">
+                            <span class="radio"></span>
+                            <span>
+                                <b>Rocket</b>
+                                <span>DBBL Mobile Banking</span>
+                            </span>
+                            <span class="pay-logo" style="color:#8B16A2">Rkt</span>
+                        </div>
                     </div>
 
                 </div>
-            </div>
+                {{-- ── END LEFT ──────────────────────────────────────── --}}
 
-            {{-- Billing Address --}}
-            <div>
-                <x-section-heading variant="bar">Billing Address</x-section-heading>
-                <div x-data="{billing:'same'}" class="space-y-3">
-                    <label class="flex items-center gap-2 text-sm text-ink cursor-pointer">
-                        <input type="radio" name="billing" value="same" x-model="billing" class="accent-primary">
-                        Same as shipping
-                    </label>
-                    <label class="flex items-center gap-2 text-sm text-ink cursor-pointer">
-                        <input type="radio" name="billing" value="different" x-model="billing" class="accent-primary">
-                        Use a different billing address
-                    </label>
+                {{-- ── RIGHT: Order Summary ────────────────────────────── --}}
+                <div class="co-summary">
+
+                    <div class="co-summary-head">
+                        Order Summary
+                        <span x-show="$store.shop.count > 0" x-cloak style="font-weight:500;color:var(--muted);font-size:14px"> · <span x-text="$store.shop.count"></span> items</span>
+                    </div>
+
+                    <div class="co-summary-body app-scroll">
+
+                        {{-- Empty state --}}
+                        <template x-if="$store.shop.items.length === 0">
+                            <p style="color:var(--muted);font-size:14px;padding:16px 0;text-align:center">
+                                Your cart is empty —
+                                <a href="{{ route('shop') }}" style="color:var(--green);font-weight:600">add items</a>
+                            </p>
+                        </template>
+
+                        {{-- Line items --}}
+                        <template x-for="it in $store.shop.items" :key="it.id">
+                            <div class="cart-line" style="padding:14px 0">
+                                <div class="cart-line-art"
+                                     :style="`--ph-bg:${window.softBg(window.catTint(it.cat))};width:56px;height:56px`">
+                                    <div class="ph-jar"
+                                         :style="`width:26px;height:30px;margin:0;background:${window.catTint(it.cat)}44`"></div>
+                                </div>
+                                <div class="cart-line-info">
+                                    <h5 x-text="it.name"></h5>
+                                    <span class="w" x-text="it.weight"></span>
+                                    <div class="cart-line-bottom">
+                                        <div class="qty-mini">
+                                            <button @click="$store.shop.changeQty(it.id, -1)" aria-label="Decrease quantity">
+                                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                    <path d="M5 12h14"/>
+                                                </svg>
+                                            </button>
+                                            <span x-text="it.qty"></span>
+                                            <button @click="$store.shop.changeQty(it.id, 1)" aria-label="Increase quantity">
+                                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                    <path d="M12 5v14"/><path d="M5 12h14"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <span class="lp" x-text="window.tk(it.price * it.qty)"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                    </div>
+                    {{-- /.co-summary-body --}}
+
+                    <div class="co-summary-foot">
+
+                        {{-- Promo code --}}
+                        <div class="co-promo">
+                            <input type="text" x-model="promo" placeholder="Promo code" aria-label="Promo code">
+                            <button class="btn btn-ghost" type="button">Apply</button>
+                        </div>
+
+                        {{-- Subtotal --}}
+                        <div class="sum-row">
+                            <span>Subtotal</span>
+                            <span x-text="window.tk($store.shop.subtotal)"></span>
+                        </div>
+
+                        {{-- Delivery --}}
+                        <div class="sum-row">
+                            <span>Delivery</span>
+                            <span x-text="$store.shop.freeShip ? 'Free' : window.tk(60)"></span>
+                        </div>
+
+                        {{-- Online discount row (only when pay === 'online') --}}
+                        <div class="sum-row" x-show="pay === 'online'" x-cloak style="color:var(--green)">
+                            <span>Online discount (−2%)</span>
+                            <span x-text="'−' + window.tk(Math.round($store.shop.subtotal * 0.02))"></span>
+                        </div>
+
+                        {{-- Total --}}
+                        <div class="sum-row total">
+                            <span>Total</span>
+                            <span x-text="window.tk($store.shop.total - (pay === 'online' ? Math.round($store.shop.subtotal * 0.02) : 0))"></span>
+                        </div>
+
+                        {{-- Place Order button --}}
+                        <button
+                            type="button"
+                            class="btn btn-primary btn-block btn-lg"
+                            @click="placeOrder()"
+                            :disabled="$store.shop.count === 0"
+                            :style="$store.shop.count === 0 ? 'opacity:.55;cursor:not-allowed' : ''">
+                            Place Order
+                        </button>
+
+                        {{-- Secure note --}}
+                        <div class="free-ship-note" style="justify-content:center;margin-top:12px;margin-bottom:0">
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                            Secure checkout · COD available
+                        </div>
+
+                    </div>
+                    {{-- /.co-summary-foot --}}
+
                 </div>
+                {{-- ── END RIGHT ────────────────────────────────────── --}}
+
             </div>
+            {{-- /.checkout --}}
 
         </div>
-
-        {{-- RIGHT COLUMN --}}
-        <div class="space-y-6" x-data="{pay:'cod', terms:false, notes:'', coupon:false}">
-
-            {{-- Payment method --}}
-            <div>
-                <x-section-heading variant="bar">Payment method</x-section-heading>
-                <div class="space-y-3">
-                    <button type="button" @click="pay='cod'" class="w-full text-left border rounded-lg p-3 flex items-center justify-between" :class="pay==='cod' ? 'border-primary' : 'border-border'">
-                        <span class="text-sm text-ink">Cash On Delivery</span>
-                        <span class="text-success" x-show="pay==='cod'">✓</span>
-                    </button>
-                    <button type="button" @click="pay='online'" class="w-full text-left border rounded-lg p-3 flex items-center justify-between" :class="pay==='online' ? 'border-primary' : 'border-border'">
-                        <span class="text-sm text-ink">Online Payment</span>
-                        <span class="text-success" x-show="pay==='online'">✓</span>
-                    </button>
-                    <button type="button" @click="pay='bkash'" class="w-full text-left border rounded-lg p-3 flex items-center justify-between" :class="pay==='bkash' ? 'border-primary' : 'border-border'">
-                        <span class="text-sm text-ink">bKash</span>
-                        <span class="text-success" x-show="pay==='bkash'">✓</span>
-                    </button>
-                </div>
-            </div>
-
-            {{-- Coupon accordion --}}
-            <div>
-                <button type="button" @click="coupon=!coupon" class="text-sm text-primary hover:underline w-full text-left">
-                    Have any coupon or gift voucher?
-                </button>
-                <div x-show="coupon" class="flex gap-2 mt-2">
-                    <label for="coupon_code" class="sr-only">Coupon Code</label>
-                    <input id="coupon_code" type="text" class="field" placeholder="Enter coupon code">
-                    <button type="button" class="btn-primary shrink-0">Apply</button>
-                </div>
-            </div>
-
-            {{-- Summary box --}}
-            <div class="bg-cream rounded-lg p-4 space-y-2 text-sm">
-                <div class="flex justify-between">
-                    <span>Sub total</span>
-                    <span x-text="`৳${$store.cart.total}`"></span>
-                </div>
-                <div class="flex justify-between">
-                    <span>Delivery cost</span>
-                    <span>৳60</span>
-                </div>
-                <hr class="border-border-light">
-                <div class="flex justify-between font-bold">
-                    <span>Total</span>
-                    <span class="text-primary" x-text="`৳${$store.cart.total + 60}`"></span>
-                </div>
-            </div>
-
-            {{-- Special notes --}}
-            <div>
-                <label for="special_notes" class="sr-only">Special Notes</label>
-                <textarea id="special_notes" class="field !h-auto py-2" rows="3" maxlength="90" x-model="notes" placeholder="Special notes (optional)"></textarea>
-                <p class="text-xs text-text text-right" x-text="`${notes.length}/90 characters`"></p>
-            </div>
-
-            {{-- Terms checkbox --}}
-            <label class="flex items-start gap-2 text-sm text-text cursor-pointer">
-                <input type="checkbox" class="accent-primary mt-1" x-model="terms">
-                I agree to the <a href="#" class="text-primary">Terms</a> and <a href="#" class="text-primary">Privacy Policy</a>.
-            </label>
-
-            {{-- Place Order button --}}
-            <button type="button" class="btn-primary w-full !rounded-sm" :disabled="!terms" :class="!terms && 'opacity-50 cursor-not-allowed'">Place Order</button>
-
-        </div>
-        {{-- END RIGHT COLUMN --}}
+        {{-- /.wrap --}}
 
     </div>
-    {{-- END two-column --}}
+    {{-- /.x-show="!placed" --}}
+
+
+    {{-- ============================================================
+         STATE B — Success screen (shown after order placed)
+         ============================================================ --}}
+    <div x-show="placed" x-cloak>
+        <div class="wrap">
+            <div class="success">
+
+                {{-- Animated check icon --}}
+                <div class="success-ico">
+                    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12l5 5L20 6"/>
+                    </svg>
+                </div>
+
+                <h1>Order placed!</h1>
+                <p>Thank you — we've received your order.</p>
+
+                <span class="ord-no" x-text="orderNo"></span>
+
+                <p style="font-size:14px">We'll call to confirm delivery.</p>
+
+                <a class="btn btn-primary btn-lg" href="{{ route('shop') }}" style="margin-top:8px">
+                    Continue Shopping
+                </a>
+
+            </div>
+        </div>
+    </div>
+    {{-- /.x-show="placed" --}}
 
 </div>
+{{-- /.Alpine root --}}
+
 @endsection
