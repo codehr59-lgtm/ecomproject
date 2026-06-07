@@ -51,7 +51,9 @@ class PageController extends Controller
 
     public function wishlist(): \Illuminate\View\View
     {
-        return view('pages.wishlist');
+        return view('pages.wishlist', [
+            'products' => \App\Support\Catalog::products(),
+        ]);
     }
 
     public function track(): \Illuminate\View\View
