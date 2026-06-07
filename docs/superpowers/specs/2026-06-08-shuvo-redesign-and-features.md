@@ -87,7 +87,11 @@ Account UI shells (front-end only this phase; wired to backend later):
 
 ## 6. Backend feature map (PHASE 2 — after frontend; from `laravel website.pdf`)
 
-Stack: **MySQL** + Laravel; admin via **`hasinhayder/tyro-dashboard`** (HasCrud trait).
+Stack: **MySQL** + Laravel; admin via **Filament v3** (chosen 2026-06-08 over
+tyro-dashboard — Filament's RelationManagers/Table-Actions/Widgets fit the
+order-workflow / invoices / sales-reports / product-variation needs; basic CRUD is
+equally fast; far more mature ecosystem). Complex feature logic (order status workflow,
+invoice PDF, reports, payment & courier integrations) is custom regardless of admin tool.
 
 1. **Product mgmt:** Product/Category/Brand CRUD, **variations (size/weight/color)**,
    **stock**, image gallery.
