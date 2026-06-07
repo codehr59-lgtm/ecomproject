@@ -2,6 +2,11 @@
 
 namespace App\Support;
 
+/**
+ * Static accessor over config/products.php.
+ * BACKEND SWAP POINT: replace these method bodies with Eloquent queries when
+ * migrating to a database. No Blade view or controller reads config('products.*') directly.
+ */
 class Catalog
 {
     /** @return array<int,array> */
@@ -51,10 +56,14 @@ class Catalog
         return array_values(array_filter(self::all(), fn ($p) => $p['category'] === $slug));
     }
 
-    /** @return array<int,array> */
-    public static function featured(int $limit = 8): array
+    /** @return array<int,array> First $limit products not in $exclude (placeholder; swap to a 'featured' flag/scope later). */
+    public static function featured(int $limit = 8, array $exclude = []): array
     {
-        return array_slice(self::all(), 0, $limit);
+        $all = empty($exclude)
+            ? self::all()
+            : array_values(array_filter(self::all(), fn ($p) => ! in_array($p['slug'], $exclude, true)));
+
+        return array_slice($all, 0, $limit);
     }
 
     /** @return array<int,array> */

@@ -6,17 +6,19 @@ use App\Support\Catalog;
 
 class CatalogController extends Controller
 {
-    public function home()
+    public function home(): \Illuminate\View\View
     {
+        $topSelling = Catalog::topSelling();
+
         return view('pages.home', [
             'banners'    => Catalog::banners(),
             'categories' => Catalog::categories(),
-            'topSelling' => Catalog::topSelling(),
-            'featured'   => Catalog::featured(),
+            'topSelling' => $topSelling,
+            'featured'   => Catalog::featured(8, array_column($topSelling, 'slug')),
         ]);
     }
 
-    public function category(string $slug)
+    public function category(string $slug): \Illuminate\View\View
     {
         $category = Catalog::category($slug);
         abort_if(! $category, 404);
@@ -28,7 +30,7 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function product(string $slug)
+    public function product(string $slug): \Illuminate\View\View
     {
         $product = Catalog::find($slug);
         abort_if(! $product, 404);
@@ -39,7 +41,7 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function checkout()
+    public function checkout(): \Illuminate\View\View
     {
         return view('pages.checkout');
     }
