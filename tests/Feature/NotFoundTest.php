@@ -10,6 +10,6 @@ class NotFoundTest extends TestCase
     {
         $this->get('/some/missing/page')
             ->assertNotFound()
-            ->assertSee('OPPS! Page Not Found');
+            ->assertSee('Page not found');
     }
 }
