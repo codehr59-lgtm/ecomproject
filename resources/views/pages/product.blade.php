@@ -1,132 +1,268 @@
 @php use Illuminate\Support\Js; @endphp
 @extends('layouts.app')
-@section('title', $product['name'].' — Ghorer Bazar')
+@section('title', $product['name'].' — Shuvo')
+
+@php
+  /* ── Discount calc ─────────────────────────────────────────── */
+  $pct  = !empty($product['old_price'])
+        ? round((1 - $product['price'] / $product['old_price']) * 100)
+        : 0;
+  $save = !empty($product['old_price']) ? ($product['old_price'] - $product['price']) : 0;
+
+  /* ── Weight options: product's own size, plus a smaller alt ── */
+  $mainWeight = $product['weight'];
+  $mainPrice  = $product['price'];
+
+  /* Derive alternate: half-size at ~55% price, full-size at full price */
+  $altWeight = str_contains($mainWeight, 'kg')
+             ? str_replace(' kg', '00 g', $mainWeight)  // 1 kg → 100 g (rough)
+             : null;
+
+  /* Better alt logic: if weight contains "kg", offer 500g; else offer 250g */
+  if (str_contains($mainWeight, 'kg')) {
+      $altWeight = '500 g';
+  } elseif (str_contains($mainWeight, '500')) {
+      $altWeight = '250 g';
+  } elseif (str_contains($mainWeight, '250')) {
+      $altWeight = '100 g';
+  } else {
+      $altWeight = null;
+  }
+
+  $altPrice = $altWeight ? (int) round($mainPrice * 0.55) : null;
+
+  /* JS-safe product object for Alpine */
+  $jsP = Js::from([
+      'id'     => $product['id'],
+      'name'   => $product['name'],
+      'weight' => $product['weight'],
+      'price'  => $product['price'],
+      'cat'    => $product['cat'],
+  ]);
+
+  /* Category name lookup (categories not passed, derive from cat slug) */
+  $catNames = [
+      'honey'    => 'Honey',
+      'dates'    => 'Dates',
+      'oil-ghee' => 'Oil & Ghee',
+      'spices'   => 'Spices',
+      'nuts'     => 'Nuts & Seeds',
+      'rice'     => 'Rice',
+      'mango'    => 'Mango',
+      'tea'      => 'Tea & Coffee',
+  ];
+  $catName = $catNames[$product['cat']] ?? ucfirst($product['cat']);
+@endphp
 
 @section('content')
 
-<div class="max-w-content mx-auto px-4 py-6">
-
-    {{-- 1. Breadcrumb --}}
-    <nav class="text-sm text-text mb-4">
-        <a href="{{ route('home') }}" class="hover:text-primary">Home</a>
-        <span class="mx-1">›</span>
-        <span class="text-ink">Products</span>
-    </nav>
-
-    {{-- 2. Two-column layout --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-        {{-- A. Gallery --}}
-        <div class="flex gap-3" x-data="{main:0, imgs: {{ Js::from($product['gallery']) }}}">
-            {{-- thumbnail rail --}}
-            <div class="flex flex-col gap-2">
-                <template x-for="(img,i) in imgs" :key="i">
-                    <button class="w-16 h-16 rounded border-2 overflow-hidden" :class="main===i ? 'border-primary' : 'border-border'" @click="main=i">
-                        <img :src="img" class="w-full h-full object-cover" :alt="`thumbnail ${i+1}`">
-                    </button>
-                </template>
-            </div>
-            {{-- main image --}}
-            <div class="relative flex-1">
-                <img :src="imgs[main]" class="w-full aspect-square object-cover rounded-lg border border-border" alt="{{ $product['name'] }}">
-                <button class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white w-9 h-9 rounded-full" @click="main=(main-1+imgs.length)%imgs.length" aria-label="Previous image">‹</button>
-                <button class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white w-9 h-9 rounded-full" @click="main=(main+1)%imgs.length" aria-label="Next image">›</button>
-            </div>
-        </div>
-
-        {{-- B. Info column --}}
-        <div x-data="{qty:1}" @qty.window="qty=$event.detail">
-
-            {{-- Title --}}
-            <h1 class="text-2xl md:text-3xl font-bold text-ink">{{ $product['name'] }}</h1>
-
-            {{-- Rating --}}
-            <div class="mt-2">
-                <x-rating-stars :rating="$product['rating']" :reviews="$product['reviews']" />
-            </div>
-
-            {{-- Price block --}}
-            <div class="mt-4 flex items-center gap-3">
-                <x-price :price="$product['price']" :old="$product['old_price'] ?? null" />
-                @if(!empty($product['old_price']))
-                    <x-badge type="save" label="Save {{ round((1 - $product['price']/$product['old_price'])*100) }}%" />
-                @endif
-            </div>
-
-            {{-- Stock line --}}
-            <p class="mt-2 text-sm {{ $product['in_stock'] ? 'text-success' : 'text-sale' }}">
-                {{ $product['in_stock'] ? 'In Stock' : 'Out of Stock' }}
-            </p>
-
-            {{-- Quantity stepper --}}
-            <div class="mt-4 flex items-center gap-3">
-                <span class="text-sm text-text">Quantity:</span>
-                <x-qty-stepper :value="1" />
-            </div>
-
-            {{-- Four action buttons --}}
-            <div class="grid grid-cols-2 gap-3 mt-6">
-                <button type="button" class="btn-primary col-span-2 sm:col-span-1"
-                        @click="$store.cart.add({{ Js::from(['slug'=>$product['slug'],'name'=>$product['name'],'price'=>$product['price'],'image'=>$product['image']]) }}, qty)">
-                    🛒 Add To Cart
-                </button>
-                <a href="{{ route('checkout') }}" class="col-span-2 sm:col-span-1 bg-dark text-white font-semibold uppercase rounded h-input flex items-center justify-center hover:opacity-90 transition">Buy Now</a>
-                <a href="https://wa.me/8801000000000" class="bg-whatsapp text-white font-semibold rounded-lg h-input flex items-center justify-center gap-2 hover:opacity-90 transition">Order On WhatsApp</a>
-                <a href="tel:+8801000000000" class="bg-call text-white font-semibold rounded-lg h-input flex items-center justify-center gap-2 hover:opacity-90 transition">Call For Order</a>
-            </div>
-
-            {{-- Brand line --}}
-            <p class="mt-4 text-sm text-text">Brand: <span class="text-ink font-medium">{{ $product['brand'] }}</span></p>
-
-        </div>
-
+{{-- ============================================================
+     PAGE HEAD — breadcrumb + page title bar
+     ============================================================ --}}
+<div class="page-head">
+  <div class="wrap">
+    <div class="crumbs">
+      <a href="{{ route('home') }}">Home</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:13px;height:13px">
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
+      <a href="{{ route('shop') }}">Shop</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:13px;height:13px">
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
+      <a href="{{ route('category', $product['cat']) }}">{{ $catName }}</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:13px;height:13px">
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
+      <span>{{ $product['name'] }}</span>
     </div>
-
-    {{-- 3. Tabs --}}
-    <div class="mt-12" x-data="{tab:'desc'}">
-
-        {{-- Tab button row --}}
-        <div class="flex gap-6 border-b border-border">
-            <button type="button"
-                    class="pb-3 text-sm font-semibold transition"
-                    :class="tab==='desc' ? 'text-primary border-b-2 border-primary -mb-px' : 'text-text hover:text-ink'"
-                    @click="tab='desc'">
-                Description
-            </button>
-            <button type="button"
-                    class="pb-3 text-sm font-semibold transition"
-                    :class="tab==='reviews' ? 'text-primary border-b-2 border-primary -mb-px' : 'text-text hover:text-ink'"
-                    @click="tab='reviews'">
-                Customer Reviews ({{ $product['reviews'] }})
-            </button>
-        </div>
-
-        {{-- Description panel --}}
-        <div x-show="tab==='desc'" class="py-6 text-text">
-            {{ $product['description'] }}
-        </div>
-
-        {{-- Reviews panel --}}
-        <div x-show="tab==='reviews'" x-cloak class="py-6 space-y-4">
-            <div class="border border-border rounded-lg p-4">
-                <p class="font-semibold text-ink text-sm mb-1">Rahim Uddin</p>
-                <x-rating-stars :rating="5" />
-                <p class="mt-2 text-sm text-text">Excellent quality oil! The aroma is amazing and it tastes just like homemade. Will definitely order again.</p>
-            </div>
-            <div class="border border-border rounded-lg p-4">
-                <p class="font-semibold text-ink text-sm mb-1">Fatema Begum</p>
-                <x-rating-stars :rating="5" />
-                <p class="mt-2 text-sm text-text">Delivered fresh and well-packaged. Pure and natural, exactly what I was looking for. Highly recommended!</p>
-            </div>
-        </div>
-
-    </div>
-
-    {{-- 4. Related products --}}
-    <div class="mt-12">
-        <x-product-carousel title="Related products" :products="$related" />
-    </div>
-
+  </div>
 </div>
+
+{{-- ============================================================
+     PDP — two-column layout (gallery + info)
+     ============================================================ --}}
+<div class="wrap">
+  <div class="pdp"
+       x-data="{
+         qty: 1,
+         img: 0,
+         weightIdx: 0,
+         P: {{ $jsP }},
+         weights: [
+           { label: {{ Js::from($mainWeight) }}, price: {{ $mainPrice }} }
+           @if($altWeight), { label: {{ Js::from($altWeight) }}, price: {{ $altPrice }} }@endif
+         ]
+       }">
+
+    {{-- ── Gallery column ───────────────────────────────────────── --}}
+    <div class="pdp-gallery">
+
+      {{-- Main image --}}
+      <div class="pdp-main-img">
+        <div class="ph" style="--ph-bg: {{ ['honey'=>'#E7B84B','dates'=>'#A9682F','oil-ghee'=>'#D7A53C','spices'=>'#C0432F','nuts'=>'#9C7A4D','rice'=>'#C9B98E','mango'=>'#E59A2B','tea'=>'#6E7F4F'][$product['cat']] ?? '#C9B98E' }}33; width:100%; height:100%;">
+          <div class="ph-inner">
+            <div class="ph-jar" style="width:90px;height:104px;margin:0 auto 16px;background:{{ ['honey'=>'#E7B84B','dates'=>'#A9682F','oil-ghee'=>'#D7A53C','spices'=>'#C0432F','nuts'=>'#9C7A4D','rice'=>'#C9B98E','mango'=>'#E59A2B','tea'=>'#6E7F4F'][$product['cat']] ?? '#C9B98E' }}44;"></div>
+            <div class="ph-label" x-text="'{{ strtoupper($catName) }} · ' + weights[weightIdx].label + ' · photo ' + (img+1)"></div>
+          </div>
+        </div>
+      </div>
+
+      {{-- Thumbnails --}}
+      <div class="pdp-thumbs">
+        @for($n = 0; $n < 3; $n++)
+          <div class="pdp-thumb"
+               :class="img === {{ $n }} ? 'on' : ''"
+               @click="img = {{ $n }}"
+               style="--ph-bg: {{ ['honey'=>'#E7B84B','dates'=>'#A9682F','oil-ghee'=>'#D7A53C','spices'=>'#C0432F','nuts'=>'#9C7A4D','rice'=>'#C9B98E','mango'=>'#E59A2B','tea'=>'#6E7F4F'][$product['cat']] ?? '#C9B98E' }}33;"
+               aria-label="Product image {{ $n + 1 }}">
+            <div class="ph-jar" style="width:26px;height:30px;margin:0;background:{{ ['honey'=>'#E7B84B','dates'=>'#A9682F','oil-ghee'=>'#D7A53C','spices'=>'#C0432F','nuts'=>'#9C7A4D','rice'=>'#C9B98E','mango'=>'#E59A2B','tea'=>'#6E7F4F'][$product['cat']] ?? '#C9B98E' }}44;"></div>
+          </div>
+        @endfor
+      </div>
+    </div>
+
+    {{-- ── Info column ───────────────────────────────────────────── --}}
+    <div class="pdp-info">
+
+      {{-- Category label --}}
+      <span class="pcard-cat">{{ strtoupper($catName) }}</span>
+
+      {{-- Badges --}}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px;">
+        @if($pct > 0)<span class="badge badge-save">Save {{ $pct }}%</span>@endif
+        @if(($product['badge'] ?? null) === 'new')<span class="badge badge-new">New</span>@endif
+        @if(($product['badge'] ?? null) === 'best')<span class="badge badge-best">Best Seller</span>@endif
+        @if(($product['badge'] ?? null) === 'preorder')<span class="badge badge-pre">Pre-order</span>@endif
+        @if(!empty($product['certified']))<span class="badge badge-new">Certified</span>@endif
+      </div>
+
+      {{-- Product name --}}
+      <h1>{{ $product['name'] }}</h1>
+
+      {{-- Rating row --}}
+      <div class="pdp-rate">
+        <x-stars :rating="$product['rating']" />
+        <b style="color:var(--ink)">{{ $product['rating'] }}</b>
+        <span>· {{ $product['reviews'] }} reviews</span>
+        <span style="color:var(--green);font-weight:600">· In stock</span>
+      </div>
+
+      {{-- Price row --}}
+      <div class="pdp-price">
+        <span class="price"><span class="tk">৳</span>{{ number_format($product['price']) }}</span>
+        @if(!empty($product['old_price']))
+          <span class="price-old">৳{{ number_format($product['old_price']) }}</span>
+        @endif
+      </div>
+
+      {{-- Save line --}}
+      @if($save > 0)
+        <div class="pdp-save-line">You save ৳{{ number_format($save) }} ({{ $pct }}% off)</div>
+      @endif
+
+      {{-- Blurb --}}
+      <p class="pdp-blurb">{{ $product['blurb'] }}</p>
+
+      {{-- Weight options --}}
+      <div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--ink-soft);">Choose size</div>
+        <div class="pdp-weights">
+          <template x-for="(w, i) in weights" :key="i">
+            <div class="weight-opt"
+                 :class="weightIdx === i ? 'on' : ''"
+                 @click="weightIdx = i; P = { ...P, weight: w.label, price: w.price }">
+              <span x-text="w.label"></span>
+              <small x-text="'৳' + w.price.toLocaleString()"></small>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      {{-- Buy row: qty + add to cart + buy now --}}
+      <div class="pdp-buy">
+        <x-qty model="qty" />
+        <button class="btn btn-primary"
+                style="flex:1"
+                @click="for(let k=0;k<qty;k++){$store.shop.add(P)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.7 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/>
+          </svg>
+          Add to Cart
+        </button>
+        <button class="btn btn-honey"
+                @click="$store.shop.buyNow(P)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          Buy Now
+        </button>
+      </div>
+
+      {{-- Trust grid --}}
+      <div class="pdp-trust">
+
+        {{-- 1. 100% Organic --}}
+        <div class="pdp-trust-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z"/>
+            <path d="M12 8v4M12 12l3-3"/>
+          </svg>
+          <span><b>100% Organic</b><span>Certified pure</span></span>
+        </div>
+
+        {{-- 2. Free Delivery --}}
+        <div class="pdp-trust-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="1" y="3" width="15" height="13" rx="1"/>
+            <path d="M16 8h4l3 3v5h-7V8z"/>
+            <circle cx="5.5" cy="18.5" r="2.5"/>
+            <circle cx="18.5" cy="18.5" r="2.5"/>
+          </svg>
+          <span><b>Free delivery</b><span>Over ৳1,500</span></span>
+        </div>
+
+        {{-- 3. Cash on Delivery --}}
+        <div class="pdp-trust-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="5" width="20" height="14" rx="2"/>
+            <path d="M2 10h20"/>
+            <circle cx="12" cy="15" r="2"/>
+          </svg>
+          <span><b>Cash on Delivery</b><span>Pay at door</span></span>
+        </div>
+
+        {{-- 4. Easy Returns --}}
+        <div class="pdp-trust-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M1 4v6h6"/>
+            <path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
+          </svg>
+          <span><b>Easy Returns</b><span>7-day policy</span></span>
+        </div>
+
+      </div>{{-- /.pdp-trust --}}
+
+    </div>{{-- /.pdp-info --}}
+
+  </div>{{-- /.pdp --}}
+</div>{{-- /.wrap (pdp) --}}
+
+{{-- ============================================================
+     RELATED PRODUCTS RAIL
+     ============================================================ --}}
+@if(count($related) > 0)
+<div class="wrap">
+  <div class="rail">
+    <x-rail-head title="You may also like" :viewAll="route('category', $product['cat'])" />
+    <div class="grid-5">
+      @foreach($related as $rp)
+        <x-product-card :product="$rp" />
+      @endforeach
+    </div>
+  </div>
+</div>
+@endif
 
 @endsection
