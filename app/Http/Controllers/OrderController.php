@@ -164,9 +164,16 @@ class OrderController extends Controller
     {
         $order = Order::with('items')->where('number', $number)->firstOrFail();
 
-        // Authorization: if logged in, only own orders (or allow guests by number)
-        if (auth()->check() && $order->user_id && $order->user_id !== auth()->id()) {
-            abort(403);
+        // Authorization:
+        // - Guest orders (user_id null): accessible by number (capability URL for COD guests).
+        // - Authenticated user viewing an owned order: allowed.
+        // - Authenticated admin viewing any order: allowed (via OrderPolicy).
+        // - Authenticated non-owner viewing another user's order: 403.
+        if (auth()->check() && $order->user_id !== null) {
+            $user = auth()->user();
+            if (! $user->is_admin && $user->id !== $order->user_id) {
+                abort(403);
+            }
         }
 
         return view('pages.order-confirmation', compact('order'));
@@ -179,9 +186,12 @@ class OrderController extends Controller
     {
         $order = Order::with('items')->where('number', $number)->firstOrFail();
 
-        // Authorization: same as confirmation
-        if (auth()->check() && $order->user_id && $order->user_id !== auth()->id()) {
-            abort(403);
+        // Authorization: same rules as confirmation.
+        if (auth()->check() && $order->user_id !== null) {
+            $user = auth()->user();
+            if (! $user->is_admin && $user->id !== $order->user_id) {
+                abort(403);
+            }
         }
 
         $pdf = Pdf::loadView('invoices.order', compact('order'));

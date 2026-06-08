@@ -1,6 +1,6 @@
 # Shuvo — Organic Grocery Storefront
 
-A warm, organic grocery storefront built with **Laravel 11 + Blade + Alpine.js**. The design system uses custom CSS design tokens (earthy greens, honey amber, warm neutrals) with no Tailwind dependency. This repository contains the **frontend only** — product data is stored in config; the backend (auth, orders, payments, persistence) is wired in the next phase.
+A warm, organic grocery storefront built with **Laravel 11 + Blade + Alpine.js + Filament v3 admin**. Full backend: auth (Fortify), real orders/invoices, DB-backed catalog, admin panel, security hardening, daily DB backups.
 
 ## Pages & Routes
 
@@ -75,4 +75,99 @@ The next phase wires in:
 php artisan test
 ```
 
-Feature tests cover all routes: home, shop, product, checkout, marketing pages (about/contact/blog/privacy/terms), account pages (login/register/account/wishlist/track), and the custom 404.
+Feature tests cover: all routes, order placement, price integrity, authorization (order invoice/confirmation ownership), security headers, and the custom 404.
+
+---
+
+## Deployment
+
+### 1. Environment
+
+```bash
+cp .env.example .env
+# Edit .env: set APP_ENV=production, APP_DEBUG=false, APP_URL, DB_*, MAIL_*, payment/courier creds
+```
+
+### 2. Database (MySQL)
+
+Create a `shuvo` database, then update `.env`:
+
+```dotenv
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=shuvo
+DB_USERNAME=your_user
+DB_PASSWORD=your_password
+```
+
+### 3. Install & build
+
+```bash
+composer install --no-dev --optimize-autoloader
+npm ci && npm run build
+php artisan key:generate
+php artisan migrate --force
+php artisan db:seed --class=CatalogSeeder
+php artisan db:seed --class=AdminSeeder
+```
+
+### 4. Storage & cache
+
+```bash
+php artisan storage:link          # public/storage -> storage/app/public
+php artisan optimize              # caches routes + config for production
+```
+
+> Note: do NOT run `php artisan config:cache` in local dev — it bakes `.env` values and masks changes.
+
+### 5. Web server
+
+Point your Nginx/Apache document root to `public/`. Example Nginx server block:
+
+```nginx
+root /var/www/shuvo/public;
+index index.php;
+location / { try_files $uri $uri/ /index.php?$query_string; }
+location ~ \.php$ { fastcgi_pass unix:/run/php/php8.2-fpm.sock; include fastcgi_params; }
+```
+
+### 6. Scheduler (cron)
+
+Add to crontab (`crontab -e`):
+
+```cron
+* * * * * cd /var/www/shuvo && php artisan schedule:run >> /dev/null 2>&1
+```
+
+The scheduler runs:
+- `backup:clean` daily at 01:00 — removes old backups per retention policy
+- `backup:run`   daily at 01:30 — creates DB + files backup to `storage/app/shuvo/`
+
+### 7. Queue worker (if using queued jobs/notifications)
+
+```bash
+php artisan queue:work --daemon --sleep=3 --tries=3
+```
+
+Use Supervisor to keep the worker alive in production.
+
+### 8. Admin login
+
+Default admin credentials are created by `AdminSeeder`. Change the password after first login at `/admin`.
+
+### 9. Pending phase configuration
+
+| Phase | What to configure |
+|-------|-------------------|
+| B5 — Payments | `SSLCOMMERZ_*`, `BKASH_*` in `.env` |
+| B6 — Courier  | `PATHAO_*`, `STEADFAST_*` in `.env` |
+| B7 — Analytics | `FB_PIXEL_ID`, `GA_ID` in `.env` |
+
+All placeholders are already present in `.env.example`.
+
+### 10. Backup configuration
+
+Backups are stored locally at `storage/app/shuvo/`. For offsite backups, configure an S3 disk in `config/filesystems.php` and add it to `config/backup.php` `destination.disks`. Set `BACKUP_ARCHIVE_PASSWORD` for encrypted archives.
+
+Set mail credentials (`MAIL_*`) and update `config/backup.php` notification channels from `[]` to `['mail']` for email alerts on backup failure.
