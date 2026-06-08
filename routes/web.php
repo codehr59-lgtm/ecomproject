@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
@@ -11,6 +12,11 @@ Route::get('/shop', [CatalogController::class, 'shop'])->name('shop');
 Route::get('/category/{slug}', [CatalogController::class, 'category'])->name('category'); // alias → shop view filtered
 Route::get('/product/{id}', [CatalogController::class, 'product'])->whereNumber('id')->name('product');
 Route::get('/checkout', [CatalogController::class, 'checkout'])->name('checkout');
+
+// Order placement (POST) + confirmation + invoice
+Route::post('/checkout', [OrderController::class, 'store'])->name('order.store');
+Route::get('/order/{number}/confirmation', [OrderController::class, 'confirmation'])->name('order.confirmation');
+Route::get('/order/{number}/invoice', [OrderController::class, 'invoice'])->name('order.invoice');
 
 // marketing / static
 Route::get('/about', [PageController::class, 'about'])->name('about');

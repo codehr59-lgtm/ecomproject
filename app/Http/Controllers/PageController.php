@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
+
 class PageController extends Controller
 {
     public function about(): \Illuminate\View\View
@@ -38,7 +40,8 @@ class PageController extends Controller
     {
         $user = auth()->user();
         $addresses = $user->addresses()->orderByDesc('is_default')->orderBy('created_at')->get();
-        return view('pages.account', compact('user', 'addresses'));
+        $orders = $user->orders()->with('items')->latest()->get();
+        return view('pages.account', compact('user', 'addresses', 'orders'));
     }
 
     public function wishlist(): \Illuminate\View\View
@@ -55,8 +58,15 @@ class PageController extends Controller
         return view('pages.wishlist', ['products' => $products, 'serverWishlist' => true]);
     }
 
-    public function track(): \Illuminate\View\View
+    public function track(\Illuminate\Http\Request $request): \Illuminate\View\View
     {
-        return view('pages.track');
+        $number = $request->query('number');
+        $order  = null;
+
+        if ($number) {
+            $order = Order::with('items')->where('number', $number)->first();
+        }
+
+        return view('pages.track', compact('order', 'number'));
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Category;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
@@ -25,10 +26,14 @@ class StatsOverview extends BaseWidget
                 ->description('Registered users')
                 ->icon('heroicon-o-users')
                 ->color('info'),
-            Stat::make('Orders', 'Coming Soon')
-                ->description('Full report in Phase B4')
+            Stat::make('Total Orders', Order::count())
+                ->description('Pending: ' . Order::where('status', 'pending')->count())
                 ->icon('heroicon-o-shopping-cart')
                 ->color('warning'),
+            Stat::make('Revenue', '৳' . number_format(Order::where('status', '!=', 'cancelled')->sum('total')))
+                ->description('All non-cancelled orders')
+                ->icon('heroicon-o-banknotes')
+                ->color('success'),
         ];
     }
 }

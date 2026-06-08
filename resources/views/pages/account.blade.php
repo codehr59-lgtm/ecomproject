@@ -112,7 +112,7 @@
             {{-- Stats row --}}
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px">
                 <div class="co-card" style="text-align:center;padding:20px 16px;margin-bottom:0">
-                    <div style="font-family:var(--font-display);font-weight:800;font-size:32px;color:var(--green-deep);margin-bottom:4px">0</div>
+                    <div style="font-family:var(--font-display);font-weight:800;font-size:32px;color:var(--green-deep);margin-bottom:4px">{{ $orders->count() }}</div>
                     <div style="font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.03em">Total Orders</div>
                 </div>
                 <div class="co-card" style="text-align:center;padding:20px 16px;margin-bottom:0">
@@ -125,22 +125,71 @@
                 </div>
             </div>
 
-            {{-- Recent orders placeholder --}}
+            {{-- Recent Orders (real) --}}
             <div class="co-card" style="margin-bottom:18px">
                 <h3 style="font-size:18px;margin-bottom:18px;display:flex;align-items:center;gap:10px">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--green)">
                         <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>
                         <path d="M9 12h6"/><path d="M9 16h4"/>
                     </svg>
-                    Recent Orders
+                    My Orders
                 </h3>
-                <div style="text-align:center;padding:32px 16px;color:var(--muted)">
-                    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin:0 auto 12px;display:block;color:var(--line)">
-                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>
-                    </svg>
-                    <p style="font-size:15px;font-weight:600;color:var(--ink-soft);margin:0 0 6px">No orders yet</p>
-                    <p style="font-size:13.5px;margin:0">Your order history will appear here.</p>
-                </div>
+
+                @if($orders->isEmpty())
+                    <div style="text-align:center;padding:32px 16px;color:var(--muted)">
+                        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin:0 auto 12px;display:block;color:var(--line)">
+                            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>
+                        </svg>
+                        <p style="font-size:15px;font-weight:600;color:var(--ink-soft);margin:0 0 6px">No orders yet</p>
+                        <p style="font-size:13.5px;margin:0">Your order history will appear here.</p>
+                    </div>
+                @else
+                    <div style="overflow-x:auto">
+                        <table style="width:100%;border-collapse:collapse;font-size:14px">
+                            <thead>
+                                <tr style="background:var(--surface-2)">
+                                    <th style="padding:10px 12px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Order #</th>
+                                    <th style="padding:10px 12px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Date</th>
+                                    <th style="padding:10px 12px;text-align:center;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Items</th>
+                                    <th style="padding:10px 12px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Status</th>
+                                    <th style="padding:10px 12px;text-align:right;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Total</th>
+                                    <th style="padding:10px 12px;text-align:center;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($orders as $ord)
+                                    <tr style="border-top:1px solid var(--line-soft)">
+                                        <td style="padding:11px 12px">
+                                            <span style="font-family:var(--font-display);font-weight:700;color:var(--ink)">{{ $ord->number }}</span>
+                                        </td>
+                                        <td style="padding:11px 12px;color:var(--muted)">{{ $ord->placed_at->format('d M Y') }}</td>
+                                        <td style="padding:11px 12px;text-align:center;color:var(--muted)">{{ $ord->items->count() }}</td>
+                                        <td style="padding:11px 12px">
+                                            @php
+                                                $statusColors = [
+                                                    'pending'    => ['bg'=>'#FEF9C3','color'=>'#78350F'],
+                                                    'confirmed'  => ['bg'=>'#DBEAFE','color'=>'#1E40AF'],
+                                                    'processing' => ['bg'=>'#EDE9FE','color'=>'#5B21B6'],
+                                                    'shipped'    => ['bg'=>'#DBEAFE','color'=>'#1E40AF'],
+                                                    'delivered'  => ['bg'=>'var(--green-tint)','color'=>'var(--green-deep)'],
+                                                    'cancelled'  => ['bg'=>'#FEE2E2','color'=>'#991B1B'],
+                                                ];
+                                                $sc = $statusColors[$ord->status] ?? ['bg'=>'#F3F4F6','color'=>'#374151'];
+                                            @endphp
+                                            <span style="display:inline-block;padding:3px 10px;border-radius:99px;font-size:11.5px;font-weight:700;background:{{ $sc['bg'] }};color:{{ $sc['color'] }}">
+                                                {{ ucfirst($ord->status) }}
+                                            </span>
+                                        </td>
+                                        <td style="padding:11px 12px;text-align:right;font-weight:700;color:var(--ink)">৳{{ number_format($ord->total) }}</td>
+                                        <td style="padding:11px 12px;text-align:center">
+                                            <a href="{{ route('order.confirmation', $ord->number) }}" style="font-size:12.5px;font-weight:700;color:var(--green);text-decoration:none">View</a>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
             </div>
 
             {{-- ── Addresses section ──────────────────────────────── --}}
