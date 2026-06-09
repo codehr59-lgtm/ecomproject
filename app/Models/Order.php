@@ -27,6 +27,7 @@ class Order extends Model
         'coupon_code',
         'payment_method',
         'payment_status',
+        'payment_ref',
         'courier',
         'courier_tracking',
         'placed_at',

@@ -10,6 +10,22 @@
     });
 </script>
 
+@if(session('success'))
+    <div style="background:#D1FAE5;color:#065F46;padding:12px 16px;text-align:center;font-size:14px;font-weight:600">
+        {{ session('success') }}
+    </div>
+@endif
+@if(session('error'))
+    <div style="background:#FEF2F2;color:#991B1B;padding:12px 16px;text-align:center;font-size:14px;font-weight:600">
+        {{ session('error') }}
+    </div>
+@endif
+@if(session('info'))
+    <div style="background:#EFF6FF;color:#1E40AF;padding:12px 16px;text-align:center;font-size:14px;font-weight:600">
+        {{ session('info') }}
+    </div>
+@endif
+
 {{-- Page Head --}}
 <div class="page-head">
     <div class="wrap">
@@ -109,21 +125,28 @@
                 <div style="display:flex;gap:8px"><span style="color:var(--muted);min-width:130px">Deliver to</span><span style="font-weight:600;color:var(--ink)">{{ $order->customer_name }}</span></div>
                 <div style="display:flex;gap:8px"><span style="color:var(--muted);min-width:130px">Address</span><span style="color:var(--ink-soft)">{{ $order->address_line }}, {{ $order->thana ? $order->thana.', ' : '' }}{{ $order->city }}</span></div>
                 <div style="display:flex;gap:8px"><span style="color:var(--muted);min-width:130px">Phone</span><span style="color:var(--ink-soft)">{{ $order->customer_phone }}</span></div>
-                <div style="display:flex;gap:8px">
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                     <span style="color:var(--muted);min-width:130px">Payment</span>
                     <span style="font-weight:700;color:var(--ink)">
                         @switch($order->payment_method)
                             @case('cod') Cash on Delivery @break
                             @case('bkash') bKash @break
-                            @case('nagad') Nagad @break
-                            @case('rocket') Rocket @break
-                            @case('sslcommerz') SSLCommerz @break
+                            @case('sslcommerz') Cards &amp; Mobile Banking (SSLCommerz) @break
                             @default {{ ucfirst($order->payment_method) }}
                         @endswitch
                     </span>
-                    <span style="margin-left:6px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:{{ $order->payment_status === 'paid' ? 'var(--green-tint)' : '#FEF3C7' }};color:{{ $order->payment_status === 'paid' ? 'var(--green-deep)' : '#92400E' }}">
-                        {{ ucfirst($order->payment_status) }}
-                    </span>
+                    @if($order->payment_status === 'paid')
+                        <span style="padding:2px 10px;border-radius:99px;font-size:11px;font-weight:700;background:var(--green-tint);color:var(--green-deep)">Paid</span>
+                    @elseif($order->payment_method === 'cod')
+                        <span style="padding:2px 10px;border-radius:99px;font-size:11px;font-weight:700;background:#FEF3C7;color:#92400E">Pay on delivery</span>
+                    @elseif($order->payment_status === 'failed')
+                        <span style="padding:2px 10px;border-radius:99px;font-size:11px;font-weight:700;background:#FEE2E2;color:#991B1B">Failed</span>
+                    @else
+                        <span style="padding:2px 10px;border-radius:99px;font-size:11px;font-weight:700;background:#FEF3C7;color:#92400E">Pending</span>
+                    @endif
+                    @if($order->payment_ref)
+                        <span style="font-size:12px;color:var(--muted)">Ref: {{ $order->payment_ref }}</span>
+                    @endif
                 </div>
                 @if($order->notes)
                     <div style="display:flex;gap:8px"><span style="color:var(--muted);min-width:130px">Notes</span><span style="color:var(--ink-soft)">{{ $order->notes }}</span></div>
@@ -133,6 +156,17 @@
 
         {{-- Action Buttons --}}
         <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px;justify-content:center">
+
+            {{-- Complete Payment (for unpaid online orders) --}}
+            @if($order->payment_status !== 'paid' && $order->payment_method !== 'cod')
+                <a href="{{ route('payment.start', $order->number) }}" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    Complete Payment
+                </a>
+            @endif
+
             <a href="{{ route('track', ['number' => $order->number]) }}" class="btn btn-ghost">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>

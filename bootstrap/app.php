@@ -12,6 +12,14 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
+        // Exclude payment gateway callbacks from CSRF — they come from external servers
+        $middleware->validateCsrfTokens(except: [
+            'payment/sslcommerz/success',
+            'payment/sslcommerz/fail',
+            'payment/sslcommerz/cancel',
+            'payment/sslcommerz/ipn',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

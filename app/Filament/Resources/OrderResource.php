@@ -142,6 +142,12 @@ class OrderResource extends Resource
                         'paid'   => 'Paid',
                         'failed' => 'Failed',
                     ]),
+                Tables\Filters\SelectFilter::make('payment_method')
+                    ->options([
+                        'cod'        => 'Cash on Delivery',
+                        'bkash'      => 'bKash',
+                        'sslcommerz' => 'SSLCommerz',
+                    ]),
             ])
             ->actions([
                 // Status change
@@ -200,6 +206,10 @@ class OrderResource extends Resource
                         Infolists\Components\TextEntry::make('payment_status')
                             ->label('Payment Status')
                             ->badge(),
+                        Infolists\Components\TextEntry::make('payment_ref')
+                            ->label('Payment Ref')
+                            ->placeholder('—')
+                            ->copyable(),
                         Infolists\Components\TextEntry::make('placed_at')
                             ->dateTime('d M Y, h:i A'),
                         Infolists\Components\TextEntry::make('total')

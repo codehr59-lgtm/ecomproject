@@ -24,7 +24,7 @@ class OrderController extends Controller
             'city'           => 'required|string|max:100',
             'thana'          => 'nullable|string|max:100',
             'notes'          => 'nullable|string|max:1000',
-            'payment_method' => 'required|in:cod,sslcommerz,bkash,nagad,rocket',
+            'payment_method' => 'required|in:cod,sslcommerz,bkash',
             'coupon_code'    => 'nullable|string|max:50',
             'items'          => 'required|string',
         ]);
@@ -154,7 +154,12 @@ class OrderController extends Controller
             return $order;
         });
 
-        return redirect()->route('order.confirmation', $order->number);
+        // COD: go straight to confirmation; online methods: go to payment gateway
+        if ($order->payment_method === 'cod') {
+            return redirect()->route('order.confirmation', $order->number);
+        }
+
+        return redirect()->route('payment.start', $order->number);
     }
 
     /**

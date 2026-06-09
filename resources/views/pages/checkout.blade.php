@@ -142,7 +142,7 @@
                             <span class="radio"></span>
                             <span>
                                 <b>Cash on Delivery</b>
-                                <span>Pay when it arrives at your door</span>
+                                <span>Pay when your order arrives</span>
                             </span>
                             <span class="pay-logo">COD</span>
                         </div>
@@ -152,29 +152,19 @@
                             <span class="radio"></span>
                             <span>
                                 <b>bKash</b>
-                                <span>Mobile banking payment</span>
+                                <span>Pay securely with bKash</span>
                             </span>
-                            <span class="pay-logo" style="color:#E2136E">bK</span>
+                            <span class="pay-logo" style="background:#E2136E;color:#fff;border-radius:6px;padding:2px 6px;font-size:12px;font-weight:800">bKash</span>
                         </div>
 
-                        {{-- Nagad --}}
-                        <div class="pay-opt" :class="pay === 'nagad' ? 'on' : ''" @click="pay = 'nagad'" role="radio" :aria-checked="pay === 'nagad'" tabindex="0" @keydown.enter="pay = 'nagad'" @keydown.space.prevent="pay = 'nagad'">
+                        {{-- SSLCommerz --}}
+                        <div class="pay-opt" :class="pay === 'sslcommerz' ? 'on' : ''" @click="pay = 'sslcommerz'" role="radio" :aria-checked="pay === 'sslcommerz'" tabindex="0" @keydown.enter="pay = 'sslcommerz'" @keydown.space.prevent="pay = 'sslcommerz'" style="margin-bottom:0">
                             <span class="radio"></span>
                             <span>
-                                <b>Nagad</b>
-                                <span>Bangladesh Post Office MFS</span>
+                                <b>Cards &amp; Mobile Banking (SSLCommerz)</b>
+                                <span>Visa, Mastercard, bKash, Nagad, Rocket</span>
                             </span>
-                            <span class="pay-logo" style="color:#F6851B">Ng</span>
-                        </div>
-
-                        {{-- Rocket --}}
-                        <div class="pay-opt" :class="pay === 'rocket' ? 'on' : ''" @click="pay = 'rocket'" role="radio" :aria-checked="pay === 'rocket'" tabindex="0" @keydown.enter="pay = 'rocket'" @keydown.space.prevent="pay = 'rocket'" style="margin-bottom:0">
-                            <span class="radio"></span>
-                            <span>
-                                <b>Rocket</b>
-                                <span>DBBL Mobile Banking</span>
-                            </span>
-                            <span class="pay-logo" style="color:#8B16A2">Rkt</span>
+                            <span class="pay-logo" style="font-size:11px;font-weight:700;color:var(--green-deep)">SSL</span>
                         </div>
                     </div>
 

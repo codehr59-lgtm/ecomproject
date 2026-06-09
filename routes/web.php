@@ -4,6 +4,7 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,6 +18,18 @@ Route::get('/checkout', [CatalogController::class, 'checkout'])->name('checkout'
 Route::post('/checkout', [OrderController::class, 'store'])->name('order.store');
 Route::get('/order/{number}/confirmation', [OrderController::class, 'confirmation'])->name('order.confirmation');
 Route::get('/order/{number}/invoice', [OrderController::class, 'invoice'])->name('order.invoice');
+
+// Payment gateway entry point + callbacks
+Route::get('/payment/{number}', [PaymentController::class, 'start'])->name('payment.start');
+
+// SSLCommerz callbacks (POST from external — CSRF excluded in bootstrap/app.php)
+Route::post('/payment/sslcommerz/success', [PaymentController::class, 'sslSuccess'])->name('payment.sslcommerz.success');
+Route::post('/payment/sslcommerz/fail',    [PaymentController::class, 'sslFail'])->name('payment.sslcommerz.fail');
+Route::post('/payment/sslcommerz/cancel',  [PaymentController::class, 'sslCancel'])->name('payment.sslcommerz.cancel');
+Route::post('/payment/sslcommerz/ipn',     [PaymentController::class, 'sslIpn'])->name('payment.sslcommerz.ipn');
+
+// bKash callback (GET from external)
+Route::get('/payment/bkash/callback', [PaymentController::class, 'bkashCallback'])->name('payment.bkash.callback');
 
 // marketing / static
 Route::get('/about', [PageController::class, 'about'])->name('about');
