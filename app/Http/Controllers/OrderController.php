@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\Product;
+use App\Support\PaymentConfig;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,19 @@ class OrderController extends Controller
             'city'           => 'required|string|max:100',
             'thana'          => 'nullable|string|max:100',
             'notes'          => 'nullable|string|max:1000',
-            'payment_method' => 'required|in:cod,sslcommerz,bkash',
+            'payment_method' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
+                    $enabled = PaymentConfig::enabledMethods();
+                    if (empty($enabled)) {
+                        $enabled = ['cod'];
+                    }
+                    if (! in_array($value, $enabled, true)) {
+                        $fail('The selected payment method is not available.');
+                    }
+                },
+            ],
             'coupon_code'    => 'nullable|string|max:50',
             'items'          => 'required|string',
         ]);

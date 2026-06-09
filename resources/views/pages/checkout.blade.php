@@ -9,7 +9,7 @@
      ============================================================ --}}
 <div x-data="{
     step: 1,
-    pay: 'cod',
+    pay: '{{ $paymentMethods[0] ?? 'cod' }}',
     promo: '',
     name: '',
     phone: '',
@@ -138,7 +138,9 @@
                         <input type="hidden" name="payment_method" :value="pay">
 
                         {{-- Cash on Delivery --}}
-                        <div class="pay-opt" :class="pay === 'cod' ? 'on' : ''" @click="pay = 'cod'" role="radio" :aria-checked="pay === 'cod'" tabindex="0" @keydown.enter="pay = 'cod'" @keydown.space.prevent="pay = 'cod'">
+                        @if(in_array('cod', $paymentMethods))
+                        <div class="pay-opt" :class="pay === 'cod' ? 'on' : ''" @click="pay = 'cod'" role="radio" :aria-checked="pay === 'cod'" tabindex="0" @keydown.enter="pay = 'cod'" @keydown.space.prevent="pay = 'cod'"
+                            @if(!in_array('bkash', $paymentMethods) && !in_array('sslcommerz', $paymentMethods)) style="margin-bottom:0" @endif>
                             <span class="radio"></span>
                             <span>
                                 <b>Cash on Delivery</b>
@@ -146,9 +148,12 @@
                             </span>
                             <span class="pay-logo">COD</span>
                         </div>
+                        @endif
 
                         {{-- bKash --}}
-                        <div class="pay-opt" :class="pay === 'bkash' ? 'on' : ''" @click="pay = 'bkash'" role="radio" :aria-checked="pay === 'bkash'" tabindex="0" @keydown.enter="pay = 'bkash'" @keydown.space.prevent="pay = 'bkash'">
+                        @if(in_array('bkash', $paymentMethods))
+                        <div class="pay-opt" :class="pay === 'bkash' ? 'on' : ''" @click="pay = 'bkash'" role="radio" :aria-checked="pay === 'bkash'" tabindex="0" @keydown.enter="pay = 'bkash'" @keydown.space.prevent="pay = 'bkash'"
+                            @if(!in_array('sslcommerz', $paymentMethods)) style="margin-bottom:0" @endif>
                             <span class="radio"></span>
                             <span>
                                 <b>bKash</b>
@@ -156,8 +161,10 @@
                             </span>
                             <span class="pay-logo" style="background:#E2136E;color:#fff;border-radius:6px;padding:2px 6px;font-size:12px;font-weight:800">bKash</span>
                         </div>
+                        @endif
 
                         {{-- SSLCommerz --}}
+                        @if(in_array('sslcommerz', $paymentMethods))
                         <div class="pay-opt" :class="pay === 'sslcommerz' ? 'on' : ''" @click="pay = 'sslcommerz'" role="radio" :aria-checked="pay === 'sslcommerz'" tabindex="0" @keydown.enter="pay = 'sslcommerz'" @keydown.space.prevent="pay = 'sslcommerz'" style="margin-bottom:0">
                             <span class="radio"></span>
                             <span>
@@ -166,6 +173,7 @@
                             </span>
                             <span class="pay-logo" style="font-size:11px;font-weight:700;color:var(--green-deep)">SSL</span>
                         </div>
+                        @endif
                     </div>
 
                 </div>

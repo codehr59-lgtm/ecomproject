@@ -3,6 +3,7 @@
 namespace App\Services\Payments;
 
 use App\Models\Order;
+use App\Support\PaymentConfig;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
@@ -17,11 +18,12 @@ class BkashService
 
     public function __construct()
     {
-        $this->appKey    = (string) config('payments.bkash.app_key', '');
-        $this->appSecret = (string) config('payments.bkash.app_secret', '');
-        $this->username  = (string) config('payments.bkash.username', '');
-        $this->password  = (string) config('payments.bkash.password', '');
-        $this->sandbox   = (bool)   config('payments.bkash.sandbox', true);
+        $creds           = PaymentConfig::bkash();
+        $this->appKey    = $creds['app_key'];
+        $this->appSecret = $creds['app_secret'];
+        $this->username  = $creds['username'];
+        $this->password  = $creds['password'];
+        $this->sandbox   = $creds['sandbox'];
     }
 
     public function isConfigured(): bool
@@ -30,6 +32,14 @@ class BkashService
             && $this->appSecret !== ''
             && $this->username !== ''
             && $this->password !== '';
+    }
+
+    /**
+     * Is this method available (enabled AND configured)?
+     */
+    public function isAvailable(): bool
+    {
+        return PaymentConfig::enabled('bkash') && $this->isConfigured();
     }
 
     private function baseUrl(): string

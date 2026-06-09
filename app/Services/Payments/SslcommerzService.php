@@ -3,6 +3,7 @@
 namespace App\Services\Payments;
 
 use App\Models\Order;
+use App\Support\PaymentConfig;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -14,14 +15,23 @@ class SslcommerzService
 
     public function __construct()
     {
-        $this->storeId       = (string) config('payments.sslcommerz.store_id', '');
-        $this->storePassword = (string) config('payments.sslcommerz.store_password', '');
-        $this->sandbox       = (bool)   config('payments.sslcommerz.sandbox', true);
+        $creds               = PaymentConfig::sslcommerz();
+        $this->storeId       = $creds['store_id'];
+        $this->storePassword = $creds['store_password'];
+        $this->sandbox       = $creds['sandbox'];
     }
 
     public function isConfigured(): bool
     {
         return $this->storeId !== '' && $this->storePassword !== '';
+    }
+
+    /**
+     * Is this method available (enabled AND configured)?
+     */
+    public function isAvailable(): bool
+    {
+        return PaymentConfig::enabled('sslcommerz') && $this->isConfigured();
     }
 
     private function baseUrl(): string

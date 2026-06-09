@@ -4,12 +4,24 @@ namespace Tests\Feature;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Setting;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class PaymentTest extends TestCase
 {
     use DatabaseTransactions;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Enable all payment methods for payment flow tests
+        Setting::set('cod_enabled',        true);
+        Setting::set('bkash_enabled',      true);
+        Setting::set('sslcommerz_enabled', true);
+        Cache::forget('app.settings');
+    }
 
     private function place(string $method): \Illuminate\Testing\TestResponse
     {

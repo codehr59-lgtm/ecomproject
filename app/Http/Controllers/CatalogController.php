@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Support\Catalog;
+use App\Support\PaymentConfig;
 use Illuminate\Http\Request;
 
 class CatalogController extends Controller
@@ -75,6 +76,13 @@ class CatalogController extends Controller
 
     public function checkout(): \Illuminate\View\View
     {
-        return view('pages.checkout');
+        $paymentMethods = PaymentConfig::enabledMethods();
+
+        // Ensure at least COD is available as ultimate fallback
+        if (empty($paymentMethods)) {
+            $paymentMethods = ['cod'];
+        }
+
+        return view('pages.checkout', compact('paymentMethods'));
     }
 }
