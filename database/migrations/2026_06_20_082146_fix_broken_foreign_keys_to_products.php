@@ -7,6 +7,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() !== 'sqlite') {
+            return;
+        }
+
         DB::statement('PRAGMA foreign_keys=OFF');
 
         // 1. product_variations

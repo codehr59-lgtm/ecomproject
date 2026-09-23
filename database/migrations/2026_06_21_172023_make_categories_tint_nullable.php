@@ -7,6 +7,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE categories ALTER COLUMN tint DROP NOT NULL');
+            return;
+        }
+
         // SQLite doesn't support ALTER COLUMN — rebuild the table
         DB::statement('PRAGMA foreign_keys = OFF');
 

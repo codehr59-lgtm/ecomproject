@@ -7,6 +7,13 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE products ALTER COLUMN rating DROP NOT NULL, ALTER COLUMN rating SET DEFAULT 0');
+            DB::statement('ALTER TABLE products ALTER COLUMN reviews DROP NOT NULL, ALTER COLUMN reviews SET DEFAULT 0');
+            DB::statement('ALTER TABLE products ALTER COLUMN certified DROP NOT NULL, ALTER COLUMN certified SET DEFAULT false');
+            return;
+        }
+
         DB::statement('PRAGMA foreign_keys=OFF');
         DB::statement('ALTER TABLE products RENAME TO _products_old2');
 

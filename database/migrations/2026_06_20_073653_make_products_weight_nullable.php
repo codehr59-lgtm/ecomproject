@@ -7,6 +7,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE products ALTER COLUMN weight DROP NOT NULL');
+            return;
+        }
+
         DB::statement('PRAGMA foreign_keys=OFF');
 
         DB::statement('ALTER TABLE products RENAME TO _products_old');

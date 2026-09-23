@@ -16,14 +16,15 @@ class CatalogSeeder extends Seeder
      */
     public function run(): void
     {
-        // Disable FK constraints for SQLite truncation
-        \DB::statement('PRAGMA foreign_keys = OFF;');
-
-        Product::truncate();
-        Brand::truncate();
-        Category::truncate();
-
-        \DB::statement('PRAGMA foreign_keys = ON;');
+        if (\DB::getDriverName() === 'sqlite') {
+            \DB::statement('PRAGMA foreign_keys = OFF;');
+            Product::truncate();
+            Brand::truncate();
+            Category::truncate();
+            \DB::statement('PRAGMA foreign_keys = ON;');
+        } else {
+            \DB::statement('TRUNCATE TABLE products, brands, categories RESTART IDENTITY CASCADE;');
+        }
 
         // ── 1. Seed categories ────────────────────────────────────────────
         $categoryData = config('products.categories', []);
