@@ -20,13 +20,12 @@
             </button>
         </div>
 
-        {{-- gift progress bar (only when items exist) --}}
-        <div class="gift-bar" x-show="$store.shop.items.length > 0" x-cloak>
+        {{-- gift progress bar (only when items exist and feature is enabled) --}}
+        <div class="gift-bar" x-show="$store.shop.giftEnabled && $store.shop.items.length > 0" x-cloak>
             <p x-show="$store.shop.giftRemain > 0">
-                <span>Add <b><span x-text="window.tk($store.shop.giftRemain)"></span></b> more to unlock a <b>free Lychee Honey sachet</b> 🎁</span>
+                <span>Add <b><span x-text="window.tk($store.shop.giftRemain)"></span></b> more to unlock a <b><span x-text="$store.shop.giftName"></span></b> 🎁</span>
             </p>
-            <p x-show="$store.shop.giftRemain === 0">
-                🎉 You've unlocked a <b>free gift</b>! It'll be added at checkout.
+            <p x-show="$store.shop.giftRemain === 0" x-text="$store.shop.giftSuccessMsg">
             </p>
             <div class="gift-track">
                 <div class="gift-fill" :style="`width:${$store.shop.giftPct}%`"></div>
@@ -51,25 +50,39 @@
             </template>
 
             {{-- line items --}}
-            <template x-for="it in $store.shop.items" :key="it.id">
-                <div class="cart-line">
+            <template x-for="it in $store.shop.items" :key="it.itemKey || it.id">
+                <div class="cart-line" style="position:relative;">
+                    {{-- X button top-right corner --}}
+                    <button @click.prevent.stop="$store.shop.remove(it.itemKey || it.id)"
+                            style="position:absolute;top:4px;right:0;width:24px;height:24px;background:#fee2e2;border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;"
+                            aria-label="Remove item">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 6L6 18"/><path d="M6 6l12 12"/>
+                        </svg>
+                    </button>
                     <div class="cart-line-art" :style="`--ph-bg:${window.softBg(window.catTint(it.cat))}`">
-                        <div class="ph-jar" :style="`width:34px;height:40px;margin:0;background:${window.catTint(it.cat)}44`"></div>
+                        <template x-if="it.image">
+                            <img :src="it.image" :alt="it.name" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
+                        </template>
+                        <template x-if="!it.image">
+                            <div class="ph-jar" :style="`width:34px;height:40px;margin:0;background:${window.catTint(it.cat)}44`"></div>
+                        </template>
                     </div>
                     <div class="cart-line-info">
+                        <template x-if="it.is_combo">
+                            <div><span style="display:inline-block;background:var(--orange, #FA8B01);color:#fff;font-size:9.5px;font-weight:800;padding:1px 6px;border-radius:4px;letter-spacing:0.5px;margin-bottom:3px;">COMBO PACK</span></div>
+                        </template>
                         <h5 x-text="it.name"></h5>
                         <span class="w" x-text="it.weight"></span>
                         <div class="cart-line-bottom">
                             <div class="qty-mini">
-                                <button @click="$store.shop.changeQty(it.id, -1)" aria-label="Decrease">
-                                    {{-- minus icon --}}
+                                <button @click="$store.shop.changeQty(it.itemKey || it.id, -1)" aria-label="Decrease">
                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M5 12h14" />
                                     </svg>
                                 </button>
                                 <span x-text="it.qty"></span>
-                                <button @click="$store.shop.changeQty(it.id, 1)" aria-label="Increase">
-                                    {{-- plus icon --}}
+                                <button @click="$store.shop.changeQty(it.itemKey || it.id, 1)" aria-label="Increase">
                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M12 5v14" /><path d="M5 12h14" />
                                     </svg>
@@ -77,7 +90,6 @@
                             </div>
                             <span class="lp" x-text="window.tk(it.price * it.qty)"></span>
                         </div>
-                        <button class="cart-rm" @click="$store.shop.remove(it.id)">Remove</button>
                     </div>
                 </div>
             </template>
@@ -99,7 +111,7 @@
                 <span x-show="$store.shop.freeShip" x-cloak>You qualify for free delivery</span>
             </div>
             <div class="sum-row"><span>Subtotal</span><span x-text="window.tk($store.shop.subtotal)"></span></div>
-            <div class="sum-row"><span>Delivery</span><span x-text="$store.shop.freeShip ? 'Free' : window.tk(60)"></span></div>
+            <div class="sum-row"><span>Delivery</span><span x-text="$store.shop.freeShip ? 'Free' : window.tk($store.shop.delivery)"></span></div>
             <div class="sum-row total"><span>Total</span><span x-text="window.tk($store.shop.total)"></span></div>
             <a class="btn btn-primary btn-block btn-lg" href="{{ route('checkout') }}" @click="$store.shop.hide()">
                 Checkout

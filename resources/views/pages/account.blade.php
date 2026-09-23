@@ -152,8 +152,7 @@
                                     <th style="padding:10px 12px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Date</th>
                                     <th style="padding:10px 12px;text-align:center;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Items</th>
                                     <th style="padding:10px 12px;text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Status</th>
-                                    <th style="padding:10px 12px;text-align:right;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Total</th>
-                                    <th style="padding:10px 12px;text-align:center;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em"></th>
+                                    <th style="padding:10px 12px;text-align:right;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -181,8 +180,20 @@
                                             </span>
                                         </td>
                                         <td style="padding:11px 12px;text-align:right;font-weight:700;color:var(--ink)">৳{{ number_format($ord->total) }}</td>
-                                        <td style="padding:11px 12px;text-align:center">
-                                            <a href="{{ route('order.confirmation', $ord->number) }}" style="font-size:12.5px;font-weight:700;color:var(--green);text-decoration:none">View</a>
+                                        <td style="padding:11px 12px;text-align:right;white-space:nowrap">
+                                            <div style="display:inline-flex;gap:6px;align-items:center;justify-content:flex-end">
+                                                <a href="{{ route('order.invoice', $ord->number) }}" target="_blank" class="btn btn-ghost" style="padding:4px 10px;font-size:12px;display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:6px" title="Download Invoice PDF">
+                                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                                    Invoice
+                                                </a>
+                                                <a href="{{ route('track', ['number' => $ord->number]) }}" class="btn btn-ghost" style="padding:4px 10px;font-size:12px;display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:6px" title="Track Order">
+                                                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                                    Track
+                                                </a>
+                                                <a href="{{ route('order.confirmation', $ord->number) }}" style="font-size:12.5px;font-weight:700;color:var(--green);text-decoration:none;padding:4px 6px">
+                                                    Details
+                                                </a>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach

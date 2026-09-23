@@ -12,18 +12,23 @@ class ImagesRelationManager extends RelationManager
 {
     protected static string $relationship = 'images';
 
+    protected static ?string $title = 'Gallery Images';
+
     public function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\FileUpload::make('path')
                     ->disk('public')
-                    ->directory('products')
+                    ->directory('products/gallery')
                     ->image()
-                    ->required(),
+                    ->imageResizeMode('cover')
+                    ->required()
+                    ->columnSpanFull(),
                 Forms\Components\TextInput::make('sort')
                     ->numeric()
-                    ->default(0),
+                    ->default(0)
+                    ->helperText('Lower number = shown first'),
             ]);
     }
 
@@ -31,16 +36,21 @@ class ImagesRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('path')
+            ->reorderable('sort')
             ->columns([
                 Tables\Columns\ImageColumn::make('path')
+                    ->label('Image')
                     ->disk('public')
-                    ->width(80)
-                    ->height(60),
+                    ->width(100)
+                    ->height(80),
                 Tables\Columns\TextColumn::make('sort')
+                    ->label('Order')
                     ->sortable(),
             ])
+            ->defaultSort('sort')
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->label('Add Image'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

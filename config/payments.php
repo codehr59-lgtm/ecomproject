@@ -16,4 +16,16 @@ return [
         'sandbox'    => env('BKASH_SANDBOX', true),
     ],
 
+    'nagad' => [
+        'merchant_id'  => env('NAGAD_MERCHANT_ID'),
+        'merchant_key' => env('NAGAD_MERCHANT_KEY'),
+        'sandbox'      => env('NAGAD_SANDBOX', true),
+    ],
+
+    'rocket' => [
+        'merchant_id'       => env('ROCKET_MERCHANT_ID'),
+        'merchant_password' => env('ROCKET_MERCHANT_PASSWORD'),
+        'sandbox'           => env('ROCKET_SANDBOX', true),
+    ],
+
 ];

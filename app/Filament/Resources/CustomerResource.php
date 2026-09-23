@@ -16,11 +16,12 @@ class CustomerResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
+
     protected static ?string $navigationLabel = 'Customers';
 
     protected static ?string $modelLabel = 'Customer';
 
-    protected static ?int $navigationSort = 9;
+    protected static ?int $navigationSort = 11;
 
     public static function form(Form $form): Form
     {
@@ -35,14 +36,13 @@ class CustomerResource extends Resource
                     ->unique(ignoreRecord: true),
                 Forms\Components\TextInput::make('phone')
                     ->maxLength(20),
-                Forms\Components\Toggle::make('is_admin')
-                    ->label('Admin'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->where('is_admin', false))
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
@@ -50,17 +50,23 @@ class CustomerResource extends Resource
                 Tables\Columns\TextColumn::make('email')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('phone'),
-                Tables\Columns\IconColumn::make('is_admin')
-                    ->boolean()
-                    ->label('Admin'),
+                Tables\Columns\TextColumn::make('phone')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('orders_count')
+                    ->label('Orders')
+                    ->counts('orders')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('orders_sum_total')
+                    ->label('Total Spent')
+                    ->sum('orders', 'total')
+                    ->prefix('৳')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable(),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('is_admin')
-                    ->label('Admin'),
+                //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

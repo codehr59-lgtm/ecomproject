@@ -3,6 +3,13 @@
 
 @section('content')
 
+{{-- TikTok + FB Pixel: InitiateCheckout --}}
+<script>document.addEventListener('DOMContentLoaded',function(){
+    var s=window.Alpine&&Alpine.store('shop'),sub=s?s.subtotal:0,cnt=s?s.count:0;
+    if(window.ttq){ttq.track('InitiateCheckout',{content_type:'product',quantity:cnt,value:sub,currency:'BDT'});}
+    if(window.fbq){fbq('track','InitiateCheckout',{content_type:'product',num_items:cnt,value:sub,currency:'BDT'});}
+});</script>
+
 {{-- ============================================================
      CHECKOUT PAGE — Alpine root (form + live summary)
      Real server-side order via POST /checkout
@@ -17,7 +24,21 @@
     address: '',
     city: '',
     thana: '',
-    notes: ''
+    notes: '',
+    dlvInside: {{ $deliveryConfig['inside'] }},
+    dlvOutside: {{ $deliveryConfig['outside'] }},
+    dlvFreeMin: {{ $deliveryConfig['freeMin'] }},
+    zone1Label: '{{ $deliveryConfig['zone1Label'] }}',
+    zone2Label: '{{ $deliveryConfig['zone2Label'] }}',
+    dlvZone: 'inside',
+    get deliveryFee() {
+        let sub = this.$store.shop.subtotal;
+        if (this.dlvFreeMin > 0 && sub >= this.dlvFreeMin) return 0;
+        return this.dlvZone === 'inside' ? this.dlvInside : this.dlvOutside;
+    },
+    get orderTotal() {
+        return this.$store.shop.subtotal + this.deliveryFee;
+    }
 }">
 
     {{-- Page head --}}
@@ -72,6 +93,8 @@
             <input type="hidden" name="items" id="items-input">
             {{-- Hidden: coupon --}}
             <input type="hidden" name="coupon_code" id="coupon-input">
+            {{-- Hidden: delivery zone --}}
+            <input type="hidden" name="delivery_zone" :value="dlvZone">
 
             <div class="checkout">
 
@@ -125,6 +148,44 @@
                         </div>
                     </div>
 
+                    {{-- Delivery Zone card --}}
+                    <div class="co-card">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:20px;height:20px;color:var(--green)">
+                                <path d="M3 6h11v9H3z"/>
+                                <path d="M14 9h4l3 3v3h-7"/>
+                                <path d="M7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+                                <path d="M17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+                            </svg>
+                            Delivery Area
+                        </h3>
+
+                        <div class="pay-opt" :class="dlvZone === 'inside' ? 'on' : ''" @click="dlvZone = 'inside'" role="radio" :aria-checked="dlvZone === 'inside'" tabindex="0" @keydown.enter="dlvZone = 'inside'" @keydown.space.prevent="dlvZone = 'inside'">
+                            <span class="radio"></span>
+                            <span>
+                                <b x-text="zone1Label"></b>
+                                <span>Delivery charge: <strong x-text="window.tk(dlvInside)"></strong></span>
+                            </span>
+                        </div>
+
+                        <div class="pay-opt" :class="dlvZone === 'outside' ? 'on' : ''" @click="dlvZone = 'outside'" role="radio" :aria-checked="dlvZone === 'outside'" tabindex="0" @keydown.enter="dlvZone = 'outside'" @keydown.space.prevent="dlvZone = 'outside'" style="margin-bottom:0">
+                            <span class="radio"></span>
+                            <span>
+                                <b x-text="zone2Label"></b>
+                                <span>Delivery charge: <strong x-text="window.tk(dlvOutside)"></strong></span>
+                            </span>
+                        </div>
+
+                        <template x-if="dlvFreeMin > 0">
+                            <div style="margin-top:12px;padding:10px 14px;background:var(--green-tint);border-radius:8px;font-size:13px;color:var(--green-deep);display:flex;align-items:center;gap:8px">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M3 6h11v9H3z"/><path d="M14 9h4l3 3v3h-7"/><path d="M7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+                                </svg>
+                                <span>Free delivery on orders over <strong x-text="window.tk(dlvFreeMin)"></strong></span>
+                            </div>
+                        </template>
+                    </div>
+
                     {{-- Payment Method card --}}
                     <div class="co-card">
                         <h3>
@@ -139,27 +200,49 @@
 
                         {{-- Cash on Delivery --}}
                         @if(in_array('cod', $paymentMethods))
-                        <div class="pay-opt" :class="pay === 'cod' ? 'on' : ''" @click="pay = 'cod'" role="radio" :aria-checked="pay === 'cod'" tabindex="0" @keydown.enter="pay = 'cod'" @keydown.space.prevent="pay = 'cod'"
-                            @if(!in_array('bkash', $paymentMethods) && !in_array('sslcommerz', $paymentMethods)) style="margin-bottom:0" @endif>
+                        <div class="pay-opt" :class="pay === 'cod' ? 'on' : ''" @click="pay = 'cod'" role="radio" :aria-checked="pay === 'cod'" tabindex="0" @keydown.enter="pay = 'cod'" @keydown.space.prevent="pay = 'cod'">
                             <span class="radio"></span>
                             <span>
                                 <b>Cash on Delivery</b>
                                 <span>Pay when your order arrives</span>
                             </span>
-                            <span class="pay-logo">COD</span>
+                            <span class="pay-logo" style="background:#2d6a36">COD</span>
                         </div>
                         @endif
 
                         {{-- bKash --}}
                         @if(in_array('bkash', $paymentMethods))
-                        <div class="pay-opt" :class="pay === 'bkash' ? 'on' : ''" @click="pay = 'bkash'" role="radio" :aria-checked="pay === 'bkash'" tabindex="0" @keydown.enter="pay = 'bkash'" @keydown.space.prevent="pay = 'bkash'"
-                            @if(!in_array('sslcommerz', $paymentMethods)) style="margin-bottom:0" @endif>
+                        <div class="pay-opt" :class="pay === 'bkash' ? 'on' : ''" @click="pay = 'bkash'" role="radio" :aria-checked="pay === 'bkash'" tabindex="0" @keydown.enter="pay = 'bkash'" @keydown.space.prevent="pay = 'bkash'">
                             <span class="radio"></span>
                             <span>
                                 <b>bKash</b>
                                 <span>Pay securely with bKash</span>
                             </span>
-                            <span class="pay-logo" style="background:#E2136E;color:#fff;border-radius:6px;padding:2px 6px;font-size:12px;font-weight:800">bKash</span>
+                            <span class="pay-logo" style="background:#E2136E">bKash</span>
+                        </div>
+                        @endif
+
+                        {{-- Nagad --}}
+                        @if(in_array('nagad', $paymentMethods))
+                        <div class="pay-opt" :class="pay === 'nagad' ? 'on' : ''" @click="pay = 'nagad'" role="radio" :aria-checked="pay === 'nagad'" tabindex="0" @keydown.enter="pay = 'nagad'" @keydown.space.prevent="pay = 'nagad'">
+                            <span class="radio"></span>
+                            <span>
+                                <b>Nagad</b>
+                                <span>Pay securely with Nagad</span>
+                            </span>
+                            <span class="pay-logo" style="background:#F6921E">Nagad</span>
+                        </div>
+                        @endif
+
+                        {{-- Rocket --}}
+                        @if(in_array('rocket', $paymentMethods))
+                        <div class="pay-opt" :class="pay === 'rocket' ? 'on' : ''" @click="pay = 'rocket'" role="radio" :aria-checked="pay === 'rocket'" tabindex="0" @keydown.enter="pay = 'rocket'" @keydown.space.prevent="pay = 'rocket'">
+                            <span class="radio"></span>
+                            <span>
+                                <b>Rocket (DBBL)</b>
+                                <span>Pay with Dutch-Bangla Rocket</span>
+                            </span>
+                            <span class="pay-logo" style="background:#8B2F89">Rocket</span>
                         </div>
                         @endif
 
@@ -171,7 +254,7 @@
                                 <b>Cards &amp; Mobile Banking (SSLCommerz)</b>
                                 <span>Visa, Mastercard, bKash, Nagad, Rocket</span>
                             </span>
-                            <span class="pay-logo" style="font-size:11px;font-weight:700;color:var(--green-deep)">SSL</span>
+                            <span class="pay-logo" style="background:#1a5276">SSL</span>
                         </div>
                         @endif
                     </div>
@@ -202,8 +285,13 @@
                             <div class="cart-line" style="padding:14px 0">
                                 <div class="cart-line-art"
                                      :style="`--ph-bg:${window.softBg(window.catTint(it.cat))};width:56px;height:56px`">
-                                    <div class="ph-jar"
-                                         :style="`width:26px;height:30px;margin:0;background:${window.catTint(it.cat)}44`"></div>
+                                    <template x-if="it.image">
+                                        <img :src="it.image" :alt="it.name" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
+                                    </template>
+                                    <template x-if="!it.image">
+                                        <div class="ph-jar"
+                                             :style="`width:26px;height:30px;margin:0;background:${window.catTint(it.cat)}44`"></div>
+                                    </template>
                                 </div>
                                 <div class="cart-line-info">
                                     <h5 x-text="it.name"></h5>
@@ -247,14 +335,17 @@
 
                         {{-- Delivery --}}
                         <div class="sum-row">
-                            <span>Delivery</span>
-                            <span x-text="$store.shop.freeShip ? 'Free' : window.tk(60)"></span>
+                            <span>
+                                Delivery
+                                <small style="display:block;font-size:11px;color:var(--muted);font-weight:400" x-text="'(' + (dlvZone === 'inside' ? zone1Label : zone2Label) + ')'"></small>
+                            </span>
+                            <span x-text="deliveryFee === 0 ? 'Free' : window.tk(deliveryFee)"></span>
                         </div>
 
                         {{-- Total --}}
                         <div class="sum-row total">
                             <span>Total</span>
-                            <span x-text="window.tk($store.shop.total)"></span>
+                            <span x-text="window.tk(orderTotal)"></span>
                         </div>
 
                         {{-- Place Order — populate hidden inputs before submit --}}

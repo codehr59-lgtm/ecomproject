@@ -2,10 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BlogPost;
+use App\Models\Faq;
 use App\Models\Order;
+use App\Models\Page;
+use App\Models\Testimonial;
 
 class PageController extends Controller
 {
+    public function cmsPage(string $slug): \Illuminate\View\View
+    {
+        $page = Page::where('slug', $slug)->where('is_published', true)->firstOrFail();
+        return view('pages.cms-page', compact('page'));
+    }
+
+    public function faq(): \Illuminate\View\View
+    {
+        $faqs = Faq::active()->get()->groupBy('category');
+        return view('pages.faq', compact('faqs'));
+    }
+
     public function about(): \Illuminate\View\View
     {
         return view('pages.about');
@@ -18,12 +34,16 @@ class PageController extends Controller
 
     public function blog(): \Illuminate\View\View
     {
-        return view('pages.blog');
+        $posts = BlogPost::where('is_published', true)
+            ->orderByDesc('published_at')
+            ->get();
+        return view('pages.blog', compact('posts'));
     }
 
     public function blogPost(string $slug): \Illuminate\View\View
     {
-        return view('pages.blog-post', ['slug' => $slug]);
+        $post = BlogPost::where('slug', $slug)->where('is_published', true)->firstOrFail();
+        return view('pages.blog-post', compact('post'));
     }
 
     public function privacy(): \Illuminate\View\View
@@ -64,7 +84,7 @@ class PageController extends Controller
         $order  = null;
 
         if ($number) {
-            $order = Order::with('items')->where('number', $number)->first();
+            $order = Order::with(['items.product', 'statusHistories'])->where('number', $number)->first();
         }
 
         return view('pages.track', compact('order', 'number'));

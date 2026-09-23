@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
@@ -12,12 +13,16 @@ Route::get('/', [CatalogController::class, 'home'])->name('home');
 Route::get('/shop', [CatalogController::class, 'shop'])->name('shop');
 Route::get('/category/{slug}', [CatalogController::class, 'category'])->name('category'); // alias → shop view filtered
 Route::get('/product/{id}', [CatalogController::class, 'product'])->whereNumber('id')->name('product');
+Route::get('/combos', [CatalogController::class, 'combos'])->name('combos.index');
+Route::get('/combo/{slug}', [CatalogController::class, 'combo'])->name('combo.show');
 Route::get('/checkout', [CatalogController::class, 'checkout'])->name('checkout');
 
 // Order placement (POST) + confirmation + invoice
 Route::post('/checkout', [OrderController::class, 'store'])->name('order.store');
 Route::get('/order/{number}/confirmation', [OrderController::class, 'confirmation'])->name('order.confirmation');
 Route::get('/order/{number}/invoice', [OrderController::class, 'invoice'])->name('order.invoice');
+Route::get('/order/{number}/packing-slip', [OrderController::class, 'packingSlip'])->name('order.packing-slip');
+Route::get('/order/{number}/shipping-label', [OrderController::class, 'shippingLabel'])->name('order.shipping-label');
 
 // Payment gateway entry point + callbacks
 Route::get('/payment/{number}', [PaymentController::class, 'start'])->name('payment.start');
@@ -31,9 +36,17 @@ Route::post('/payment/sslcommerz/ipn',     [PaymentController::class, 'sslIpn'])
 // bKash callback (GET from external)
 Route::get('/payment/bkash/callback', [PaymentController::class, 'bkashCallback'])->name('payment.bkash.callback');
 
+// Nagad callback (GET from external)
+Route::get('/payment/nagad/callback', [PaymentController::class, 'nagadCallback'])->name('payment.nagad.callback');
+
+// Rocket callbacks (POST from external — CSRF excluded in bootstrap/app.php)
+Route::post('/payment/rocket/callback', [PaymentController::class, 'rocketCallback'])->name('payment.rocket.callback');
+
 // marketing / static
 Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+Route::get('/faq', [PageController::class, 'faq'])->name('faq');
 Route::get('/blog', [PageController::class, 'blog'])->name('blog');
 Route::get('/blog/{slug}', [PageController::class, 'blogPost'])->name('blog.post');
 Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
@@ -56,5 +69,32 @@ Route::middleware('auth')->group(function () {
     // Wishlist toggle (JSON)
     Route::post('/wishlist/toggle/{product}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 });
+
+// Admin notifications (JSON)
+Route::middleware('auth')->get('/api/admin/notifications', function () {
+    if (! auth()->user()->is_admin) {
+        return response()->json(['count' => 0, 'orders' => []]);
+    }
+    $recent = \App\Models\Order::orderByDesc('created_at')
+        ->take(8)
+        ->get(['id', 'number', 'customer_name', 'total', 'status', 'created_at']);
+
+    $newCount = \App\Models\Order::where('status', 'pending')->count();
+
+    return response()->json([
+        'count'  => $newCount,
+        'orders' => $recent->map(fn ($o) => [
+            'id'     => $o->id,
+            'number' => $o->number,
+            'name'   => $o->customer_name,
+            'total'  => $o->total,
+            'status' => $o->status,
+            'time'   => $o->created_at->diffForHumans(),
+        ]),
+    ]);
+})->name('admin.notifications');
+
+// CMS dynamic pages (must be after all other routes)
+Route::get('/page/{slug}', [PageController::class, 'cmsPage'])->name('page.show');
 
 Route::fallback(fn () => response()->view('errors.404', [], 404));

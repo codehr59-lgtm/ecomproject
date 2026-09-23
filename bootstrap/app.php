@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'payment/sslcommerz/fail',
             'payment/sslcommerz/cancel',
             'payment/sslcommerz/ipn',
+            'payment/rocket/callback',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

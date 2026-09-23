@@ -6,23 +6,16 @@ use App\Models\Setting;
 
 class PaymentConfig
 {
-    /**
-     * Display order for payment methods.
-     */
-    private const ORDER = ['cod', 'bkash', 'sslcommerz'];
+    private const ORDER = ['cod', 'bkash', 'nagad', 'rocket', 'sslcommerz'];
 
-    /**
-     * Default enabled state per method (if no DB setting exists).
-     */
     private const DEFAULTS = [
         'cod'        => true,
         'bkash'      => false,
+        'nagad'      => false,
+        'rocket'     => false,
         'sslcommerz' => false,
     ];
 
-    /**
-     * Is the given payment method enabled?
-     */
     public static function enabled(string $method): bool
     {
         $default = self::DEFAULTS[$method] ?? false;
@@ -35,17 +28,11 @@ class PaymentConfig
         return (bool) $value;
     }
 
-    /**
-     * Return ordered list of enabled method identifiers.
-     */
     public static function enabledMethods(): array
     {
         return array_values(array_filter(self::ORDER, fn ($m) => self::enabled($m)));
     }
 
-    /**
-     * bKash credentials — DB first, fall back to config/.env.
-     */
     public static function bkash(): array
     {
         return [
@@ -57,15 +44,30 @@ class PaymentConfig
         ];
     }
 
-    /**
-     * SSLCommerz credentials — DB first, fall back to config/.env.
-     */
     public static function sslcommerz(): array
     {
         return [
             'store_id'       => self::dbOrConfig('sslcommerz_store_id',       config('payments.sslcommerz.store_id', '')),
             'store_password' => self::dbSecretOrConfig('sslcommerz_store_password', config('payments.sslcommerz.store_password', '')),
             'sandbox'        => self::dbBoolOrConfig('sslcommerz_sandbox',     config('payments.sslcommerz.sandbox', true)),
+        ];
+    }
+
+    public static function nagad(): array
+    {
+        return [
+            'merchant_id'  => self::dbOrConfig('nagad_merchant_id',  config('payments.nagad.merchant_id', '')),
+            'merchant_key' => self::dbSecretOrConfig('nagad_merchant_key', config('payments.nagad.merchant_key', '')),
+            'sandbox'      => self::dbBoolOrConfig('nagad_sandbox',  config('payments.nagad.sandbox', true)),
+        ];
+    }
+
+    public static function rocket(): array
+    {
+        return [
+            'merchant_id'       => self::dbOrConfig('rocket_merchant_id',       config('payments.rocket.merchant_id', '')),
+            'merchant_password' => self::dbSecretOrConfig('rocket_merchant_password', config('payments.rocket.merchant_password', '')),
+            'sandbox'           => self::dbBoolOrConfig('rocket_sandbox',       config('payments.rocket.sandbox', true)),
         ];
     }
 

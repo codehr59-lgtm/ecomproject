@@ -17,7 +17,12 @@ class Setting extends Model
     private static array $secretKeys = [
         'bkash_app_secret',
         'bkash_password',
+        'nagad_merchant_key',
+        'rocket_merchant_password',
         'sslcommerz_store_password',
+        'pathao_client_secret',
+        'pathao_password',
+        'steadfast_api_secret',
     ];
 
     /**

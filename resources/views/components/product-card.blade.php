@@ -9,6 +9,7 @@
       'weight' => $p['weight'],
       'price'  => $p['price'],
       'cat'    => $p['cat'],
+      'image'  => !empty($p['image']) ? asset('storage/' . $p['image']) : null,
   ]);
 @endphp
 <div class="pcard" x-data="{ added: false }">
@@ -28,7 +29,11 @@
       </svg>
     </button>
     <a href="{{ route('product', $p['id']) }}">
-      <x-photo :cat="$p['cat']" :label="strtoupper($p['cat'] . ' · ' . $p['weight'])" />
+      @if(!empty($p['image']))
+        <img src="{{ asset('storage/' . $p['image']) }}" alt="{{ $p['name'] }}" style="width:100%;height:100%;object-fit:contain;">
+      @else
+        <x-photo :cat="$p['cat']" :label="strtoupper($p['cat'] . ' · ' . $p['weight'])" />
+      @endif
     </a>
   </div>
   <div class="pcard-body">

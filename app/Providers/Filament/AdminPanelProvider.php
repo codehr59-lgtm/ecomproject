@@ -2,10 +2,13 @@
 
 namespace App\Providers\Filament;
 
+use Filament\Enums\ThemeMode;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
+use Filament\Navigation\NavigationItem;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -29,6 +32,37 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->colors([
                 'primary' => Color::Amber,
+            ])
+            ->darkMode(true)
+            ->defaultThemeMode(ThemeMode::Light)
+            ->userMenuItems([
+                'visit-site' => MenuItem::make()
+                    ->label('Visit Live Site')
+                    ->icon('heroicon-o-globe-alt')
+                    ->url('/')
+                    ->openUrlInNewTab(),
+            ])
+            ->renderHook(
+                'panels::topbar.end',
+                fn () => view('filament.topbar-dark-toggle'),
+            )
+            ->renderHook(
+                'panels::topbar.end',
+                fn () => view('filament.topbar-notifications'),
+            )
+            ->renderHook(
+                'panels::topbar.end',
+                fn () => view('filament.topbar-visit-site'),
+            )
+            ->renderHook(
+                'panels::head.end',
+                fn () => view('filament.admin-sidebar-styles'),
+            )
+            ->navigationItems([
+                NavigationItem::make('Products')
+                    ->url(fn () => \App\Filament\Resources\ProductResource::getUrl('create'))
+                    ->icon('heroicon-o-plus-circle')
+                    ->sort(1),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

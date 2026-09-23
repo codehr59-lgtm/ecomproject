@@ -16,4 +16,31 @@ class EditProduct extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $data['gallery'] = $this->record->images()
+            ->orderBy('sort')
+            ->pluck('path')
+            ->toArray();
+
+        return $data;
+    }
+
+    protected function afterSave(): void
+    {
+        $gallery = $this->data['gallery'] ?? [];
+
+        $this->record->images()->delete();
+
+        if (!empty($gallery)) {
+            $rows = [];
+            foreach ($gallery as $i => $path) {
+                $rows[] = ['path' => $path, 'sort' => $i];
+            }
+            $this->record->images()->createMany($rows);
+        }
+
+        $this->record->syncStock();
+    }
 }

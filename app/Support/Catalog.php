@@ -35,7 +35,7 @@ class Catalog
     public static function products(): array
     {
         return Product::active()
-            ->with('category')
+            ->with(['category', 'productReviews', 'variations'])
             ->orderBy('sort')
             ->get()
             ->map(fn (Product $p) => $p->toCardArray())
@@ -57,6 +57,7 @@ class Catalog
             ->map(fn (Category $c) => [
                 'id'    => $c->slug,
                 'name'  => $c->name,
+                'image' => $c->image,
                 'tint'  => $c->tint,
                 'note'  => $c->note,
                 'count' => (int) $c->products_count,
@@ -88,7 +89,30 @@ class Catalog
     /** @return array<int,array> */
     public static function combos(): array
     {
+        $dbCombos = \App\Models\Combo::active()
+            ->with(['items.product', 'items.variation'])
+            ->orderBy('sort')
+            ->get();
+
+        if ($dbCombos->isNotEmpty()) {
+            return $dbCombos->map(fn (\App\Models\Combo $c) => $c->toCardArray())->all();
+        }
+
         return config('products.combos', []);
+    }
+
+    /**
+     * Find a combo by slug or numeric ID.
+     */
+    public static function combo(string|int $idOrSlug): ?\App\Models\Combo
+    {
+        $query = \App\Models\Combo::active()->with(['items.product', 'items.variation']);
+
+        if (is_numeric($idOrSlug)) {
+            return $query->where('id', (int) $idOrSlug)->first();
+        }
+
+        return $query->where('slug', $idOrSlug)->first();
     }
 
     // ── Threshold helpers ─────────────────────────────────────────────────
@@ -113,7 +137,7 @@ class Catalog
     public static function find(mixed $id): ?array
     {
         $product = Product::active()
-            ->with('category')
+            ->with(['category', 'productReviews', 'variations'])
             ->find((int) $id);
 
         return $product?->toCardArray();
@@ -157,7 +181,7 @@ class Catalog
         }
 
         return Product::active()
-            ->with('category')
+            ->with(['category', 'productReviews', 'variations'])
             ->where('category_id', $category->id)
             ->orderBy('sort')
             ->get()
@@ -166,12 +190,47 @@ class Catalog
     }
 
     /**
+     * Products belonging to a category with customizable limit and sort.
+     */
+    public static function categoryProducts(int $categoryId, int $limit = 5, string $sortBy = 'sort_order'): array
+    {
+        $query = Product::active()
+            ->with(['category', 'productReviews', 'variations'])
+            ->where('category_id', $categoryId);
+
+        switch ($sortBy) {
+            case 'latest':
+                $query->latest('id');
+                break;
+            case 'popular':
+                $query->orderByDesc('reviews');
+                break;
+            case 'price_asc':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'price_desc':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'sort_order':
+            default:
+                $query->orderBy('sort')->orderBy('id');
+                break;
+        }
+
+        return $query->take($limit)
+            ->get()
+            ->map(fn (Product $p) => $p->toCardArray())
+            ->all();
+    }
+
+
+    /**
      * Top-selling products: badge='best', padded to $limit by highest reviews.
      */
     public static function topSelling(int $limit = 8): array
     {
         $best = Product::active()
-            ->with('category')
+            ->with(['category', 'productReviews', 'variations'])
             ->where('badge', 'best')
             ->orderByDesc('reviews')
             ->get();
@@ -185,7 +244,7 @@ class Catalog
         $bestIds = $best->pluck('id')->all();
 
         $pad = Product::active()
-            ->with('category')
+            ->with(['category', 'productReviews', 'variations'])
             ->whereNotIn('id', $bestIds)
             ->orderByDesc('reviews')
             ->take($limit - $best->count())
@@ -202,7 +261,7 @@ class Catalog
     public static function newArrivals(int $limit = 10): array
     {
         return Product::active()
-            ->with('category')
+            ->with(['category', 'productReviews', 'variations'])
             ->where('badge', 'new')
             ->orderBy('sort')
             ->take($limit)
@@ -217,7 +276,7 @@ class Catalog
     public static function preorder(int $limit = 10): array
     {
         return Product::active()
-            ->with('category')
+            ->with(['category', 'productReviews', 'variations'])
             ->where('badge', 'preorder')
             ->orderBy('sort')
             ->take($limit)
@@ -232,7 +291,7 @@ class Catalog
     public static function certified(int $limit = 10): array
     {
         return Product::active()
-            ->with('category')
+            ->with(['category', 'productReviews', 'variations'])
             ->where('certified', true)
             ->orderBy('sort')
             ->take($limit)
@@ -247,14 +306,14 @@ class Catalog
      */
     public static function related(mixed $id, int $limit = 5): array
     {
-        $product = Product::active()->with('category')->find((int) $id);
+        $product = Product::active()->with(['category', 'productReviews', 'variations'])->find((int) $id);
 
         if (! $product) {
             return [];
         }
 
         return Product::active()
-            ->with('category')
+            ->with(['category', 'productReviews', 'variations'])
             ->where('category_id', $product->category_id)
             ->where('id', '!=', (int) $id)
             ->orderBy('sort')
@@ -274,7 +333,7 @@ class Catalog
         }
 
         return Product::active()
-            ->with('category')
+            ->with(['category', 'productReviews', 'variations'])
             ->where('name', 'like', '%' . $q . '%')
             ->orderBy('sort')
             ->get()
@@ -288,7 +347,7 @@ class Catalog
     public static function featured(int $limit = 10): array
     {
         return Product::active()
-            ->with('category')
+            ->with(['category', 'productReviews', 'variations'])
             ->orderBy('sort')
             ->take($limit)
             ->get()

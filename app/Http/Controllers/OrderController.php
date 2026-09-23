@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\User;
 use App\Support\PaymentConfig;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
@@ -39,6 +41,7 @@ class OrderController extends Controller
                 },
             ],
             'coupon_code'    => 'nullable|string|max:50',
+            'delivery_zone'  => 'nullable|string|in:inside,outside',
             'items'          => 'required|string',
         ]);
 
@@ -53,25 +56,79 @@ class OrderController extends Controller
         $subtotal   = 0;
 
         foreach ($clientItems as $ci) {
-            $productId = (int) ($ci['id'] ?? 0);
-            $qty       = max(1, (int) ($ci['qty'] ?? 1));
+            $qty = max(1, (int) ($ci['qty'] ?? 1));
 
-            $product = Product::find($productId);
+            if (! empty($ci['is_combo'])) {
+                $comboId = (int) ($ci['combo_id'] ?? $ci['id'] ?? 0);
+                $combo = \App\Models\Combo::with('items.product')->find($comboId);
+                if (! $combo) {
+                    continue;
+                }
+
+                $price = (int) $combo->price;
+                $lineTotal = $price * $qty;
+                $subtotal += $lineTotal;
+
+                $lineItems[] = [
+                    'product_id'    => null,
+                    'combo_id'      => $combo->id,
+                    'name'          => $combo->name . ' (Combo Pack)',
+                    'weight'        => $combo->items_summary ?: 'Combo Package',
+                    'price'         => $price,
+                    'qty'           => $qty,
+                    'line_total'    => $lineTotal,
+                    '_is_combo'     => true,
+                    '_combo_id'     => $combo->id,
+                    '_variation_id' => null,
+                ];
+                continue;
+            }
+
+            $productId = (int) ($ci['id'] ?? 0);
+
+            $product = Product::with('variations')->find($productId);
             if (! $product) {
                 continue; // skip unknown products
             }
 
-            $price     = (int) $product->price;
+            $variation = null;
+            if ($product->product_type === 'variable' && $product->variations->isNotEmpty()) {
+                if (!empty($ci['variation_id'])) {
+                    $variation = $product->variations->firstWhere('id', (int) $ci['variation_id']);
+                }
+                if (!$variation && !empty($ci['weight'])) {
+                    $variation = $product->variations->firstWhere('label', $ci['weight']);
+                }
+                if (!$variation && !empty($ci['price'])) {
+                    $variation = $product->variations->firstWhere('price', (int) $ci['price']);
+                }
+                if (!$variation) {
+                    $variation = $product->variations->first();
+                }
+            }
+
+            if ($variation) {
+                $price  = (int) $variation->price;
+                $weight = $variation->label;
+            } else {
+                $price  = (int) ($product->price ?: ($ci['price'] ?? 0));
+                $weight = $product->weight ?: ($ci['weight'] ?? null);
+            }
+
             $lineTotal = $price * $qty;
             $subtotal += $lineTotal;
 
             $lineItems[] = [
-                'product_id' => $product->id,
-                'name'       => $product->name,
-                'weight'     => $product->weight ?? null,
-                'price'      => $price,
-                'qty'        => $qty,
-                'line_total' => $lineTotal,
+                'product_id'    => $product->id,
+                'combo_id'      => null,
+                'name'          => $product->name,
+                'weight'        => $weight,
+                'price'         => $price,
+                'qty'           => $qty,
+                'line_total'    => $lineTotal,
+                '_is_combo'     => false,
+                '_combo_id'     => null,
+                '_variation_id' => $variation ? $variation->id : null,
             ];
         }
 
@@ -79,8 +136,14 @@ class OrderController extends Controller
             return back()->withErrors(['items' => 'No valid items found in cart.']);
         }
 
-        // Delivery fee (free shipping over ৳1,500)
-        $delivery = $subtotal >= 1500 ? 0 : 60;
+        // Delivery fee from settings, based on selected zone
+        $freeMin    = (int) \App\Models\Setting::get('free_shipping_min', 1500);
+        $insideFee  = (int) \App\Models\Setting::get('delivery_inside_dhaka', 60);
+        $outsideFee = (int) \App\Models\Setting::get('delivery_outside_dhaka', 120);
+
+        $zone     = $validated['delivery_zone'] ?? 'inside';
+        $zoneFee  = $zone === 'outside' ? $outsideFee : $insideFee;
+        $delivery = ($freeMin > 0 && $subtotal >= $freeMin) ? 0 : $zoneFee;
 
         // Coupon
         $discount    = 0;
@@ -124,14 +187,33 @@ class OrderController extends Controller
         // Total (minimum 0)
         $total = max(0, $subtotal + $delivery - $discount);
 
+        // Resolve or create a customer User for this order
+        $phone = $validated['customer_phone'];
+        $email = $validated['customer_email'] ?? null;
+
+        $customer = User::where('phone', $phone)->where('is_admin', false)->first();
+        if (! $customer && $email) {
+            $customer = User::where('email', $email)->where('is_admin', false)->first();
+        }
+        if (! $customer) {
+            $customer = User::create([
+                'name'     => $validated['customer_name'],
+                'email'    => $email ?? $phone . '@guest.local',
+                'phone'    => $phone,
+                'password' => bcrypt(Str::random(16)),
+                'is_admin' => false,
+            ]);
+        }
+        $userId = $customer->id;
+
         // Create order + items in a transaction
         $order = DB::transaction(function () use (
             $validated, $lineItems, $subtotal, $delivery, $discount,
-            $total, $couponCode, $appliedCoupon
+            $total, $couponCode, $appliedCoupon, $userId
         ) {
             $order = Order::create([
                 'number'         => Order::generateNumber(),
-                'user_id'        => auth()->check() ? auth()->id() : null,
+                'user_id'        => $userId,
                 'status'         => 'pending',
                 'customer_name'  => $validated['customer_name'],
                 'customer_phone' => $validated['customer_phone'],
@@ -151,12 +233,28 @@ class OrderController extends Controller
             ]);
 
             foreach ($lineItems as $item) {
+                $varId   = $item['_variation_id'] ?? null;
+                $isCombo = $item['_is_combo'] ?? false;
+                $comboId = $item['_combo_id'] ?? null;
+                unset($item['_variation_id'], $item['_is_combo'], $item['_combo_id']);
+
                 $order->items()->create($item);
 
-                // Decrement stock (guard against negative)
-                Product::where('id', $item['product_id'])
-                    ->where('stock', '>', 0)
-                    ->decrement('stock');
+                if ($isCombo && $comboId) {
+                    \App\Models\Combo::where('id', $comboId)
+                        ->where('stock', '>', 0)
+                        ->decrement('stock', $item['qty']);
+                } elseif ($varId) {
+                    \App\Models\ProductVariation::where('id', $varId)
+                        ->where('stock', '>', 0)
+                        ->decrement('stock', $item['qty']);
+                    $p = Product::find($item['product_id']);
+                    $p?->syncStock();
+                } elseif (! empty($item['product_id'])) {
+                    Product::where('id', $item['product_id'])
+                        ->where('stock', '>', 0)
+                        ->decrement('stock', $item['qty']);
+                }
             }
 
             // Increment coupon usage
@@ -215,5 +313,38 @@ class OrderController extends Controller
         $pdf = Pdf::loadView('invoices.order', compact('order'));
 
         return $pdf->download('invoice-' . $order->number . '.pdf');
+    }
+
+    public function packingSlip(string $number): \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
+    {
+        $order = Order::with('items')->where('number', $number)->firstOrFail();
+
+        if (auth()->check() && $order->user_id !== null) {
+            $user = auth()->user();
+            if (! $user->is_admin && $user->id !== $order->user_id) {
+                abort(403);
+            }
+        }
+
+        $pdf = Pdf::loadView('invoices.packing-slip', compact('order'));
+
+        return $pdf->download('packing-slip-' . $order->number . '.pdf');
+    }
+
+    public function shippingLabel(string $number): \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
+    {
+        $order = Order::with('items')->where('number', $number)->firstOrFail();
+
+        if (auth()->check() && $order->user_id !== null) {
+            $user = auth()->user();
+            if (! $user->is_admin && $user->id !== $order->user_id) {
+                abort(403);
+            }
+        }
+
+        $pdf = Pdf::loadView('invoices.shipping-label', compact('order'))
+            ->setPaper([0, 0, 288, 432]); // 4x6 inches
+
+        return $pdf->download('label-' . $order->number . '.pdf');
     }
 }

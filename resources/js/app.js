@@ -1,11 +1,17 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
+console.log('[Shuvo] JS loaded v3');
 
 window.Alpine = Alpine;
 
 Alpine.store('shop', {
-  FREE_GIFT_THRESHOLD: 3000,
-  FREE_SHIP_THRESHOLD: 1500,
+  FREE_GIFT_THRESHOLD: (window.GIFT_CONFIG && window.GIFT_CONFIG.min) || 3000,
+  giftEnabled: (window.GIFT_CONFIG ? window.GIFT_CONFIG.enabled : true),
+  giftName: (window.GIFT_CONFIG && window.GIFT_CONFIG.name) || 'free Lychee Honey sachet',
+  giftSuccessMsg: (window.GIFT_CONFIG && window.GIFT_CONFIG.successMsg) || "🎉 You've unlocked a free gift! It'll be added at checkout.",
+  FREE_SHIP_THRESHOLD: (window.DELIVERY_CONFIG && window.DELIVERY_CONFIG.freeMin) || 1500,
+  DELIVERY_INSIDE: (window.DELIVERY_CONFIG && window.DELIVERY_CONFIG.inside) || 60,
+  DELIVERY_OUTSIDE: (window.DELIVERY_CONFIG && window.DELIVERY_CONFIG.outside) || 120,
 
   items: [],   // each {id, name, weight, price, cat, qty}
   wish: [],    // array of product ids
@@ -16,33 +22,111 @@ Alpine.store('shop', {
 
   // ── Init (Alpine calls this automatically) ────────────────────────────
   init() {
+    const saved = localStorage.getItem('shuvo_cart');
+    if (saved) {
+      try { this.items = JSON.parse(saved); } catch(e) {}
+    }
     if (window.WISHLIST && window.WISHLIST.length > 0) {
       this.wish = window.WISHLIST.map(Number);
     }
   },
 
+  _persist() {
+    localStorage.setItem('shuvo_cart', JSON.stringify(this.items));
+  },
+
   // ── Cart ──────────────────────────────────────────────────
-  add(p) {
-    const ex = this.items.find(i => i.id === p.id);
-    if (ex) {
-      ex.qty += 1;
-    } else {
-      this.items.push({ id: p.id, name: p.name, weight: p.weight, price: p.price, cat: p.cat, qty: 1 });
+  add(p, qty) {
+    if (p.is_combo) {
+      return this.addCombo(p, qty);
     }
+    console.log('[Shuvo] add() called with:', JSON.stringify(p), 'qty:', qty);
+    const pid = Number(p.id);
+    const addQty = Number(qty) || 1;
+    const varId = p.variation_id ? Number(p.variation_id) : null;
+    const weight = p.weight || '';
+    const itemKey = varId ? `${pid}_v_${varId}` : (weight ? `${pid}_${weight}` : `${pid}`);
+
+    const idx = this.items.findIndex(i => (i.itemKey || (i.variation_id ? `${i.id}_v_${i.variation_id}` : (i.weight ? `${i.id}_${i.weight}` : `${i.id}`))) === itemKey);
+    if (idx > -1) {
+      const updated = [...this.items];
+      updated[idx] = { ...updated[idx], qty: updated[idx].qty + addQty };
+      this.items = updated;
+    } else {
+      this.items = [...this.items, {
+        id: pid,
+        itemKey: itemKey,
+        variation_id: varId,
+        name: p.name,
+        weight: weight,
+        price: Number(p.price),
+        cat: p.cat,
+        image: p.image || null,
+        qty: addQty
+      }];
+    }
+    console.log('[Shuvo] items now:', this.items.length);
+    this._persist();
+    if (window.ttq) { ttq.track('AddToCart', { content_id: String(pid), content_name: p.name, content_type: 'product', quantity: addQty, price: Number(p.price), value: Number(p.price) * addQty, currency: 'BDT' }); }
+    if (window.fbq) { fbq('track', 'AddToCart', { content_ids: [String(pid)], content_name: p.name, content_type: 'product', value: Number(p.price) * addQty, currency: 'BDT' }); }
     this.showToast(p.name + ' added to cart');
+    this.open = true;
   },
 
-  changeQty(id, d) {
-    const it = this.items.find(i => i.id === id);
-    if (it) it.qty = Math.max(1, it.qty + d);
+  addCombo(c, qty) {
+    console.log('[Shuvo] addCombo() called with:', JSON.stringify(c), 'qty:', qty);
+    const cid = Number(c.id);
+    const addQty = Number(qty) || 1;
+    const itemKey = `combo_${cid}`;
+
+    const idx = this.items.findIndex(i => (i.itemKey === itemKey));
+    if (idx > -1) {
+      const updated = [...this.items];
+      updated[idx] = { ...updated[idx], qty: updated[idx].qty + addQty };
+      this.items = updated;
+    } else {
+      this.items = [...this.items, {
+        id: cid,
+        combo_id: cid,
+        is_combo: true,
+        itemKey: itemKey,
+        name: c.name,
+        weight: c.items || 'Combo Package',
+        price: Number(c.price),
+        old_price: c.old_price ? Number(c.old_price) : null,
+        image: c.image || null,
+        cat: 'combo',
+        qty: addQty
+      }];
+    }
+    this._persist();
+    this.showToast(c.name + ' (Combo Pack) added to cart');
+    this.open = true;
   },
 
-  remove(id) {
-    this.items = this.items.filter(i => i.id !== id);
+  buyComboNow(c, qty) {
+    this.addCombo(c, qty);
+    window.location.href = '/checkout';
   },
 
-  buyNow(p) {
-    this.add(p);
+  changeQty(keyOrId, d) {
+    this.items = this.items.map(i => {
+      const match = (i.itemKey && i.itemKey === keyOrId) || String(i.id) === String(keyOrId);
+      return match ? { ...i, qty: Math.max(1, i.qty + d) } : i;
+    });
+    this._persist();
+  },
+
+  remove(keyOrId) {
+    this.items = this.items.filter(i => {
+      const match = (i.itemKey && i.itemKey === keyOrId) || String(i.id) === String(keyOrId);
+      return !match;
+    });
+    this._persist();
+  },
+
+  buyNow(p, qty) {
+    this.add(p, qty);
     window.location.href = '/checkout';
   },
 
@@ -60,7 +144,7 @@ Alpine.store('shop', {
   },
 
   get delivery() {
-    return this.freeShip ? 0 : 60;
+    return this.freeShip ? 0 : this.DELIVERY_INSIDE;
   },
 
   get total() {

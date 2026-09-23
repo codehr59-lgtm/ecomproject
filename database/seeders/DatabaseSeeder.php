@@ -23,5 +23,9 @@ class DatabaseSeeder extends Seeder
 
         // Admin user
         $this->call(AdminSeeder::class);
+
+        // Combo offers & Grocery demo catalog
+        $this->call(ComboSeeder::class);
+        $this->call(GroceryDemoSeeder::class);
     }
 }

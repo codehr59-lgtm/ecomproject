@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Services\Payments\BkashService;
+use App\Services\Payments\NagadService;
+use App\Services\Payments\RocketService;
 use App\Services\Payments\SslcommerzService;
 use Illuminate\Http\Request;
 use Throwable;
@@ -12,16 +14,10 @@ class PaymentController extends Controller
 {
     // ── Entry point for online payment methods ────────────────────────────
 
-    /**
-     * GET /payment/{order:number}
-     * Routes the customer to the correct payment gateway, or gracefully falls
-     * back to the confirmation page if the gateway is not configured.
-     */
     public function start(string $number): \Illuminate\Http\RedirectResponse
     {
         $order = Order::where('number', $number)->firstOrFail();
 
-        // Already paid — just go to confirmation
         if ($order->payment_status === 'paid') {
             return redirect()->route('order.confirmation', $order->number);
         }
@@ -37,8 +33,6 @@ class PaymentController extends Controller
                 }
 
                 $result = $svc->createPayment($order);
-
-                // Store paymentID against the order for callback lookup
                 $order->update(['payment_ref' => $result['paymentID']]);
 
                 return redirect()->away($result['bkashURL']);
@@ -55,21 +49,41 @@ class PaymentController extends Controller
 
                 return redirect()->away($url);
             }
+
+            if ($method === 'nagad') {
+                $svc = app(NagadService::class);
+
+                if (! $svc->isConfigured()) {
+                    return $this->unconfiguredRedirect($order);
+                }
+
+                $url = $svc->initiate($order);
+
+                return redirect()->away($url);
+            }
+
+            if ($method === 'rocket') {
+                $svc = app(RocketService::class);
+
+                if (! $svc->isConfigured()) {
+                    return $this->unconfiguredRedirect($order);
+                }
+
+                $url = $svc->initiate($order);
+
+                return redirect()->away($url);
+            }
         } catch (Throwable $e) {
             report($e);
             return redirect()->route('order.confirmation', $order->number)
                 ->with('error', 'Payment gateway error: ' . $e->getMessage() . '. Your order is placed as pending.');
         }
 
-        // Unknown method — fall through to confirmation
         return redirect()->route('order.confirmation', $order->number);
     }
 
     // ── SSLCommerz callbacks ──────────────────────────────────────────────
 
-    /**
-     * POST /payment/sslcommerz/success
-     */
     public function sslSuccess(Request $request): \Illuminate\Http\RedirectResponse
     {
         $order = Order::where('number', $request->input('tran_id'))->first();
@@ -95,9 +109,6 @@ class PaymentController extends Controller
             ->with('error', 'Payment validation failed. Please contact support.');
     }
 
-    /**
-     * POST /payment/sslcommerz/fail
-     */
     public function sslFail(Request $request): \Illuminate\Http\RedirectResponse
     {
         $order = Order::where('number', $request->input('tran_id'))->first();
@@ -112,9 +123,6 @@ class PaymentController extends Controller
         )->with('error', 'Payment failed. Please try again or choose Cash on Delivery.');
     }
 
-    /**
-     * POST /payment/sslcommerz/cancel
-     */
     public function sslCancel(Request $request): \Illuminate\Http\RedirectResponse
     {
         $order = Order::where('number', $request->input('tran_id'))->first();
@@ -125,9 +133,6 @@ class PaymentController extends Controller
         )->with('info', 'Payment cancelled. Your order is saved — you can complete payment anytime.');
     }
 
-    /**
-     * POST /payment/sslcommerz/ipn  (server-to-server, no session)
-     */
     public function sslIpn(Request $request): \Illuminate\Http\Response
     {
         $order = Order::where('number', $request->input('tran_id'))->first();
@@ -152,15 +157,11 @@ class PaymentController extends Controller
 
     // ── bKash callback ────────────────────────────────────────────────────
 
-    /**
-     * GET /payment/bkash/callback?paymentID=...&status=success|failure|cancel
-     */
     public function bkashCallback(Request $request): \Illuminate\Http\RedirectResponse
     {
         $paymentID = $request->query('paymentID');
         $status    = $request->query('status');
 
-        // Find order by stored payment_ref
         $order = Order::where('payment_ref', $paymentID)->first();
 
         if (! $order) {
@@ -196,15 +197,98 @@ class PaymentController extends Controller
             ->with('error', 'bKash payment could not be confirmed. Please contact support.');
     }
 
+    // ── Nagad callback ────────────────────────────────────────────────────
+
+    public function nagadCallback(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $paymentRefId = $request->query('payment_ref_id');
+        $status       = $request->query('status');
+        $orderId      = $request->query('order_id');
+
+        $order = Order::where('number', $orderId)->first();
+
+        if (! $order) {
+            return redirect()->route('home')->with('error', 'Order not found.');
+        }
+
+        if ($status !== 'Success') {
+            if ($order->payment_status === 'unpaid') {
+                $order->update(['payment_status' => $status === 'Aborted' ? 'unpaid' : 'failed']);
+            }
+            $msg = $status === 'Aborted'
+                ? 'Payment cancelled. Your order is saved — complete payment anytime.'
+                : 'Nagad payment failed. Please try again.';
+            return redirect()->route('order.confirmation', $order->number)->with('error', $msg);
+        }
+
+        try {
+            $svc    = app(NagadService::class);
+            $result = $svc->verify($paymentRefId);
+
+            if (($result['status'] ?? '') === 'Success') {
+                $trxID = $result['trxID'] ?? $paymentRefId;
+                $this->markPaid($order, $trxID);
+                return redirect()->route('order.confirmation', $order->number)
+                    ->with('success', 'Nagad payment successful! TrxID: ' . $trxID);
+            }
+        } catch (Throwable $e) {
+            report($e);
+        }
+
+        $order->update(['payment_status' => 'failed']);
+        return redirect()->route('order.confirmation', $order->number)
+            ->with('error', 'Nagad payment could not be confirmed. Please contact support.');
+    }
+
+    // ── Rocket callback ───────────────────────────────────────────────────
+
+    public function rocketCallback(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $status        = $request->query('status', $request->input('status'));
+        $transactionId = $request->input('transaction_id');
+        $orderId       = $request->input('order_id');
+
+        $order = Order::where('number', $orderId)->first();
+
+        if (! $order) {
+            return redirect()->route('home')->with('error', 'Order not found.');
+        }
+
+        if ($status !== 'success') {
+            if ($order->payment_status === 'unpaid') {
+                $order->update(['payment_status' => $status === 'cancel' ? 'unpaid' : 'failed']);
+            }
+            $msg = $status === 'cancel'
+                ? 'Payment cancelled. Your order is saved — complete payment anytime.'
+                : 'Rocket payment failed. Please try again.';
+            return redirect()->route('order.confirmation', $order->number)->with('error', $msg);
+        }
+
+        try {
+            $svc    = app(RocketService::class);
+            $result = $svc->verify($transactionId);
+
+            if (($result['status'] ?? '') === 'success') {
+                $trxID = $result['transaction_id'] ?? $transactionId;
+                $this->markPaid($order, $trxID);
+                return redirect()->route('order.confirmation', $order->number)
+                    ->with('success', 'Rocket payment successful! TrxID: ' . $trxID);
+            }
+        } catch (Throwable $e) {
+            report($e);
+        }
+
+        $order->update(['payment_status' => 'failed']);
+        return redirect()->route('order.confirmation', $order->number)
+            ->with('error', 'Rocket payment could not be confirmed. Please contact support.');
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────
 
-    /**
-     * Mark an order as paid (idempotent).
-     */
     private function markPaid(Order $order, ?string $ref = null): void
     {
         if ($order->payment_status === 'paid') {
-            return; // already processed
+            return;
         }
 
         $order->update([
@@ -214,9 +298,6 @@ class PaymentController extends Controller
         ]);
     }
 
-    /**
-     * Redirect to confirmation with a flash message when gateway is unconfigured.
-     */
     private function unconfiguredRedirect(Order $order): \Illuminate\Http\RedirectResponse
     {
         return redirect()->route('order.confirmation', $order->number)

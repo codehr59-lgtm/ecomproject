@@ -31,7 +31,21 @@
           Send us a message
         </h3>
 
-        <form action="#" method="post">
+        @if(session('success'))
+        <div style="padding:12px 16px;background:var(--green-soft);color:var(--green-deep);border-radius:var(--radius);margin-bottom:16px;font-size:14px;font-weight:600;">
+          {{ session('success') }}
+        </div>
+        @endif
+
+        @if($errors->any())
+        <div style="padding:12px 16px;background:#fef2f2;color:#dc2626;border-radius:var(--radius);margin-bottom:16px;font-size:14px;">
+          @foreach($errors->all() as $error)
+            <div>{{ $error }}</div>
+          @endforeach
+        </div>
+        @endif
+
+        <form action="{{ route('contact.store') }}" method="post">
           @csrf
           <div class="field-row">
             <div class="field">

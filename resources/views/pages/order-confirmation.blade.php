@@ -10,6 +10,15 @@
     });
 </script>
 
+{{-- TikTok Pixel: CompletePayment --}}
+@if(\App\Models\Setting::get('tiktok_pixel_id'))
+<script>document.addEventListener('DOMContentLoaded',function(){if(window.ttq){ttq.track('CompletePayment',{content_type:'product',quantity:{{ $order->items->sum('qty') }},value:{{ $order->total }},currency:'BDT'});}});</script>
+@endif
+{{-- Facebook Pixel: Purchase --}}
+@if(\App\Models\Setting::get('fb_pixel_id'))
+<script>document.addEventListener('DOMContentLoaded',function(){if(window.fbq){fbq('track','Purchase',{content_type:'product',num_items:{{ $order->items->sum('qty') }},value:{{ $order->total }},currency:'BDT'});}});</script>
+@endif
+
 @if(session('success'))
     <div style="background:#D1FAE5;color:#065F46;padding:12px 16px;text-align:center;font-size:14px;font-weight:600">
         {{ session('success') }}
@@ -52,6 +61,20 @@
             <p style="color:var(--muted);margin:0 0 16px">Thank you, {{ $order->customer_name }}. We've received your order.</p>
             <span class="ord-no">{{ $order->number }}</span>
             <p style="font-size:14px;color:var(--muted);margin:12px 0 0">Placed on {{ $order->placed_at->format('d M Y, h:i A') }}</p>
+
+            {{-- Instant Invoice & Tracking CTA --}}
+            <div style="margin-top:22px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap">
+                <a href="{{ route('order.invoice', $order->number) }}" target="_blank" class="btn btn-primary" style="padding:11px 24px;font-size:14px;font-weight:700;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 14px rgba(46,125,50,0.22)">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Download Invoice (PDF)
+                </a>
+                <a href="{{ route('track', ['number' => $order->number]) }}" class="btn btn-ghost" style="padding:11px 20px;font-size:14px;display:inline-flex;align-items:center;gap:8px">
+                    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Track Order
+                </a>
+            </div>
         </div>
 
         {{-- Items Summary --}}
