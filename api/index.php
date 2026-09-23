@@ -25,6 +25,9 @@ foreach ($subDirs as $dir) {
 putenv("VERCEL=1");
 $_ENV['VERCEL'] = '1';
 $_SERVER['VERCEL'] = '1';
+putenv("LOG_CHANNEL=stderr");
+$_ENV['LOG_CHANNEL'] = 'stderr';
+$_SERVER['LOG_CHANNEL'] = 'stderr';
 
 // Ensure timezone is valid
 if (empty(getenv('APP_TIMEZONE'))) {
