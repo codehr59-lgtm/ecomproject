@@ -4,6 +4,31 @@
  * Vercel Serverless Function entry point for Laravel
  */
 
+// Instantly serve static public storage assets without booting Laravel
+$uri = urldecode(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH));
+if (str_starts_with($uri, '/storage/')) {
+    $relativePath = substr($uri, strlen('/storage/'));
+    $filePath = __DIR__ . '/../storage/app/public/' . $relativePath;
+    if (file_exists($filePath) && is_file($filePath)) {
+        $mimes = [
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png'  => 'image/png',
+            'gif'  => 'image/gif',
+            'webp' => 'image/webp',
+            'svg'  => 'image/svg+xml',
+            'ico'  => 'image/x-icon',
+        ];
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $contentType = $mimes[$ext] ?? 'application/octet-stream';
+        header("Content-Type: {$contentType}");
+        header("Cache-Control: public, max-age=31536000, immutable");
+        header("Content-Length: " . filesize($filePath));
+        readfile($filePath);
+        exit;
+    }
+}
+
 // Create temporary directories in /tmp for Laravel's writable storage
 $storagePath = '/tmp/storage';
 $subDirs = [

@@ -11,7 +11,7 @@
   "routes": [
     {
       "src": "/storage/(.*)",
-      "dest": "/storage/app/public/$1"
+      "dest": "/api/index.php"
     },
     {
       "src": "/(css|js|images|build|favicon.ico|robots.txt)(.*)",
@@ -25,6 +25,8 @@
   "env": {
     "APP_NAME": "Shuvo Grocery",
     "APP_ENV": "production",
+    "APP_URL": "https://ecomproject-code-hr.vercel.app",
+    "ASSET_URL": "https://ecomproject-code-hr.vercel.app",
     "APP_DEBUG": "true",
     "APP_KEY": "base64:5N28+WmxmUCPos7oTo4eneqQzfT+/7gYVheB/ap3E3w=",
     "APP_TIMEZONE": "Asia/Dhaka",
