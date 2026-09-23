@@ -28,6 +28,8 @@
     "APP_KEY": "base64:5N28+WmxmUCPos7oTo4eneqQzfT+/7gYVheB/ap3E3w=",
     "APP_TIMEZONE": "Asia/Dhaka",
     "LOG_CHANNEL": "stderr",
+    "APP_PACKAGES_CACHE": "/tmp/storage/bootstrap/cache/packages.php",
+    "APP_SERVICES_CACHE": "/tmp/storage/bootstrap/cache/services.php",
     "VIEW_COMPILED_PATH": "/tmp/storage/framework/views",
     "CACHE_STORE": "array",
     "SESSION_DRIVER": "cookie",

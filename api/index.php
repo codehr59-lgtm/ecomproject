@@ -12,6 +12,7 @@ $subDirs = [
     '/framework/sessions',
     '/logs',
     '/app/public',
+    '/bootstrap/cache',
 ];
 
 foreach ($subDirs as $dir) {
@@ -21,13 +22,44 @@ foreach ($subDirs as $dir) {
     }
 }
 
-// Instruct Laravel that it is running on Vercel
+// Copy pre-compiled bootstrap/cache files to /tmp/storage/bootstrap/cache if present
+$srcBootstrap = __DIR__ . '/../bootstrap/cache';
+if (is_dir($srcBootstrap)) {
+    foreach (['packages.php', 'services.php', 'events.php'] as $file) {
+        $sourceFile = $srcBootstrap . '/' . $file;
+        $destFile = $storagePath . '/bootstrap/cache/' . $file;
+        if (file_exists($sourceFile) && !file_exists($destFile)) {
+            @copy($sourceFile, $destFile);
+        }
+    }
+}
+
+// Instruct Laravel on cache and storage paths
 putenv("VERCEL=1");
 $_ENV['VERCEL'] = '1';
 $_SERVER['VERCEL'] = '1';
+
 putenv("LOG_CHANNEL=stderr");
 $_ENV['LOG_CHANNEL'] = 'stderr';
 $_SERVER['LOG_CHANNEL'] = 'stderr';
+
+putenv("APP_PACKAGES_CACHE={$storagePath}/bootstrap/cache/packages.php");
+putenv("APP_SERVICES_CACHE={$storagePath}/bootstrap/cache/services.php");
+putenv("APP_ROUTES_CACHE={$storagePath}/bootstrap/cache/routes-v7.php");
+putenv("APP_EVENTS_CACHE={$storagePath}/bootstrap/cache/events.php");
+putenv("VIEW_COMPILED_PATH={$storagePath}/framework/views");
+
+$_ENV['APP_PACKAGES_CACHE'] = "{$storagePath}/bootstrap/cache/packages.php";
+$_ENV['APP_SERVICES_CACHE'] = "{$storagePath}/bootstrap/cache/services.php";
+$_ENV['APP_ROUTES_CACHE'] = "{$storagePath}/bootstrap/cache/routes-v7.php";
+$_ENV['APP_EVENTS_CACHE'] = "{$storagePath}/bootstrap/cache/events.php";
+$_ENV['VIEW_COMPILED_PATH'] = "{$storagePath}/framework/views";
+
+$_SERVER['APP_PACKAGES_CACHE'] = "{$storagePath}/bootstrap/cache/packages.php";
+$_SERVER['APP_SERVICES_CACHE'] = "{$storagePath}/bootstrap/cache/services.php";
+$_SERVER['APP_ROUTES_CACHE'] = "{$storagePath}/bootstrap/cache/routes-v7.php";
+$_SERVER['APP_EVENTS_CACHE'] = "{$storagePath}/bootstrap/cache/events.php";
+$_SERVER['VIEW_COMPILED_PATH'] = "{$storagePath}/framework/views";
 
 // Ensure timezone is valid
 if (empty(getenv('APP_TIMEZONE'))) {
