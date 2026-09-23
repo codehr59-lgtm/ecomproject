@@ -55,5 +55,25 @@ if (empty(getenv('APP_TIMEZONE'))) {
 }
 date_default_timezone_set('Asia/Dhaka');
 
+// Enforce valid non-empty drivers for serverless execution
+$defaultDrivers = [
+    'SESSION_DRIVER' => 'database',
+    'CACHE_STORE' => 'database',
+    'APP_MAINTENANCE_DRIVER' => 'file',
+    'QUEUE_CONNECTION' => 'sync',
+    'BROADCAST_CONNECTION' => 'log',
+    'FILESYSTEM_DISK' => 'local',
+    'LOG_CHANNEL' => 'stderr',
+    'APP_ENV' => 'production',
+];
+
+foreach ($defaultDrivers as $envKey => $defaultVal) {
+    if (empty(getenv($envKey))) {
+        putenv("{$envKey}={$defaultVal}");
+        $_ENV[$envKey] = $defaultVal;
+        $_SERVER[$envKey] = $defaultVal;
+    }
+}
+
 // Forward the request to Laravel's public/index.php
 require __DIR__ . '/../public/index.php';
