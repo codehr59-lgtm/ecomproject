@@ -22,18 +22,6 @@ foreach ($subDirs as $dir) {
     }
 }
 
-// Copy pre-compiled bootstrap/cache files to /tmp/storage/bootstrap/cache if present
-$srcBootstrap = __DIR__ . '/../bootstrap/cache';
-if (is_dir($srcBootstrap)) {
-    foreach (['packages.php', 'services.php', 'events.php'] as $file) {
-        $sourceFile = $srcBootstrap . '/' . $file;
-        $destFile = $storagePath . '/bootstrap/cache/' . $file;
-        if (file_exists($sourceFile) && !file_exists($destFile)) {
-            @copy($sourceFile, $destFile);
-        }
-    }
-}
-
 // Instruct Laravel on cache and storage paths
 putenv("VERCEL=1");
 $_ENV['VERCEL'] = '1';
