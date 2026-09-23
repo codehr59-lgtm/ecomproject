@@ -58,7 +58,7 @@ date_default_timezone_set('Asia/Dhaka');
 // Enforce valid non-empty drivers for serverless execution
 $defaultDrivers = [
     'SESSION_DRIVER' => 'database',
-    'CACHE_STORE' => 'database',
+    'CACHE_STORE' => 'file',
     'APP_MAINTENANCE_DRIVER' => 'file',
     'QUEUE_CONNECTION' => 'sync',
     'BROADCAST_CONNECTION' => 'log',

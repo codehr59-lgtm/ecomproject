@@ -37,13 +37,15 @@
         $__showCart       = (bool) \App\Models\Setting::get('header_show_cart', true);
         $__headerMenu     = \App\Models\Menu::getByLocation('header');
         $__menuItems      = $__headerMenu ? $__headerMenu->rootItems : collect();
-        $__navCats        = \App\Models\Category::active()
-            ->whereNull('parent_id')
-            ->with(['children' => fn($q) => $q->where('is_active', true)->orderBy('sort')])
-            ->withCount(['products' => fn($q) => $q->where('is_active', true)])
-            ->orderBy('sort')
-            ->get();
-        $__quickCategories = \App\Models\Category::active()->whereNull('parent_id')->orderBy('sort')->take(10)->get();
+        $__navCats = \Illuminate\Support\Facades\Cache::remember('layout.nav_cats', 1800, function () {
+            return \App\Models\Category::active()
+                ->whereNull('parent_id')
+                ->with(['children' => fn($q) => $q->where('is_active', true)->orderBy('sort')])
+                ->withCount(['products' => fn($q) => $q->where('is_active', true)])
+                ->orderBy('sort')
+                ->get();
+        });
+        $__quickCategories = $__navCats->take(10);
     @endphp
 
     {{-- ══════════════════════════════════════════

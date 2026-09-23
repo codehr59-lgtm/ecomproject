@@ -28,18 +28,20 @@ class Catalog
     // ── Raw data accessors ────────────────────────────────────────────────
 
     /**
-     * All active products as card arrays.
+     * All active products as card arrays (cached for 30 minutes).
      *
      * @return array<int,array>
      */
     public static function products(): array
     {
-        return Product::active()
-            ->with(['category', 'productReviews', 'variations'])
-            ->orderBy('sort')
-            ->get()
-            ->map(fn (Product $p) => $p->toCardArray())
-            ->all();
+        return \Illuminate\Support\Facades\Cache::remember('catalog.products', 1800, function () {
+            return Product::active()
+                ->with(['category', 'productReviews', 'variations'])
+                ->orderBy('sort')
+                ->get()
+                ->map(fn (Product $p) => $p->toCardArray())
+                ->all();
+        });
     }
 
     /**
@@ -50,19 +52,22 @@ class Catalog
      */
     public static function categories(): array
     {
-        return Category::active()
-            ->withCount(['products' => fn ($q) => $q->where('is_active', true)])
-            ->orderBy('sort')
-            ->get()
-            ->map(fn (Category $c) => [
-                'id'    => $c->slug,
-                'name'  => $c->name,
-                'image' => $c->image,
-                'tint'  => $c->tint,
-                'note'  => $c->note,
-                'count' => (int) $c->products_count,
-            ])
-            ->all();
+        return \Illuminate\Support\Facades\Cache::remember('catalog.categories', 1800, function () {
+            return Category::active()
+                ->withCount(['products' => fn ($q) => $q->where('is_active', true)])
+                ->orderBy('sort')
+                ->get()
+                ->map(fn (Category $c) => [
+                    'id'       => $c->slug,
+                    'model_id' => $c->id,
+                    'name'     => $c->name,
+                    'image'    => $c->image,
+                    'tint'     => $c->tint,
+                    'note'     => $c->note,
+                    'count'    => (int) $c->products_count,
+                ])
+                ->all();
+        });
     }
 
     /**
@@ -72,10 +77,12 @@ class Catalog
      */
     public static function brands(): array
     {
-        return Brand::active()
-            ->orderBy('id')
-            ->pluck('name')
-            ->all();
+        return \Illuminate\Support\Facades\Cache::remember('catalog.brands', 1800, function () {
+            return Brand::active()
+                ->orderBy('id')
+                ->pluck('name')
+                ->all();
+        });
     }
 
     // ── Config-backed (not migrated in B1) ────────────────────────────────
@@ -89,16 +96,18 @@ class Catalog
     /** @return array<int,array> */
     public static function combos(): array
     {
-        $dbCombos = \App\Models\Combo::active()
-            ->with(['items.product', 'items.variation'])
-            ->orderBy('sort')
-            ->get();
+        return \Illuminate\Support\Facades\Cache::remember('catalog.combos', 1800, function () {
+            $dbCombos = \App\Models\Combo::active()
+                ->with(['items.product', 'items.variation'])
+                ->orderBy('sort')
+                ->get();
 
-        if ($dbCombos->isNotEmpty()) {
-            return $dbCombos->map(fn (\App\Models\Combo $c) => $c->toCardArray())->all();
-        }
+            if ($dbCombos->isNotEmpty()) {
+                return $dbCombos->map(fn (\App\Models\Combo $c) => $c->toCardArray())->all();
+            }
 
-        return config('products.combos', []);
+            return config('products.combos', []);
+        });
     }
 
     /**
@@ -171,22 +180,11 @@ class Catalog
 
     /**
      * Products belonging to a category (identified by slug).
+     * Uses cached products collection in memory for instantaneous sub-millisecond response.
      */
     public static function byCategory(string $catSlug): array
     {
-        $category = Category::where('slug', $catSlug)->first();
-
-        if (! $category) {
-            return [];
-        }
-
-        return Product::active()
-            ->with(['category', 'productReviews', 'variations'])
-            ->where('category_id', $category->id)
-            ->orderBy('sort')
-            ->get()
-            ->map(fn (Product $p) => $p->toCardArray())
-            ->all();
+        return array_values(array_filter(self::products(), fn ($p) => ($p['cat'] ?? '') === $catSlug));
     }
 
     /**
@@ -194,65 +192,67 @@ class Catalog
      */
     public static function categoryProducts(int $categoryId, int $limit = 5, string $sortBy = 'sort_order'): array
     {
-        $query = Product::active()
-            ->with(['category', 'productReviews', 'variations'])
-            ->where('category_id', $categoryId);
-
-        switch ($sortBy) {
-            case 'latest':
-                $query->latest('id');
+        // Resolve slug from cached categories in memory
+        $allCats = self::categories();
+        $catSlug = null;
+        foreach ($allCats as $c) {
+            if (($c['model_id'] ?? null) == $categoryId || ($c['id'] ?? null) == $categoryId) {
+                $catSlug = $c['id'];
                 break;
-            case 'popular':
-                $query->orderByDesc('reviews');
-                break;
-            case 'price_asc':
-                $query->orderBy('price', 'asc');
-                break;
-            case 'price_desc':
-                $query->orderBy('price', 'desc');
-                break;
-            case 'sort_order':
-            default:
-                $query->orderBy('sort')->orderBy('id');
-                break;
+            }
         }
 
-        return $query->take($limit)
-            ->get()
-            ->map(fn (Product $p) => $p->toCardArray())
-            ->all();
+        if ($catSlug) {
+            $filtered = self::byCategory($catSlug);
+            if (! empty($filtered)) {
+                return array_slice($filtered, 0, $limit);
+            }
+        }
+
+        return \Illuminate\Support\Facades\Cache::remember("catalog.cat_products.{$categoryId}.{$limit}.{$sortBy}", 1800, function () use ($categoryId, $limit, $sortBy) {
+            $query = Product::active()
+                ->with(['category', 'productReviews', 'variations'])
+                ->where('category_id', $categoryId);
+
+            switch ($sortBy) {
+                case 'latest':
+                    $query->latest('id');
+                    break;
+                case 'popular':
+                    $query->orderByDesc('reviews');
+                    break;
+                case 'price_asc':
+                    $query->orderBy('price', 'asc');
+                    break;
+                case 'price_desc':
+                    $query->orderBy('price', 'desc');
+                    break;
+                case 'sort_order':
+                default:
+                    $query->orderBy('sort')->orderBy('id');
+                    break;
+            }
+
+            return $query->take($limit)
+                ->get()
+                ->map(fn (Product $p) => $p->toCardArray())
+                ->all();
+        });
     }
 
-
     /**
-     * Top-selling products: badge='best', padded to $limit by highest reviews.
+     * Top-selling products: badge='best', padded to $limit.
      */
     public static function topSelling(int $limit = 8): array
     {
-        $best = Product::active()
-            ->with(['category', 'productReviews', 'variations'])
-            ->where('badge', 'best')
-            ->orderByDesc('reviews')
-            ->get();
-
-        if ($best->count() >= $limit) {
-            return $best->take($limit)
-                ->map(fn (Product $p) => $p->toCardArray())
-                ->all();
+        $all = self::products();
+        $best = array_values(array_filter($all, fn ($p) => ($p['badge'] ?? '') === 'best'));
+        if (count($best) >= $limit) {
+            return array_slice($best, 0, $limit);
         }
 
-        $bestIds = $best->pluck('id')->all();
-
-        $pad = Product::active()
-            ->with(['category', 'productReviews', 'variations'])
-            ->whereNotIn('id', $bestIds)
-            ->orderByDesc('reviews')
-            ->take($limit - $best->count())
-            ->get();
-
-        return $best->concat($pad)
-            ->map(fn (Product $p) => $p->toCardArray())
-            ->all();
+        $rest = array_values(array_filter($all, fn ($p) => ($p['badge'] ?? '') !== 'best'));
+        return array_slice(array_merge($best, $rest), 0, $limit);
     }
 
     /**
@@ -290,14 +290,8 @@ class Catalog
      */
     public static function certified(int $limit = 10): array
     {
-        return Product::active()
-            ->with(['category', 'productReviews', 'variations'])
-            ->where('certified', true)
-            ->orderBy('sort')
-            ->take($limit)
-            ->get()
-            ->map(fn (Product $p) => $p->toCardArray())
-            ->all();
+        $cert = array_values(array_filter(self::products(), fn ($p) => ! empty($p['certified'])));
+        return array_slice($cert, 0, $limit);
     }
 
     /**
@@ -306,21 +300,21 @@ class Catalog
      */
     public static function related(mixed $id, int $limit = 5): array
     {
-        $product = Product::active()->with(['category', 'productReviews', 'variations'])->find((int) $id);
+        $all = self::products();
+        $target = null;
+        foreach ($all as $p) {
+            if (($p['id'] ?? null) == $id) {
+                $target = $p;
+                break;
+            }
+        }
 
-        if (! $product) {
+        if (! $target) {
             return [];
         }
 
-        return Product::active()
-            ->with(['category', 'productReviews', 'variations'])
-            ->where('category_id', $product->category_id)
-            ->where('id', '!=', (int) $id)
-            ->orderBy('sort')
-            ->take($limit)
-            ->get()
-            ->map(fn (Product $p) => $p->toCardArray())
-            ->all();
+        $sameCat = array_values(array_filter($all, fn ($p) => ($p['cat'] ?? '') === ($target['cat'] ?? '') && ($p['id'] ?? null) != $id));
+        return array_slice($sameCat, 0, $limit);
     }
 
     /**
@@ -332,13 +326,8 @@ class Catalog
             return self::products();
         }
 
-        return Product::active()
-            ->with(['category', 'productReviews', 'variations'])
-            ->where('name', 'like', '%' . $q . '%')
-            ->orderBy('sort')
-            ->get()
-            ->map(fn (Product $p) => $p->toCardArray())
-            ->all();
+        $qLower = mb_strtolower(trim($q));
+        return array_values(array_filter(self::products(), fn ($p) => str_contains(mb_strtolower($p['name'] ?? ''), $qLower)));
     }
 
     /**
@@ -346,12 +335,18 @@ class Catalog
      */
     public static function featured(int $limit = 10): array
     {
-        return Product::active()
-            ->with(['category', 'productReviews', 'variations'])
-            ->orderBy('sort')
-            ->take($limit)
-            ->get()
-            ->map(fn (Product $p) => $p->toCardArray())
-            ->all();
+        return array_slice(self::products(), 0, $limit);
+    }
+
+    /**
+     * Invalidate catalog caches when admin edits products/categories.
+     */
+    public static function flushCache(): void
+    {
+        \Illuminate\Support\Facades\Cache::forget('catalog.products');
+        \Illuminate\Support\Facades\Cache::forget('catalog.categories');
+        \Illuminate\Support\Facades\Cache::forget('catalog.brands');
+        \Illuminate\Support\Facades\Cache::forget('catalog.combos');
+        \Illuminate\Support\Facades\Cache::forget('storefront.home_view_data');
     }
 }

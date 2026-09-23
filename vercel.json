@@ -4,7 +4,8 @@
   "outputDirectory": "public",
   "functions": {
     "api/index.php": {
-      "runtime": "vercel-php@0.7.3"
+      "runtime": "vercel-php@0.7.3",
+      "maxDuration": 60
     }
   },
   "routes": [
@@ -31,7 +32,7 @@
     "APP_PACKAGES_CACHE": "/tmp/storage/bootstrap/cache/packages.php",
     "APP_SERVICES_CACHE": "/tmp/storage/bootstrap/cache/services.php",
     "VIEW_COMPILED_PATH": "/tmp/storage/framework/views",
-    "CACHE_STORE": "database",
+    "CACHE_STORE": "file",
     "SESSION_DRIVER": "database",
     "APP_MAINTENANCE_DRIVER": "file",
     "QUEUE_CONNECTION": "sync",

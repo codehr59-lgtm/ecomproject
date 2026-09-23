@@ -24,6 +24,10 @@ class Menu extends Model
 
     public static function getByLocation(string $location): ?self
     {
-        return static::with(['rootItems.children'])->where('location', $location)->first();
+        $res = \Illuminate\Support\Facades\Cache::remember("menu.location.{$location}", 1800, function () use ($location) {
+            return static::with(['rootItems.children'])->where('location', $location)->first() ?: false;
+        });
+
+        return $res ?: null;
     }
 }

@@ -357,7 +357,7 @@
     <a href="#main-content" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;" onfocus="this.style.cssText='position:absolute;left:8px;top:8px;z-index:9999;background:#fff;color:#1E2A22;padding:8px 16px;border-radius:6px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.2);'" onblur="this.style.cssText='position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;'">Skip to content</a>
 
     {{-- Announcement Bar --}}
-    @php $__announcements = \App\Models\Announcement::active()->get(); @endphp
+    @php $__announcements = \Illuminate\Support\Facades\Cache::remember('layout.announcements', 1800, fn() => \App\Models\Announcement::active()->get()); @endphp
     @foreach($__announcements as $ann)
     <div x-data="{ show: true }" x-show="show" class="text-center text-sm py-2 px-4 relative" style="background:{{ $ann->bg_color }};color:{{ $ann->text_color }}">
         <span>{{ $ann->text }}</span>
@@ -392,7 +392,7 @@
         </div>
     </div>
     {{-- Popup --}}
-    @php $__popup = \App\Models\Popup::active()->first(); @endphp
+    @php $__popup = (\Illuminate\Support\Facades\Cache::remember('layout.popup', 1800, fn() => \App\Models\Popup::active()->first() ?: false)) ?: null; @endphp
     @if($__popup)
     <style>
       .shuvo-popup-bg { position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);padding:20px; }
