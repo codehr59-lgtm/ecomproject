@@ -27,5 +27,11 @@ putenv("APP_CONFIG_CACHE={$storagePath}/framework/cache/config.php");
 putenv("APP_ROUTES_CACHE={$storagePath}/framework/cache/routes-v7.php");
 putenv("APP_EVENTS_CACHE={$storagePath}/framework/cache/events.php");
 
+// Ensure timezone is valid
+if (empty(getenv('APP_TIMEZONE'))) {
+    putenv('APP_TIMEZONE=Asia/Dhaka');
+}
+date_default_timezone_set('Asia/Dhaka');
+
 // Forward the request to Laravel's public/index.php
 require __DIR__ . '/../public/index.php';
