@@ -10,7 +10,7 @@ class CatalogController extends Controller
 {
     public function home(): \Illuminate\View\View
     {
-        $viewData = \Illuminate\Support\Facades\Cache::remember('storefront.home_view_data', 300, function () {
+        $viewData = \Illuminate\Support\Facades\Cache::remember('storefront.home_view_data_v2', 300, function () {
             // 1. Featured categories slider
             $showFeaturedCategories = (bool) \App\Models\Setting::get('homepage_featured_categories', true);
             $featuredCatIds = (array) \App\Models\Setting::get('homepage_featured_category_ids', []);

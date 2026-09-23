@@ -348,5 +348,6 @@ class Catalog
         \Illuminate\Support\Facades\Cache::forget('catalog.brands');
         \Illuminate\Support\Facades\Cache::forget('catalog.combos');
         \Illuminate\Support\Facades\Cache::forget('storefront.home_view_data');
+        \Illuminate\Support\Facades\Cache::forget('storefront.home_view_data_v2');
     }
 }

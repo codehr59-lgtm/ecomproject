@@ -52,6 +52,17 @@ putenv("VERCEL=1");
 $_ENV['VERCEL'] = '1';
 $_SERVER['VERCEL'] = '1';
 
+// Enforce HTTPS
+$_SERVER['HTTPS'] = 'on';
+$_SERVER['SERVER_PORT'] = '443';
+$_SERVER['HTTP_X_FORWARDED_PROTO'] = 'https';
+putenv("APP_URL=https://ecomproject-code-hr.vercel.app");
+putenv("ASSET_URL=https://ecomproject-code-hr.vercel.app");
+$_ENV['APP_URL'] = 'https://ecomproject-code-hr.vercel.app';
+$_ENV['ASSET_URL'] = 'https://ecomproject-code-hr.vercel.app';
+$_SERVER['APP_URL'] = 'https://ecomproject-code-hr.vercel.app';
+$_SERVER['ASSET_URL'] = 'https://ecomproject-code-hr.vercel.app';
+
 putenv("LOG_CHANNEL=stderr");
 $_ENV['LOG_CHANNEL'] = 'stderr';
 $_SERVER['LOG_CHANNEL'] = 'stderr';
