@@ -100,16 +100,20 @@ Route::get('/debug-auth', function () {
         $hash = password_hash('password', PASSWORD_BCRYPT);
         $user = \App\Models\User::where('email', 'admin@shuvo.com')->first();
         $check = password_verify('password', $user->password);
-        $hasherCheck = \Illuminate\Support\Facades\Hash::check('password', $user->password);
-        $needsRehash = \Illuminate\Support\Facades\Hash::needsRehash($user->password);
-        $make = \Illuminate\Support\Facades\Hash::make('password');
+        $rounds = config('hashing.bcrypt.rounds');
+        $rawError = null;
+        try {
+            password_hash('test', PASSWORD_BCRYPT, ['cost' => $rounds]);
+        } catch (\Throwable $e) {
+            $rawError = get_class($e) . ': ' . $e->getMessage();
+        }
+
         return response()->json([
-            'algos' => $algos,
-            'hash_sample' => $hash,
-            'verify' => $check,
-            'hasherCheck' => $hasherCheck,
-            'needsRehash' => $needsRehash,
-            'make' => $make,
+            'config_hashing' => config('hashing'),
+            'BCRYPT_ROUNDS_env' => getenv('BCRYPT_ROUNDS'),
+            'rounds_value' => $rounds,
+            'rounds_type' => gettype($rounds),
+            'raw_error' => $rawError,
         ]);
     } catch (\Throwable $e) {
         return response()->json([
