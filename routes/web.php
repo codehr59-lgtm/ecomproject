@@ -94,34 +94,7 @@ Route::middleware('auth')->get('/api/admin/notifications', function () {
     ]);
 })->name('admin.notifications');
 
-Route::get('/debug-auth', function () {
-    try {
-        $algos = password_algos();
-        $hash = password_hash('password', PASSWORD_BCRYPT);
-        $user = \App\Models\User::where('email', 'admin@shuvo.com')->first();
-        $check = password_verify('password', $user->password);
-        $rounds = config('hashing.bcrypt.rounds');
-        $rawError = null;
-        try {
-            password_hash('test', PASSWORD_BCRYPT, ['cost' => $rounds]);
-        } catch (\Throwable $e) {
-            $rawError = get_class($e) . ': ' . $e->getMessage();
-        }
-
-        return response()->json([
-            'config_hashing' => config('hashing'),
-            'BCRYPT_ROUNDS_env' => getenv('BCRYPT_ROUNDS'),
-            'rounds_value' => $rounds,
-            'rounds_type' => gettype($rounds),
-            'raw_error' => $rawError,
-        ]);
-    } catch (\Throwable $e) {
-        return response()->json([
-            'error' => get_class($e),
-            'message' => $e->getMessage(),
-            'trace' => $e->getTraceAsString(),
-        ], 500);
-    }
-});
+// CMS dynamic pages (must be after all other routes)
+Route::get('/page/{slug}', [PageController::class, 'cmsPage'])->name('page.show');
 
 Route::fallback(fn () => response()->view('errors.404', [], 404));

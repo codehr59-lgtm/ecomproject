@@ -106,10 +106,14 @@ $defaultDrivers = [
     'APP_ENV' => 'production',
 ];
 
-// Always enforce positive session lifetime
+// Always enforce positive session lifetime & valid bcrypt rounds
 putenv("SESSION_LIFETIME=120");
 $_ENV['SESSION_LIFETIME'] = '120';
 $_SERVER['SESSION_LIFETIME'] = '120';
+
+putenv("BCRYPT_ROUNDS=12");
+$_ENV['BCRYPT_ROUNDS'] = '12';
+$_SERVER['BCRYPT_ROUNDS'] = '12';
 
 foreach ($defaultDrivers as $envKey => $defaultVal) {
     if (empty(getenv($envKey))) {
