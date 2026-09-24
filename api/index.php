@@ -94,6 +94,9 @@ date_default_timezone_set('Asia/Dhaka');
 // Enforce valid non-empty drivers for serverless execution
 $defaultDrivers = [
     'SESSION_DRIVER' => 'database',
+    'SESSION_LIFETIME' => '120',
+    'SESSION_EXPIRE_ON_CLOSE' => 'false',
+    'SESSION_SECURE_COOKIE' => 'true',
     'CACHE_STORE' => 'file',
     'APP_MAINTENANCE_DRIVER' => 'file',
     'QUEUE_CONNECTION' => 'sync',
@@ -102,6 +105,11 @@ $defaultDrivers = [
     'LOG_CHANNEL' => 'stderr',
     'APP_ENV' => 'production',
 ];
+
+// Always enforce positive session lifetime
+putenv("SESSION_LIFETIME=120");
+$_ENV['SESSION_LIFETIME'] = '120';
+$_SERVER['SESSION_LIFETIME'] = '120';
 
 foreach ($defaultDrivers as $envKey => $defaultVal) {
     if (empty(getenv($envKey))) {
