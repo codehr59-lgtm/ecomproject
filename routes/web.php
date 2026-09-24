@@ -102,12 +102,14 @@ Route::get('/debug-auth', function () {
         $check = password_verify('password', $user->password);
         $hasherCheck = \Illuminate\Support\Facades\Hash::check('password', $user->password);
         $needsRehash = \Illuminate\Support\Facades\Hash::needsRehash($user->password);
+        $make = \Illuminate\Support\Facades\Hash::make('password');
         return response()->json([
             'algos' => $algos,
             'hash_sample' => $hash,
             'verify' => $check,
             'hasherCheck' => $hasherCheck,
             'needsRehash' => $needsRehash,
+            'make' => $make,
         ]);
     } catch (\Throwable $e) {
         return response()->json([
