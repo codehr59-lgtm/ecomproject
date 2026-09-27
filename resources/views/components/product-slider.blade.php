@@ -69,7 +69,9 @@
          scrollBy(dir) {
            if (!this.track) return;
            const slide = this.track.querySelector('.prod-slide');
-           const amount = slide ? (slide.offsetWidth + 16) * (window.innerWidth < 768 ? 1 : 2) : 380;
+           const gap = window.innerWidth <= 620 ? 10 : 16;
+           const cardsToScroll = window.innerWidth <= 620 ? 2 : (window.innerWidth < 768 ? 1 : 2);
+           const amount = slide ? (slide.offsetWidth + gap) * cardsToScroll : 360;
            const maxScroll = this.track.scrollWidth - this.track.clientWidth;
 
            // Smooth circular loop when reaching ends

@@ -482,7 +482,7 @@
                     </div>
 
                     <div style="display:grid;gap:12px;font-size:14px">
-                        <div style="display:flex;align-items:center;justify-content:space-between">
+                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
                             <span style="color:var(--muted)">Method:</span>
                             <span style="font-weight:700;color:var(--ink)">
                                 @switch($order->payment_method)
@@ -507,7 +507,7 @@
                             </span>
                         </div>
 
-                        <div style="display:flex;align-items:center;justify-content:space-between">
+                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
                             <span style="color:var(--muted)">Payment Status:</span>
                             @if($order->payment_status === 'paid')
                                 <span class="track-status-pill" style="background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0;padding:2px 10px;font-size:12px">
@@ -530,7 +530,7 @@
                         </div>
 
                         @if($order->payment_ref)
-                            <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px dashed var(--line);padding-top:8px">
+                            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;border-top:1px dashed var(--line);padding-top:8px;word-break:break-all">
                                 <span style="color:var(--muted)">Transaction ID:</span>
                                 <span style="font-family:monospace;font-weight:700;color:var(--ink)">{{ $order->payment_ref }}</span>
                             </div>
@@ -1053,6 +1053,102 @@
     border: 1px solid #FDE68A;
     border-radius: 10px;
     padding: 10px 14px;
+}
+
+@media (max-width: 680px) {
+    .track-card {
+        padding: 16px 14px;
+        border-radius: 14px;
+        margin-bottom: 16px;
+    }
+    .track-order-number {
+        font-size: 20px;
+    }
+    .track-hero-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .track-status-pill {
+        font-size: 12px;
+        padding: 4px 12px;
+    }
+    .track-meta-strip {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding-top: 14px;
+    }
+    .track-meta-label {
+        font-size: 11px;
+    }
+    .track-meta-val {
+        font-size: 13px;
+    }
+    .track-timeline {
+        padding-left: 24px;
+    }
+    .track-step-node {
+        left: -24px;
+    }
+    .track-step-line {
+        left: -13px;
+    }
+    .track-step-head {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    .track-step-title {
+        font-size: 13.5px;
+    }
+    .track-badge-current {
+        font-size: 10px;
+        padding: 1px 7px;
+    }
+    .track-step-time {
+        margin-left: 0;
+        font-size: 11px;
+        color: var(--muted);
+    }
+    .track-step-desc {
+        font-size: 12px;
+        line-height: 1.4;
+    }
+    .track-item-row {
+        gap: 10px;
+        padding: 10px;
+        align-items: flex-start;
+    }
+    .track-item-thumb {
+        width: 48px;
+        height: 48px;
+    }
+    .track-item-name {
+        font-size: 13px;
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .track-item-meta {
+        font-size: 11.5px;
+        gap: 6px;
+    }
+    .track-item-price {
+        font-size: 14px;
+        margin-top: 2px;
+    }
+    .track-courier-box {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px;
+    }
+    .track-courier-box > div:last-child {
+        text-align: left !important;
+    }
 }
 </style>
 

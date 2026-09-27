@@ -9,12 +9,20 @@
       'weight' => $p['weight'],
       'price'  => $p['price'],
       'cat'    => $p['cat'],
+      'image'  => !empty($p['image']) ? (\Illuminate\Support\Str::startsWith($p['image'], ['http://', 'https://']) ? $p['image'] : asset('storage/' . $p['image'])) : null,
   ]);
 @endphp
 <div class="top-card" x-data="{ added: false }">
   <a class="top-card-img" href="{{ route('product', $p['id']) }}" style="--ph-bg: var(--cream);">
     @if(($p['badge'] ?? null) === 'best')<span class="ribbon-best">Best Selling</span>@endif
-    <x-photo :cat="$p['cat']" />
+    @if(!empty($p['image']))
+      @php
+        $topImg = \Illuminate\Support\Str::startsWith($p['image'], ['http://', 'https://']) ? $p['image'] : asset('storage/' . $p['image']);
+      @endphp
+      <img src="{{ $topImg }}" alt="{{ $p['name'] }}" loading="lazy" style="width:100%;height:100%;object-fit:contain;display:block;">
+    @else
+      <x-photo :cat="$p['cat']" />
+    @endif
   </a>
   <div class="top-card-info">
     @if($pct > 0)<span class="badge badge-save">Save {{ $pct }}%</span>@endif

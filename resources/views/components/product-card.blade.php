@@ -9,7 +9,7 @@
       'weight' => $p['weight'],
       'price'  => $p['price'],
       'cat'    => $p['cat'],
-      'image'  => !empty($p['image']) ? asset('storage/' . $p['image']) : null,
+      'image'  => !empty($p['image']) ? (\Illuminate\Support\Str::startsWith($p['image'], ['http://', 'https://']) ? $p['image'] : asset('storage/' . $p['image'])) : null,
   ]);
 @endphp
 <div class="pcard" x-data="{ added: false }">
@@ -30,7 +30,10 @@
     </button>
     <a href="{{ route('product', $p['id']) }}">
       @if(!empty($p['image']))
-        <img src="{{ asset('storage/' . $p['image']) }}" alt="{{ $p['name'] }}" style="width:100%;height:100%;object-fit:contain;">
+        @php
+          $prodImg = \Illuminate\Support\Str::startsWith($p['image'], ['http://', 'https://']) ? $p['image'] : asset('storage/' . $p['image']);
+        @endphp
+        <img src="{{ $prodImg }}" alt="{{ $p['name'] }}" loading="lazy" style="width:100%;height:100%;object-fit:contain;display:block;">
       @else
         <x-photo :cat="$p['cat']" :label="strtoupper($p['cat'] . ' · ' . $p['weight'])" />
       @endif
