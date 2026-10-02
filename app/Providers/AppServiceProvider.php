@@ -32,7 +32,7 @@ class AppServiceProvider extends AuthServiceProvider
     {
         $this->registerPolicies();
 
-        if (app()->environment('production') || isset($_SERVER['HTTP_X_FORWARDED_PROTO']) || isset($_SERVER['VERCEL']) || env('VERCEL')) {
+        if (app()->environment('production') || isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
     }
