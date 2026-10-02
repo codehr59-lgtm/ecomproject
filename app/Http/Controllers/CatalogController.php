@@ -10,6 +10,17 @@ class CatalogController extends Controller
 {
     public function home(): \Illuminate\View\View
     {
+        // Auto-run migrations on first boot if database tables do not exist
+        if (! \Illuminate\Support\Facades\Schema::hasTable('settings')) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+                \Illuminate\Support\Facades\Artisan::call('storage:link');
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Auto-migration failed: ' . $e->getMessage());
+            }
+        }
+
         $viewData = \Illuminate\Support\Facades\Cache::remember('storefront.home_view_data_v2', 300, function () {
             // 1. Featured categories slider
             $showFeaturedCategories = (bool) \App\Models\Setting::get('homepage_featured_categories', true);

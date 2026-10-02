@@ -9,6 +9,40 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/setup-now', function () {
+    try {
+        $log = [];
+        
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $log[] = "<h3>1. Migrations:</h3><pre>" . e(\Illuminate\Support\Facades\Artisan::output()) . "</pre>";
+        
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+        $log[] = "<h3>2. Seeders:</h3><pre>" . e(\Illuminate\Support\Facades\Artisan::output()) . "</pre>";
+
+        try {
+            \Illuminate\Support\Facades\Artisan::call('storage:link');
+            $log[] = "<h3>3. Storage Link:</h3><pre>" . e(\Illuminate\Support\Facades\Artisan::output()) . "</pre>";
+        } catch (\Throwable $e) {
+            $log[] = "<h3>3. Storage Link:</h3><pre>" . e($e->getMessage()) . "</pre>";
+        }
+
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        $log[] = "<h3>4. Cache Clear:</h3><pre>" . e(\Illuminate\Support\Facades\Artisan::output()) . "</pre>";
+
+        return response('<html><body style="font-family:sans-serif;padding:30px;background:#0f172a;color:#f8fafc;">'
+            . '<h1 style="color:#22c55e;">🎉 Setup Completed Successfully!</h1>'
+            . implode('', $log)
+            . '<div style="margin-top:20px;"><a href="/" style="background:#22c55e;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;font-weight:bold;">Go to Homepage &rarr;</a></div>'
+            . '</body></html>');
+    } catch (\Throwable $e) {
+        return response('<html><body style="font-family:sans-serif;padding:30px;background:#0f172a;color:#f8fafc;">'
+            . '<h1 style="color:#ef4444;">❌ Setup Error</h1>'
+            . '<p>' . e($e->getMessage()) . '</p>'
+            . '<pre style="background:#1e293b;padding:15px;border-radius:6px;overflow:auto;">' . e($e->getTraceAsString()) . '</pre>'
+            . '</body></html>', 500);
+    }
+});
+
 Route::get('/', [CatalogController::class, 'home'])->name('home');
 Route::get('/shop', [CatalogController::class, 'shop'])->name('shop');
 Route::get('/category/{slug}', [CatalogController::class, 'category'])->name('category'); // alias → shop view filtered

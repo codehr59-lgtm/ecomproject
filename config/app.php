@@ -39,20 +39,8 @@ return [
     |
     */
 
-    'debug' => (bool) env('APP_DEBUG', false),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Application URL
-    |--------------------------------------------------------------------------
-    |
-    | This URL is used by the console to properly generate URLs when using
-    | the Artisan command line tool. You should set this to the root of
-    | the application so that it's available within Artisan commands.
-    |
-    */
-
-    'url' => env('APP_URL', 'http://localhost'),
+    'debug' => (bool) env('APP_DEBUG', true),
+    'url' => env('APP_URL', 'https://masalavalley.com'),
 
     /*
     |--------------------------------------------------------------------------
@@ -97,7 +85,7 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
-    'key' => env('APP_KEY'),
+    'key' => env('APP_KEY', 'base64:5N28+WmxmUCPos7oTo4eneqQzfT+/7gYVheB/ap3E3w='),
 
     'previous_keys' => [
         ...array_filter(
