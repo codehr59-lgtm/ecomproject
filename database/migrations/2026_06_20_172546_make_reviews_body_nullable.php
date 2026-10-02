@@ -8,7 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (DB::getDriverName() !== 'sqlite') {
+        $driver = DB::getDriverName();
+        if ($driver === 'mysql' || $driver === 'mariadb') {
+            DB::statement('ALTER TABLE reviews MODIFY body TEXT NULL');
+            return;
+        } elseif ($driver === 'pgsql') {
             DB::statement('ALTER TABLE reviews ALTER COLUMN body DROP NOT NULL');
             return;
         }

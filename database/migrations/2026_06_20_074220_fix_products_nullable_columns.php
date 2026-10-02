@@ -7,7 +7,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (DB::getDriverName() !== 'sqlite') {
+        $driver = DB::getDriverName();
+        if ($driver === 'mysql' || $driver === 'mariadb') {
+            DB::statement('ALTER TABLE products MODIFY rating NUMERIC(8, 2) DEFAULT 0');
+            DB::statement('ALTER TABLE products MODIFY reviews NUMERIC(8, 2) DEFAULT 0');
+            DB::statement('ALTER TABLE products MODIFY certified TINYINT(1) DEFAULT 0');
+            return;
+        } elseif ($driver === 'pgsql') {
             DB::statement('ALTER TABLE products ALTER COLUMN rating DROP NOT NULL, ALTER COLUMN rating SET DEFAULT 0');
             DB::statement('ALTER TABLE products ALTER COLUMN reviews DROP NOT NULL, ALTER COLUMN reviews SET DEFAULT 0');
             DB::statement('ALTER TABLE products ALTER COLUMN certified DROP NOT NULL, ALTER COLUMN certified SET DEFAULT false');

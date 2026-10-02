@@ -7,7 +7,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (DB::getDriverName() !== 'sqlite') {
+        $driver = DB::getDriverName();
+        if ($driver === 'mysql' || $driver === 'mariadb') {
+            DB::statement('ALTER TABLE categories MODIFY tint VARCHAR(255) NULL');
+            return;
+        } elseif ($driver === 'pgsql') {
             DB::statement('ALTER TABLE categories ALTER COLUMN tint DROP NOT NULL');
             return;
         }
