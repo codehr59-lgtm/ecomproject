@@ -10,6 +10,18 @@ class AdminSeeder extends Seeder
 {
     public function run(): void
     {
+        // Masala Valley primary admin
+        User::updateOrCreate(
+            ['email' => 'admin@masalavalley.com'],
+            [
+                'name'     => 'Masala Valley Admin',
+                'password' => Hash::make('Masalavalley@1919'),
+                'is_admin' => true,
+                'phone'    => '01700000000',
+            ]
+        );
+
+        // Secondary admin
         User::updateOrCreate(
             ['email' => 'admin@shuvo.com'],
             [

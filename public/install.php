@@ -149,6 +149,33 @@ ENV;
                     echo '<p class="err">Seeder note: ' . htmlspecialchars($se->getMessage()) . '</p>';
                 }
 
+                // Ensure Admin Users exist
+                try {
+                    \App\Models\User::updateOrCreate(
+                        ['email' => 'admin@masalavalley.com'],
+                        [
+                            'name'     => 'Masala Valley Admin',
+                            'password' => \Illuminate\Support\Facades\Hash::make('Masalavalley@1919'),
+                            'is_admin' => true,
+                            'phone'    => '01700000000',
+                        ]
+                    );
+                    \App\Models\User::updateOrCreate(
+                        ['email' => 'admin@shuvo.com'],
+                        [
+                            'name'     => 'Shuvo Admin',
+                            'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                            'is_admin' => true,
+                            'phone'    => '01700000000',
+                        ]
+                    );
+                    echo '<p class="ok">✓ Admin accounts verified/created:</p>';
+                    echo '<ul><li><strong>admin@masalavalley.com</strong> (Password: <code>Masalavalley@1919</code>)</li>';
+                    echo '<li><strong>admin@shuvo.com</strong> (Password: <code>password</code>)</li></ul>';
+                } catch (\Throwable $ue) {
+                    echo '<p class="err">Admin creation note: ' . htmlspecialchars($ue->getMessage()) . '</p>';
+                }
+
                 // Storage link
                 try {
                     $kernel->call('storage:link');
