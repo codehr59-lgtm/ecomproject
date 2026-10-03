@@ -16,14 +16,21 @@ class CatalogSeeder extends Seeder
      */
     public function run(): void
     {
-        if (\DB::getDriverName() === 'sqlite') {
+        $driver = \DB::getDriverName();
+        if ($driver === 'sqlite') {
             \DB::statement('PRAGMA foreign_keys = OFF;');
             Product::truncate();
             Brand::truncate();
             Category::truncate();
             \DB::statement('PRAGMA foreign_keys = ON;');
-        } else {
+        } elseif ($driver === 'pgsql') {
             \DB::statement('TRUNCATE TABLE products, brands, categories RESTART IDENTITY CASCADE;');
+        } else {
+            \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            Product::truncate();
+            Brand::truncate();
+            Category::truncate();
+            \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         }
 
         // ── 1. Seed categories ────────────────────────────────────────────
