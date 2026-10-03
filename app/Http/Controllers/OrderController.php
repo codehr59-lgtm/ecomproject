@@ -48,7 +48,7 @@ class OrderController extends Controller
         // Decode cart items from client
         $clientItems = json_decode($validated['items'], true);
         if (! is_array($clientItems) || empty($clientItems)) {
-            return back()->withErrors(['items' => 'Cart is empty.']);
+            return back()->withInput()->withErrors(['items' => 'Cart is empty.']);
         }
 
         // Build line items using DB prices (never trust client prices)
@@ -133,7 +133,7 @@ class OrderController extends Controller
         }
 
         if (empty($lineItems)) {
-            return back()->withErrors(['items' => 'No valid items found in cart.']);
+            return back()->withInput()->withErrors(['items' => 'No valid items found in cart.']);
         }
 
         // Delivery fee from settings, based on selected zone
@@ -191,79 +191,92 @@ class OrderController extends Controller
         $phone = $validated['customer_phone'];
         $email = $validated['customer_email'] ?? null;
 
-        $customer = User::where('phone', $phone)->where('is_admin', false)->first();
-        if (! $customer && $email) {
-            $customer = User::where('email', $email)->where('is_admin', false)->first();
-        }
-        if (! $customer) {
-            $customer = User::create([
-                'name'     => $validated['customer_name'],
-                'email'    => $email ?? $phone . '@guest.local',
-                'phone'    => $phone,
-                'password' => bcrypt(Str::random(16)),
-                'is_admin' => false,
-            ]);
-        }
-        $userId = $customer->id;
-
-        // Create order + items in a transaction
-        $order = DB::transaction(function () use (
-            $validated, $lineItems, $subtotal, $delivery, $discount,
-            $total, $couponCode, $appliedCoupon, $userId
-        ) {
-            $order = Order::create([
-                'number'         => Order::generateNumber(),
-                'user_id'        => $userId,
-                'status'         => 'pending',
-                'customer_name'  => $validated['customer_name'],
-                'customer_phone' => $validated['customer_phone'],
-                'customer_email' => $validated['customer_email'] ?? null,
-                'address_line'   => $validated['address_line'],
-                'city'           => $validated['city'],
-                'thana'          => $validated['thana'] ?? null,
-                'notes'          => $validated['notes'] ?? null,
-                'subtotal'       => $subtotal,
-                'delivery'       => $delivery,
-                'discount'       => $discount,
-                'total'          => $total,
-                'coupon_code'    => $couponCode,
-                'payment_method' => $validated['payment_method'],
-                'payment_status' => 'unpaid',
-                'placed_at'      => now(),
-            ]);
-
-            foreach ($lineItems as $item) {
-                $varId   = $item['_variation_id'] ?? null;
-                $isCombo = $item['_is_combo'] ?? false;
-                $comboId = $item['_combo_id'] ?? null;
-                unset($item['_variation_id'], $item['_is_combo'], $item['_combo_id']);
-
-                $order->items()->create($item);
-
-                if ($isCombo && $comboId) {
-                    \App\Models\Combo::where('id', $comboId)
-                        ->where('stock', '>', 0)
-                        ->decrement('stock', $item['qty']);
-                } elseif ($varId) {
-                    \App\Models\ProductVariation::where('id', $varId)
-                        ->where('stock', '>', 0)
-                        ->decrement('stock', $item['qty']);
-                    $p = Product::find($item['product_id']);
-                    $p?->syncStock();
-                } elseif (! empty($item['product_id'])) {
-                    Product::where('id', $item['product_id'])
-                        ->where('stock', '>', 0)
-                        ->decrement('stock', $item['qty']);
+        if (auth()->check()) {
+            $customer = auth()->user();
+        } else {
+            $customer = User::where('phone', $phone)->first();
+            if (! $customer && $email) {
+                $customer = User::where('email', $email)->first();
+            }
+            if (! $customer) {
+                $userEmail = !empty($email) ? $email : ($phone . '@guest.local');
+                $customer = User::where('email', $userEmail)->first();
+                if (! $customer) {
+                    $customer = User::create([
+                        'name'     => $validated['customer_name'],
+                        'email'    => $userEmail,
+                        'phone'    => $phone,
+                        'password' => bcrypt(Str::random(16)),
+                        'is_admin' => false,
+                    ]);
                 }
             }
+        }
+        $userId = $customer?->id;
 
-            // Increment coupon usage
-            if ($appliedCoupon) {
-                $appliedCoupon->increment('used');
-            }
+        // Create order + items in a transaction
+        try {
+            $order = DB::transaction(function () use (
+                $validated, $lineItems, $subtotal, $delivery, $discount,
+                $total, $couponCode, $appliedCoupon, $userId
+            ) {
+                $order = Order::create([
+                    'number'         => Order::generateNumber(),
+                    'user_id'        => $userId,
+                    'status'         => 'pending',
+                    'customer_name'  => $validated['customer_name'],
+                    'customer_phone' => $validated['customer_phone'],
+                    'customer_email' => $validated['customer_email'] ?? null,
+                    'address_line'   => $validated['address_line'],
+                    'city'           => $validated['city'],
+                    'thana'          => $validated['thana'] ?? null,
+                    'notes'          => $validated['notes'] ?? null,
+                    'subtotal'       => $subtotal,
+                    'delivery'       => $delivery,
+                    'discount'       => $discount,
+                    'total'          => $total,
+                    'coupon_code'    => $couponCode,
+                    'payment_method' => $validated['payment_method'],
+                    'payment_status' => 'unpaid',
+                    'placed_at'      => now(),
+                ]);
 
-            return $order;
-        });
+                foreach ($lineItems as $item) {
+                    $varId   = $item['_variation_id'] ?? null;
+                    $isCombo = $item['_is_combo'] ?? false;
+                    $comboId = $item['_combo_id'] ?? null;
+                    unset($item['_variation_id'], $item['_is_combo'], $item['_combo_id']);
+
+                    $order->items()->create($item);
+
+                    if ($isCombo && $comboId) {
+                        \App\Models\Combo::where('id', $comboId)
+                            ->where('stock', '>', 0)
+                            ->decrement('stock', $item['qty']);
+                    } elseif ($varId) {
+                        \App\Models\ProductVariation::where('id', $varId)
+                            ->where('stock', '>', 0)
+                            ->decrement('stock', $item['qty']);
+                        $p = Product::find($item['product_id']);
+                        $p?->syncStock();
+                    } elseif (! empty($item['product_id'])) {
+                        Product::where('id', $item['product_id'])
+                            ->where('stock', '>', 0)
+                            ->decrement('stock', $item['qty']);
+                    }
+                }
+
+                // Increment coupon usage
+                if ($appliedCoupon) {
+                    $appliedCoupon->increment('used');
+                }
+
+                return $order;
+            });
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->withInput()->withErrors(['items' => 'Order could not be processed: ' . $e->getMessage()]);
+        }
 
         // COD: go straight to confirmation; online methods: go to payment gateway
         if ($order->payment_method === 'cod') {

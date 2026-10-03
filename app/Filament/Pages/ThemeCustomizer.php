@@ -160,8 +160,8 @@ class ThemeCustomizer extends Page
                     ->schema([
                         Forms\Components\TextInput::make('site_name')->label('Site Name')->maxLength(100),
                         Forms\Components\TextInput::make('site_tagline')->label('Tagline')->maxLength(200),
-                        Forms\Components\FileUpload::make('site_logo')->label('Site Logo')->image()->directory('brand')->visibility('public')->maxSize(10240),
-                        Forms\Components\FileUpload::make('site_favicon')->label('Favicon')->image()->directory('brand')->visibility('public')->maxSize(5120)
+                        Forms\Components\FileUpload::make('site_logo')->label('Site Logo')->disk('public')->image()->directory('brand')->visibility('public')->maxSize(10240),
+                        Forms\Components\FileUpload::make('site_favicon')->label('Favicon')->disk('public')->image()->directory('brand')->visibility('public')->maxSize(5120)
                             ->acceptedFileTypes(['image/x-icon', 'image/png', 'image/svg+xml']),
                         Forms\Components\Select::make('site_logo_height')
                             ->label('Header Logo Height')

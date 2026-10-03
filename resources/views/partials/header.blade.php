@@ -26,7 +26,8 @@
 
     {{-- ── Data ── --}}
     @php
-        $__hdrLogo        = \App\Models\Setting::get('site_logo');
+        $__hdrLogoRaw     = \App\Models\Setting::get('site_logo');
+        $__hdrLogo        = $__hdrLogoRaw ? (\Illuminate\Support\Str::startsWith($__hdrLogoRaw, ['http://', 'https://']) ? $__hdrLogoRaw : asset('storage/' . ltrim(preg_replace('#^storage/#', '', $__hdrLogoRaw), '/'))) : null;
         $__hdrName        = \App\Models\Setting::get('site_name');
         $__hdrTagline     = \App\Models\Setting::get('site_tagline');
         $__siteLogoHeight = (int) \App\Models\Setting::get('site_logo_height', 52);
@@ -66,7 +67,7 @@
 
             <a href="{{ route('home') }}" class="mh-brand" aria-label="{{ $__hdrName ?: 'Home' }}">
                 @if($__hdrLogo)
-                <img src="{{ asset('storage/' . $__hdrLogo) }}" alt="{{ $__hdrName ?: 'Logo' }}" class="mh-brand-img">
+                <img src="{{ $__hdrLogo }}" alt="{{ $__hdrName ?: 'Logo' }}" class="mh-brand-img" onerror="this.style.display='none'">
                 @endif
                 <span class="mh-brand-info">
                     <span class="mh-brand-title">{{ $__hdrName ?: 'Shuvo' }}<b class="mh-brand-dot">.</b></span>
@@ -127,7 +128,7 @@
             {{-- Logo --}}
             <a href="{{ route('home') }}" class="brand" aria-label="{{ $__hdrName ?: 'Home' }}">
                 @if($__hdrLogo)
-                <img src="{{ asset('storage/' . $__hdrLogo) }}" alt="{{ $__hdrName ?: 'Logo' }}" class="brand-logo-img" style="height:{{ $__siteLogoHeight }}px; max-height:{{ max($__siteLogoHeight, 64) }}px; width:auto; max-width:240px; object-fit:contain;">
+                <img src="{{ $__hdrLogo }}" alt="{{ $__hdrName ?: 'Logo' }}" class="brand-logo-img" style="height:{{ $__siteLogoHeight }}px; max-height:{{ max($__siteLogoHeight, 64) }}px; width:auto; max-width:240px; object-fit:contain;" onerror="this.style.display='none'">
                 @endif
                 @if($__hdrName)
                 <span>
@@ -285,7 +286,7 @@
 
             <div class="mob-menu-head">
                 @if($__hdrLogo)
-                <img src="{{ asset('storage/' . $__hdrLogo) }}" alt="" style="height:26px;width:auto;">
+                <img src="{{ $__hdrLogo }}" alt="" style="height:26px;width:auto;" onerror="this.style.display='none'">
                 @endif
                 <span class="mob-menu-brand">{{ $__hdrName ?: 'Menu' }}</span>
                 <button type="button" class="mob-menu-close" @click="open = false" aria-label="Close menu">

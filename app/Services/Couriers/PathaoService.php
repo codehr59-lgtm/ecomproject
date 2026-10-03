@@ -17,11 +17,11 @@ class PathaoService
 
     public function __construct()
     {
-        $this->clientId     = config('couriers.pathao.client_id', '');
-        $this->clientSecret = config('couriers.pathao.client_secret', '');
-        $this->username     = config('couriers.pathao.username', '');
-        $this->password     = config('couriers.pathao.password', '');
-        $this->sandbox      = (bool) config('couriers.pathao.sandbox', true);
+        $this->clientId     = (string) (\App\Models\Setting::get('pathao_client_id') ?: (config('couriers.pathao.client_id') ?? ''));
+        $this->clientSecret = (string) (\App\Models\Setting::secret('pathao_client_secret') ?: (config('couriers.pathao.client_secret') ?? ''));
+        $this->username     = (string) (\App\Models\Setting::get('pathao_username') ?: (config('couriers.pathao.username') ?? ''));
+        $this->password     = (string) (\App\Models\Setting::secret('pathao_password') ?: (config('couriers.pathao.password') ?? ''));
+        $this->sandbox      = (bool) (\App\Models\Setting::get('pathao_sandbox') ?? config('couriers.pathao.sandbox', true));
     }
 
     public function isConfigured(): bool

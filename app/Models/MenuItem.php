@@ -46,4 +46,18 @@ class MenuItem extends Model
             default => $this->url ?: '#',
         };
     }
+
+    protected static function booted(): void
+    {
+        static::saved(function (MenuItem $item) {
+            if ($item->menu) {
+                \Illuminate\Support\Facades\Cache::forget("menu.location.{$item->menu->location}");
+            }
+        });
+        static::deleted(function (MenuItem $item) {
+            if ($item->menu) {
+                \Illuminate\Support\Facades\Cache::forget("menu.location.{$item->menu->location}");
+            }
+        });
+    }
 }

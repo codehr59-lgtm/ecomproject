@@ -5,9 +5,19 @@
 
 {{-- Clear the Alpine cart now that the order is server-side --}}
 <script>
-    document.addEventListener('alpine:init', function () {
-        Alpine.store('shop').items = [];
-    });
+    (function () {
+        function clearCart() {
+            try {
+                if (window.Alpine && Alpine.store && Alpine.store('shop')) {
+                    Alpine.store('shop').items = [];
+                }
+                localStorage.removeItem('shuvo_cart');
+            } catch(e) {}
+        }
+        clearCart();
+        document.addEventListener('DOMContentLoaded', clearCart);
+        document.addEventListener('alpine:init', clearCart);
+    })();
 </script>
 
 {{-- TikTok Pixel: CompletePayment --}}

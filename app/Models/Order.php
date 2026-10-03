@@ -96,12 +96,16 @@ class Order extends Model
                 }
             }
 
-            AdminNotification::notify(
-                "New Order #{$order->number}",
-                "{$order->customer_name} placed an order for ৳" . number_format($order->total) . " ({$order->payment_method})",
-                'success',
-                "/admin/orders/{$order->id}",
-            );
+            try {
+                AdminNotification::notify(
+                    "New Order #{$order->number}",
+                    "{$order->customer_name} placed an order for ৳" . number_format($order->total) . " ({$order->payment_method})",
+                    'success',
+                    "/admin/orders/{$order->id}",
+                );
+            } catch (\Throwable $e) {
+                report($e);
+            }
         });
 
         static::updating(function (Order $order) {

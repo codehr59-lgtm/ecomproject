@@ -67,6 +67,11 @@ foreach ([
     }
 }
 
+// Attempt to ensure public/storage symlink exists
+if (!file_exists(__DIR__ . '/storage') && function_exists('symlink')) {
+    @symlink($baseDir . '/storage/app/public', __DIR__ . '/storage');
+}
+
 // Determine if the application is in maintenance mode...
 if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
     require $maintenance;

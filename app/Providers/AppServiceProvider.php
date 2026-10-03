@@ -32,8 +32,12 @@ class AppServiceProvider extends AuthServiceProvider
     {
         $this->registerPolicies();
 
-        if (request()->isSecure() || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')) {
-            \Illuminate\Support\Facades\URL::forceScheme('https');
+        if (! $this->app->runningInConsole() && $this->app->has('request')) {
+            try {
+                if (request()->isSecure() || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')) {
+                    \Illuminate\Support\Facades\URL::forceScheme('https');
+                }
+            } catch (\Throwable) {}
         }
     }
 }

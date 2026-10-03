@@ -21,8 +21,13 @@
       @foreach($posts as $post)
         <article style="background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow-s);display:flex;flex-direction:column;">
           @if($post->cover)
+          @php
+            $coverUrl = \Illuminate\Support\Str::startsWith($post->cover, ['http://', 'https://'])
+                ? $post->cover
+                : asset('storage/' . ltrim(preg_replace('#^storage/#', '', $post->cover), '/'));
+          @endphp
           <a href="{{ route('blog.post', $post->slug) }}">
-            <img src="{{ asset('storage/' . $post->cover) }}" alt="{{ $post->title }}" style="width:100%;height:200px;object-fit:cover;display:block;">
+            <img src="{{ $coverUrl }}" alt="{{ $post->title }}" style="width:100%;height:200px;object-fit:cover;display:block;" onerror="this.style.display='none'">
           </a>
           @endif
           <div style="padding:20px;display:flex;flex-direction:column;flex:1;">

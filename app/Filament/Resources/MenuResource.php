@@ -94,7 +94,8 @@ class MenuResource extends Resource
                                     ->default(true),
                             ])
                             ->columns(3)
-                            ->reorderable()
+                            ->orderColumn('sort')
+                            ->reorderable('sort')
                             ->reorderableWithButtons()
                             ->collapsible()
                             ->itemLabel(fn (array $state): ?string => $state['label'] ?? null)

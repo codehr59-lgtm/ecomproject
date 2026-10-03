@@ -75,6 +75,7 @@ class SliderResource extends Resource
             ->reorderable('sort')
             ->columns([
                 Tables\Columns\ImageColumn::make('image')
+                    ->disk('public')
                     ->height(60),
 
                 Tables\Columns\TextColumn::make('title')

@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 @section('title', 'Checkout — Shuvo')
 
 @section('content')
@@ -18,13 +18,13 @@
     step: 1,
     pay: '{{ $paymentMethods[0] ?? 'cod' }}',
     promo: '',
-    name: '',
-    phone: '',
-    email: '',
-    address: '',
-    city: '',
-    thana: '',
-    notes: '',
+    name: '{{ addslashes(old('customer_name', auth()->user()?->name ?? '')) }}',
+    phone: '{{ addslashes(old('customer_phone', auth()->user()?->phone ?? '')) }}',
+    email: '{{ addslashes(old('customer_email', auth()->user()?->email ?? '')) }}',
+    address: '{{ addslashes(old('address_line', '')) }}',
+    city: '{{ addslashes(old('city', '')) }}',
+    thana: '{{ addslashes(old('thana', '')) }}',
+    notes: '{{ addslashes(old('notes', '')) }}',
     dlvInside: {{ $deliveryConfig['inside'] }},
     dlvOutside: {{ $deliveryConfig['outside'] }},
     dlvFreeMin: {{ $deliveryConfig['freeMin'] }},
@@ -86,7 +86,13 @@
         @endif
 
         {{-- Two-column checkout layout --}}
-        <form method="POST" action="{{ route('order.store') }}" id="checkout-form">
+        <form method="POST" action="{{ route('order.store') }}" id="checkout-form"
+              @submit="
+                  if ($store.shop.count > 0) {
+                      document.getElementById('items-input').value = JSON.stringify($store.shop.items);
+                      document.getElementById('coupon-input').value = promo;
+                  }
+              ">
             @csrf
 
             {{-- Hidden: items JSON filled by JS before submit --}}
@@ -355,11 +361,14 @@
                             :disabled="$store.shop.count === 0"
                             :style="$store.shop.count === 0 ? 'opacity:.55;cursor:not-allowed' : ''"
                             @click="
-                                if ($store.shop.count > 0) {
-                                    document.getElementById('items-input').value = JSON.stringify($store.shop.items);
-                                    document.getElementById('coupon-input').value = promo;
-                                    document.getElementById('checkout-form').submit();
+                                if ($store.shop.count === 0) return;
+                                if (!name.trim() || !phone.trim() || !address.trim() || !city.trim()) {
+                                    alert('Please fill in your Full Name, Phone Number, City, and Address.');
+                                    return;
                                 }
+                                document.getElementById('items-input').value = JSON.stringify($store.shop.items);
+                                document.getElementById('coupon-input').value = promo;
+                                document.getElementById('checkout-form').submit();
                             ">
                             Place Order
                         </button>

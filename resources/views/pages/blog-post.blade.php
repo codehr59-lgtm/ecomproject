@@ -29,8 +29,13 @@
 
       {{-- Cover image --}}
       @if($post->cover)
+      @php
+        $coverUrl = \Illuminate\Support\Str::startsWith($post->cover, ['http://', 'https://'])
+            ? $post->cover
+            : asset('storage/' . ltrim(preg_replace('#^storage/#', '', $post->cover), '/'));
+      @endphp
       <div style="border-radius:12px;overflow:hidden;aspect-ratio:16/7;margin-bottom:32px;border:1px solid var(--line);">
-        <img src="{{ asset('storage/' . $post->cover) }}" alt="{{ $post->title }}" style="width:100%;height:100%;object-fit:cover;display:block;">
+        <img src="{{ $coverUrl }}" alt="{{ $post->title }}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.style.display='none'">
       </div>
       @endif
 

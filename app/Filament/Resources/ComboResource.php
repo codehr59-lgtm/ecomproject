@@ -205,6 +205,7 @@ class ComboResource extends Resource
             ->columns([
                 Tables\Columns\ImageColumn::make('image')
                     ->label('Photo')
+                    ->disk('public')
                     ->square()
                     ->size(48)
                     ->defaultImageUrl(asset('images/placeholder.svg')),

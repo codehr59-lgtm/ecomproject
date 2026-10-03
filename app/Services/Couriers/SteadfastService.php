@@ -13,8 +13,8 @@ class SteadfastService
 
     public function __construct()
     {
-        $this->apiKey    = config('couriers.steadfast.api_key', '');
-        $this->apiSecret = config('couriers.steadfast.api_secret', '');
+        $this->apiKey    = (string) (\App\Models\Setting::get('steadfast_api_key') ?: (config('couriers.steadfast.api_key') ?? ''));
+        $this->apiSecret = (string) (\App\Models\Setting::secret('steadfast_api_secret') ?: (config('couriers.steadfast.api_secret') ?? ''));
     }
 
     public function isConfigured(): bool

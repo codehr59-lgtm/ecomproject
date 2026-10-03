@@ -131,4 +131,26 @@ Route::middleware('auth')->get('/api/admin/notifications', function () {
 // CMS dynamic pages (must be after all other routes)
 Route::get('/page/{slug}', [PageController::class, 'cmsPage'])->name('page.show');
 
+// Fallback direct storage file server (in case public/storage symlink is missing on production/shared hosting)
+Route::get('/storage/{path}', function (string $path) {
+    $cleanPath = str_replace(['../', '..\\'], '', $path);
+    $filePath = storage_path('app/public/' . $cleanPath);
+
+    if (! file_exists($filePath) || is_dir($filePath)) {
+        $altPath = storage_path('app/' . $cleanPath);
+        if (file_exists($altPath) && ! is_dir($altPath)) {
+            $filePath = $altPath;
+        } else {
+            abort(404);
+        }
+    }
+
+    $mime = mime_content_type($filePath) ?: 'application/octet-stream';
+
+    return response()->file($filePath, [
+        'Content-Type'  => $mime,
+        'Cache-Control' => 'public, max-age=31536000',
+    ]);
+})->where('path', '.*')->name('storage.fallback');
+
 Route::fallback(fn () => response()->view('errors.404', [], 404));

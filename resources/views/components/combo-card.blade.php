@@ -30,8 +30,11 @@
   </div>
 
   <a href="{{ $detailUrl }}" class="combo-card-img" style="text-decoration:none;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:#fdfcf9;">
-    @if($image)
-      <img src="{{ asset('storage/' . $image) }}" alt="{{ $name }}" style="width:100%;height:100%;object-fit:cover;transition:transform .3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+    @php
+      $comboImgUrl = $image ? (\Illuminate\Support\Str::startsWith($image, ['http://', 'https://']) ? $image : asset('storage/' . ltrim(preg_replace('#^storage/#', '', $image), '/'))) : null;
+    @endphp
+    @if($comboImgUrl)
+      <img src="{{ $comboImgUrl }}" alt="{{ $name }}" style="width:100%;height:100%;object-fit:cover;transition:transform .3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onerror="this.style.display='none'">
     @else
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:20px;color:var(--green-deep,#134423);">
         <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">

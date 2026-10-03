@@ -30,4 +30,14 @@ class Menu extends Model
 
         return $res ?: null;
     }
+
+    protected static function booted(): void
+    {
+        static::saved(function (Menu $menu) {
+            \Illuminate\Support\Facades\Cache::forget("menu.location.{$menu->location}");
+        });
+        static::deleted(function (Menu $menu) {
+            \Illuminate\Support\Facades\Cache::forget("menu.location.{$menu->location}");
+        });
+    }
 }

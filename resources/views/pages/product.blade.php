@@ -26,10 +26,16 @@
   // Build gallery: main image + product_images
   $allImages = [];
   if ($model->image) {
-      $allImages[] = asset('storage/' . $model->image);
+      $allImages[] = \Illuminate\Support\Str::startsWith($model->image, ['http://', 'https://'])
+          ? $model->image
+          : asset('storage/' . ltrim(preg_replace('#^storage/#', '', $model->image), '/'));
   }
   foreach ($model->images as $img) {
-      $allImages[] = asset('storage/' . $img->path);
+      if ($img->path) {
+          $allImages[] = \Illuminate\Support\Str::startsWith($img->path, ['http://', 'https://'])
+              ? $img->path
+              : asset('storage/' . ltrim(preg_replace('#^storage/#', '', $img->path), '/'));
+      }
   }
   if (empty($allImages)) {
       $allImages[] = null; // placeholder fallback

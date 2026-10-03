@@ -72,6 +72,7 @@ class TestimonialResource extends Resource
             ->reorderable('sort')
             ->columns([
                 Tables\Columns\ImageColumn::make('avatar')
+                    ->disk('public')
                     ->circular()
                     ->defaultImageUrl(fn () => 'https://ui-avatars.com/api/?name=U&size=40'),
 

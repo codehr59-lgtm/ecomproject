@@ -30,8 +30,9 @@ class CreateProduct extends CreateRecord
 
         if (!empty($gallery)) {
             $rows = [];
-            foreach ($gallery as $i => $path) {
-                $rows[] = ['path' => $path, 'sort' => $i];
+            $i = 0;
+            foreach ($gallery as $path) {
+                $rows[] = ['path' => $path, 'sort' => $i++];
             }
             $this->record->images()->createMany($rows);
         }

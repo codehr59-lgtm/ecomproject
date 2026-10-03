@@ -13,12 +13,13 @@
             {{-- Col 1: Brand + contact + social + app badges --}}
             <div class="ftr-brand">
                 @php
-                    $__ftrLogo = \App\Models\Setting::get('site_logo');
-                    $__ftrName = \App\Models\Setting::get('site_name');
+                    $__ftrLogoRaw = \App\Models\Setting::get('site_logo');
+                    $__ftrLogo    = $__ftrLogoRaw ? (\Illuminate\Support\Str::startsWith($__ftrLogoRaw, ['http://', 'https://']) ? $__ftrLogoRaw : asset('storage/' . ltrim(preg_replace('#^storage/#', '', $__ftrLogoRaw), '/'))) : null;
+                    $__ftrName    = \App\Models\Setting::get('site_name');
                 @endphp
                 <a href="{{ route('home') }}" class="brand" aria-label="{{ $__ftrName ?: 'Home' }}" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none">
                     @if($__ftrLogo)
-                    <img src="{{ asset('storage/' . $__ftrLogo) }}" alt="{{ $__ftrName ?: 'Logo' }}" style="height:36px;width:auto;object-fit:contain;">
+                    <img src="{{ $__ftrLogo }}" alt="{{ $__ftrName ?: 'Logo' }}" style="height:36px;width:auto;object-fit:contain;" onerror="this.style.display='none'">
                     @endif
                     @if($__ftrName)
                     <span class="brand-name">{{ $__ftrName }}<b>.</b></span>

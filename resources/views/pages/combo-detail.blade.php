@@ -6,7 +6,7 @@
 @php
   $savings = $combo->savings_amount;
   $savingsPct = $combo->savings_percent;
-  $imageUrl = $combo->image ? asset('storage/' . $combo->image) : null;
+  $imageUrl = $combo->image ? (\Illuminate\Support\Str::startsWith($combo->image, ['http://', 'https://']) ? $combo->image : asset('storage/' . ltrim(preg_replace('#^storage/#', '', $combo->image), '/'))) : null;
 @endphp
 
 <div class="combo-detail-page" x-data="{ qty: 1 }">
@@ -28,7 +28,7 @@
       <div class="combo-visual">
         <div class="combo-visual-box" style="position: relative; border-radius: 16px; overflow: hidden; background: #faf9f5; border: 1px solid var(--line); aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center;">
           @if($imageUrl)
-            <img src="{{ $imageUrl }}" alt="{{ $combo->name }}" style="width: 100%; height: 100%; object-fit: cover;">
+            <img src="{{ $imageUrl }}" alt="{{ $combo->name }}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'">
           @else
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--green-deep, #134423); padding: 40px; text-align: center;">
               <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">

@@ -71,6 +71,7 @@ class CategoryResource extends Resource
             ->modifyQueryUsing(fn (Builder $query) => $query->whereNull('parent_id')->with('children'))
             ->columns([
                 Tables\Columns\ImageColumn::make('image')
+                    ->disk('public')
                     ->circular()
                     ->size(40),
                 Tables\Columns\TextColumn::make('name')
