@@ -33,6 +33,16 @@ header('Content-Type: text/html; charset=utf-8');
     <h1>🚀 Masala Valley - Automated Setup & Health Check</h1>
 
     <!-- 1. Environment File Check -->
+    <?php if (isset($_GET['pull'])): ?>
+    <div class="step">
+        <h3>0. Git Pull</h3>
+        <?php
+        $gitOutput = @shell_exec('git pull origin main 2>&1');
+        echo '<pre>' . htmlspecialchars($gitOutput ?: 'No output or shell_exec disabled') . '</pre>';
+        ?>
+    </div>
+    <?php endif; ?>
+
     <div class="step">
         <h3>1. Configuration (.env)</h3>
         <?php

@@ -12,6 +12,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/setup-now', function () {
     try {
         $log = [];
+
+        if (request()->has('pull')) {
+            $gitOutput = @shell_exec('git pull origin main 2>&1');
+            $log[] = "<h3>0. Git Pull:</h3><pre>" . e($gitOutput ?: 'No output or shell_exec disabled') . "</pre>";
+        }
         
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         $log[] = "<h3>1. Migrations:</h3><pre>" . e(\Illuminate\Support\Facades\Artisan::output()) . "</pre>";
