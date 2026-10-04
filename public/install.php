@@ -190,6 +190,16 @@ ENV;
                     echo '<p class="err">Admin creation note: ' . htmlspecialchars($ue->getMessage()) . '</p>';
                 }
 
+                // Default Site Identity & Tab Title
+                try {
+                    if (! \App\Models\Setting::get('site_name')) {
+                        \App\Models\Setting::set('site_name', 'Masala Valley');
+                    }
+                    if (! \App\Models\Setting::get('tab_title')) {
+                        \App\Models\Setting::set('tab_title', 'Masala Valley — Pure, Organic & Halal');
+                    }
+                } catch (\Throwable) {}
+
                 // Storage link
                 try {
                     $publicStorage = __DIR__ . '/storage';
