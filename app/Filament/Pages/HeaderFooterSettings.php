@@ -62,6 +62,27 @@ class HeaderFooterSettings extends FilamentPage
             'footer_show_payment_methods' => (bool) Setting::get('footer_show_payment_methods', true),
             'theme_footer_bg'          => Setting::get('theme_footer_bg', '#fbf8f3'),
             'theme_footer_text_color'  => Setting::get('theme_footer_text_color', '#1e293b'),
+
+            // Floating Quick Contact Settings
+            'floating_contact_enabled'        => (bool) Setting::get('floating_contact_enabled', true),
+            'floating_contact_position'       => Setting::get('floating_contact_position', 'right'),
+            'floating_contact_btn_bg'          => Setting::get('floating_contact_btn_bg', '#9B5123'),
+            'floating_contact_btn_icon_color' => Setting::get('floating_contact_btn_icon_color', '#ffffff'),
+            'floating_contact_badge'          => (bool) Setting::get('floating_contact_badge', true),
+            'floating_contact_tooltip'        => Setting::get('floating_contact_tooltip', 'Need help? Contact us'),
+            'floating_whatsapp_enabled'       => (bool) Setting::get('floating_whatsapp_enabled', true),
+            'floating_whatsapp_number'        => Setting::get('floating_whatsapp_number', ''),
+            'floating_whatsapp_message'       => Setting::get('floating_whatsapp_message', 'Hello Masala Valley, I want to inquire about a product.'),
+            'floating_whatsapp_label'         => Setting::get('floating_whatsapp_label', 'WhatsApp'),
+            'floating_messenger_enabled'      => (bool) Setting::get('floating_messenger_enabled', true),
+            'floating_messenger_url'          => Setting::get('floating_messenger_url', ''),
+            'floating_messenger_label'        => Setting::get('floating_messenger_label', 'Messenger'),
+            'floating_phone_enabled'          => (bool) Setting::get('floating_phone_enabled', true),
+            'floating_phone_number'           => Setting::get('floating_phone_number', ''),
+            'floating_phone_label'            => Setting::get('floating_phone_label', 'Call Now'),
+            'floating_email_enabled'          => (bool) Setting::get('floating_email_enabled', true),
+            'floating_email_address'          => Setting::get('floating_email_address', ''),
+            'floating_email_label'            => Setting::get('floating_email_label', 'Email Us'),
         ]);
     }
 
@@ -268,6 +289,114 @@ class HeaderFooterSettings extends FilamentPage
                                     ->label('Manage Dynamic Footer Pages')
                                     ->content('All pages linked in your website footer can be edited with your custom text, policies, and headings. Click "Edit in CMS" on any page below to modify its content, or click "Create New Page" to add custom pages.'),
                             ]),
+
+                        // ── TAB 4: FLOATING CONTACT BUTTON ──
+                        Forms\Components\Tabs\Tab::make('Floating Contact Widget')
+                            ->icon('heroicon-o-chat-bubble-left-right')
+                            ->schema([
+                                Forms\Components\Section::make('Floating Contact Button & Position')
+                                    ->description('Configure the main sticky floating contact button (bottom right/left)')
+                                    ->schema([
+                                        Forms\Components\Toggle::make('floating_contact_enabled')
+                                            ->label('Enable Floating Contact Button')
+                                            ->helperText('Show the interactive floating contact widget on the storefront.')
+                                            ->default(true),
+
+                                        Forms\Components\Select::make('floating_contact_position')
+                                            ->label('Screen Position')
+                                            ->options([
+                                                'right' => 'Bottom Right (Recommended)',
+                                                'left'  => 'Bottom Left',
+                                            ])
+                                            ->default('right'),
+
+                                        Forms\Components\ColorPicker::make('floating_contact_btn_bg')
+                                            ->label('Main Button Color')
+                                            ->default('#9B5123'),
+
+                                        Forms\Components\ColorPicker::make('floating_contact_btn_icon_color')
+                                            ->label('Main Button Icon Color')
+                                            ->default('#ffffff'),
+
+                                        Forms\Components\Toggle::make('floating_contact_badge')
+                                            ->label('Show Online Pulse Badge (Blue Dot)')
+                                            ->helperText('Displays the live active status indicator dot on the chat icon.')
+                                            ->default(true),
+
+                                        Forms\Components\TextInput::make('floating_contact_tooltip')
+                                            ->label('Hover Tooltip Text')
+                                            ->placeholder('Need help? Contact us')
+                                            ->default('Need help? Contact us'),
+                                    ])->columns(2),
+
+                                Forms\Components\Section::make('Communication Channels')
+                                    ->description('Enable and customize each quick-contact channel in the popup menu (WhatsApp, Messenger, Phone, Email)')
+                                    ->schema([
+                                        // WhatsApp
+                                        Forms\Components\Fieldset::make('WhatsApp')
+                                            ->schema([
+                                                Forms\Components\Toggle::make('floating_whatsapp_enabled')
+                                                    ->label('Enable WhatsApp')
+                                                    ->default(true),
+                                                Forms\Components\TextInput::make('floating_whatsapp_label')
+                                                    ->label('Button Label')
+                                                    ->default('WhatsApp'),
+                                                Forms\Components\TextInput::make('floating_whatsapp_number')
+                                                    ->label('WhatsApp Number')
+                                                    ->helperText('e.g. 01700000000 or +8801700000000 (falls back to Contact/Social WhatsApp).')
+                                                    ->placeholder('01700000000'),
+                                                Forms\Components\TextInput::make('floating_whatsapp_message')
+                                                    ->label('Pre-filled Message')
+                                                    ->placeholder('Hello Masala Valley, I want to inquire about a product.')
+                                                    ->columnSpanFull(),
+                                            ])->columns(3),
+
+                                        // Messenger
+                                        Forms\Components\Fieldset::make('Facebook Messenger')
+                                            ->schema([
+                                                Forms\Components\Toggle::make('floating_messenger_enabled')
+                                                    ->label('Enable Messenger')
+                                                    ->default(true),
+                                                Forms\Components\TextInput::make('floating_messenger_label')
+                                                    ->label('Button Label')
+                                                    ->default('Messenger'),
+                                                Forms\Components\TextInput::make('floating_messenger_url')
+                                                    ->label('Messenger Link or Page Username')
+                                                    ->helperText('e.g. masalavalley or https://m.me/masalavalley')
+                                                    ->placeholder('masalavalley'),
+                                            ])->columns(3),
+
+                                        // Call / Phone
+                                        Forms\Components\Fieldset::make('Direct Phone Call')
+                                            ->schema([
+                                                Forms\Components\Toggle::make('floating_phone_enabled')
+                                                    ->label('Enable Direct Call')
+                                                    ->default(true),
+                                                Forms\Components\TextInput::make('floating_phone_label')
+                                                    ->label('Button Label')
+                                                    ->default('Call Now'),
+                                                Forms\Components\TextInput::make('floating_phone_number')
+                                                    ->label('Phone Number')
+                                                    ->helperText('e.g. +8801700000000 (falls back to site contact phone).')
+                                                    ->placeholder('+8801700000000'),
+                                            ])->columns(3),
+
+                                        // Email
+                                        Forms\Components\Fieldset::make('Email Support')
+                                            ->schema([
+                                                Forms\Components\Toggle::make('floating_email_enabled')
+                                                    ->label('Enable Email')
+                                                    ->default(true),
+                                                Forms\Components\TextInput::make('floating_email_label')
+                                                    ->label('Button Label')
+                                                    ->default('Email Us'),
+                                                Forms\Components\TextInput::make('floating_email_address')
+                                                    ->label('Support Email Address')
+                                                    ->helperText('e.g. support@masalavalley.com (falls back to site contact email).')
+                                                    ->placeholder('support@masalavalley.com'),
+                                            ])->columns(3),
+                                    ]),
+                            ]),
                     ])
                     ->columnSpanFull(),
             ])
@@ -325,6 +454,12 @@ class HeaderFooterSettings extends FilamentPage
             'footer_show_apps', 'app_play_store_url', 'app_store_url',
             'footer_col1_title', 'footer_col2_title', 'footer_col3_title',
             'footer_text', 'footer_show_payment_methods', 'theme_footer_bg', 'theme_footer_text_color',
+            'floating_contact_enabled', 'floating_contact_position', 'floating_contact_btn_bg',
+            'floating_contact_btn_icon_color', 'floating_contact_badge', 'floating_contact_tooltip',
+            'floating_whatsapp_enabled', 'floating_whatsapp_number', 'floating_whatsapp_message', 'floating_whatsapp_label',
+            'floating_messenger_enabled', 'floating_messenger_url', 'floating_messenger_label',
+            'floating_phone_enabled', 'floating_phone_number', 'floating_phone_label',
+            'floating_email_enabled', 'floating_email_address', 'floating_email_label',
         ];
 
         foreach ($keys as $key) {

@@ -559,6 +559,9 @@
         @endif
     </nav>
 
+    {{-- Floating Quick Contact Widget --}}
+    @include('partials.floating-contact')
+
     @stack('scripts')
 </body>
 </html>
