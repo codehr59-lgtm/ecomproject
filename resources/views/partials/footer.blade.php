@@ -25,7 +25,7 @@
                     <span class="brand-name">{{ $__ftrName }}<b>.</b></span>
                     @endif
                     @if(!$__ftrLogo && !$__ftrName)
-                    <span class="brand-name">Shuvo<b>.</b></span>
+                    <span class="brand-name">{{ $__ftrName ?: 'Masala Valley' }}<b>.</b></span>
                     @endif
                 </a>
 
@@ -193,7 +193,7 @@
 
         {{-- ── Bottom strip ── --}}
         <div class="ftr-bottom">
-            <span>&copy; {{ date('Y') }} Shuvo. Pure, organic &amp; halal — delivered with care.</span>
+            <span>&copy; {{ date('Y') }} {{ $__ftrName ?: 'Masala Valley' }}. {{ \App\Models\Setting::get('site_tagline', 'Pure, organic & halal — delivered with care.') }}</span>
 
             <div class="pay-row" aria-label="Accepted payment methods">
                 <span class="pay-chip">VISA</span>

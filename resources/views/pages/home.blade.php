@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Shuvo — Pure, Organic & Halal Groceries')
+@section('title', \App\Models\Setting::get('tab_title') ?: (\App\Models\Setting::get('meta_title') ?: (\App\Models\Setting::get('site_name', 'Masala Valley') . ' — ' . \App\Models\Setting::get('site_tagline', 'Pure, Organic & Halal'))))
 
 @section('content')
 

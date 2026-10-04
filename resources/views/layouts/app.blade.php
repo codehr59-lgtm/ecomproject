@@ -4,7 +4,21 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', \App\Models\Setting::get('meta_title', 'Shuvo — Pure, Organic &amp; Halal'))</title>
+    @php
+        $__siteName    = \App\Models\Setting::get('site_name', 'Masala Valley');
+        $__siteTagline = \App\Models\Setting::get('site_tagline', 'Pure, Organic & Halal');
+        $__tabTitle    = \App\Models\Setting::get('tab_title')
+            ?: (\App\Models\Setting::get('meta_title')
+            ?: ($__siteName . ($__siteTagline ? ' — ' . $__siteTagline : '')));
+    @endphp
+    <title>@php
+        $__pageTitle = trim($__env->yieldContent('title'));
+        if (!empty($__pageTitle)) {
+            echo e(str_replace([' — Shuvo', ' - Shuvo', ' — Ghorer Bazar', ' - Ghorer Bazar'], ' — ' . $__siteName, $__pageTitle));
+        } else {
+            echo e($__tabTitle);
+        }
+    @endphp</title>
     @hasSection('meta_description')
         <meta name="description" content="@yield('meta_description')">
     @else

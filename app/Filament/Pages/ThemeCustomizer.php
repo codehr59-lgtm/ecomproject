@@ -25,7 +25,8 @@ class ThemeCustomizer extends Page
     private function themeKeys(): array
     {
         return [
-            'site_name'        => ['default' => 'Shuvo'],
+            'tab_title'        => ['default' => 'Masala Valley — Pure, Organic & Halal'],
+            'site_name'        => ['default' => 'Masala Valley'],
             'site_tagline'     => ['default' => 'Pure, Organic & Halal'],
             'site_logo'        => [],
             'site_favicon'     => [],
@@ -158,6 +159,12 @@ class ThemeCustomizer extends Page
             ->schema([
                 Forms\Components\Section::make('Site Identity')
                     ->schema([
+                        Forms\Components\TextInput::make('tab_title')
+                            ->label('Browser Tab Title (Website Title)')
+                            ->helperText('This text appears directly on the browser tab (e.g. Chrome/Firefox tab).')
+                            ->placeholder('Masala Valley — Pure, Organic & Halal')
+                            ->maxLength(150)
+                            ->columnSpanFull(),
                         Forms\Components\TextInput::make('site_name')->label('Site Name')->maxLength(100),
                         Forms\Components\TextInput::make('site_tagline')->label('Tagline')->maxLength(200),
                         Forms\Components\FileUpload::make('site_logo')->label('Site Logo')->disk('public')->image()->directory('brand')->visibility('public')->maxSize(10240),
@@ -437,6 +444,12 @@ class ThemeCustomizer extends Page
                 Setting::set($dbKey, $val ?? '');
             }
         }
+
+        if (! empty($state['tab_title'])) {
+            Setting::set('meta_title', $state['tab_title']);
+        }
+
+        \Illuminate\Support\Facades\Cache::forget('storefront.home_view_data_v2');
 
         Notification::make()
             ->title('Theme settings saved')

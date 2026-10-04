@@ -143,7 +143,7 @@
                         <path d="M5 21c2-5 5-8 9-10"/>
                     </svg>
                 </span>
-                <span><span class="brand-name">Shuvo<b>.</b></span></span>
+                <span><span class="brand-name">{{ $__hdrName ?: 'Masala Valley' }}<b>.</b></span></span>
                 @endif
             </a>
 

@@ -25,6 +25,9 @@ class GeneralSettings extends Page
     public function mount(): void
     {
         $this->form->fill([
+            'tab_title'          => Setting::get('tab_title', Setting::get('meta_title', 'Masala Valley — Pure, Organic & Halal')),
+            'site_name'          => Setting::get('site_name', 'Masala Valley'),
+            'site_tagline'       => Setting::get('site_tagline', 'Pure, Organic & Halal'),
             'free_shipping_min'  => Setting::get('free_shipping_min', 1500),
             'default_delivery'   => Setting::get('default_delivery', 60),
             'inside_dhaka'       => Setting::get('delivery_inside_dhaka', 60),
@@ -47,6 +50,29 @@ class GeneralSettings extends Page
     {
         return $form
             ->schema([
+                Forms\Components\Section::make('Website Identity & Browser Tab')
+                    ->description('Configure the browser tab text, brand name, and tagline displayed on your website')
+                    ->icon('heroicon-o-globe-alt')
+                    ->schema([
+                        Forms\Components\TextInput::make('tab_title')
+                            ->label('Browser Tab Title (Website Title)')
+                            ->helperText('This text appears directly on the browser tab (e.g. Chrome/Firefox tab).')
+                            ->placeholder('Masala Valley — Pure, Organic & Halal')
+                            ->maxLength(150)
+                            ->columnSpanFull(),
+
+                        Forms\Components\TextInput::make('site_name')
+                            ->label('Site / Brand Name')
+                            ->placeholder('Masala Valley')
+                            ->maxLength(100),
+
+                        Forms\Components\TextInput::make('site_tagline')
+                            ->label('Tagline / Slogan')
+                            ->placeholder('Pure, Organic & Halal')
+                            ->maxLength(150),
+                    ])
+                    ->columns(2),
+
                 Forms\Components\Section::make('Shipping & Delivery')
                     ->schema([
                         Forms\Components\TextInput::make('free_shipping_min')
@@ -139,6 +165,7 @@ class GeneralSettings extends Page
         $state = $this->form->getState();
 
         $keys = [
+            'tab_title', 'site_name', 'site_tagline',
             'free_shipping_min', 'default_delivery', 'low_stock_threshold',
             'enable_free_gift', 'free_gift_min', 'free_gift_name', 'free_gift_success_msg',
             'order_prefix', 'currency_symbol', 'items_per_page',
@@ -151,11 +178,18 @@ class GeneralSettings extends Page
             }
         }
 
+        // Keep meta_title synced if tab_title is provided
+        if (! empty($state['tab_title'])) {
+            Setting::set('meta_title', $state['tab_title']);
+        }
+
         Setting::set('delivery_inside_dhaka', $state['inside_dhaka'] ?? null);
         Setting::set('delivery_outside_dhaka', $state['outside_dhaka'] ?? null);
 
+        \Illuminate\Support\Facades\Cache::forget('storefront.home_view_data_v2');
+
         Notification::make()
-            ->title('Settings saved')
+            ->title('Settings saved successfully')
             ->success()
             ->send();
     }
