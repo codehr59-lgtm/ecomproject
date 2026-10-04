@@ -28,6 +28,14 @@ class Brand extends Model
         return $query->where('is_active', true);
     }
 
+    // ── Booted ────────────────────────────────────────────────────────────
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => \App\Support\Catalog::flushCache());
+        static::deleted(fn () => \App\Support\Catalog::flushCache());
+    }
+
     // ── Relationships ─────────────────────────────────────────────────────
 
     public function products(): HasMany

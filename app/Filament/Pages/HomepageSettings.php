@@ -71,6 +71,7 @@ class HomepageSettings extends Page
             'featured_categories'    => Setting::get('homepage_featured_categories', true),
             'featured_category_ids'  => Setting::get('homepage_featured_category_ids', []),
             'category_rails'         => $savedRails,
+            'auto_show_category_rails' => (bool) Setting::get('homepage_auto_show_category_rails', true),
             'top_selling'            => Setting::get('homepage_top_selling', true),
             'top_selling_title'      => Setting::get('homepage_top_selling_title', 'Top Selling Products'),
             'top_selling_limit'      => Setting::get('homepage_top_selling_limit', 4),
@@ -188,14 +189,24 @@ class HomepageSettings extends Page
                                     return 'New Category Rail';
                                 }
                                 $cat = Category::withCount('products')->find($state['category_id']);
-                                $title = ! empty($state['title']) ? $state['title'] : ($cat?->name ?? 'Unknown');
-                                $count = $cat?->products_count ?? 0;
-                                return $title . ' (' . ($cat?->name ?? 'None') . ' — ' . $count . ' ' . ($count === 1 ? 'product' : 'products') . ')';
+                                if (! $cat) {
+                                    $title = ! empty($state['title']) ? $state['title'] : 'Deleted Category';
+                                    return $title . ' (⚠ Deleted Category — please reselect or delete)';
+                                }
+                                $title = ! empty($state['title']) ? $state['title'] : $cat->name;
+                                $count = $cat->products_count ?? 0;
+                                return $title . ' (' . $cat->name . ' — ' . $count . ' ' . ($count === 1 ? 'product' : 'products') . ')';
                             })
                             ->collapsible()
                             ->cloneable()
                             ->reorderable()
                             ->addActionLabel('+ Add New Category Section')
+                            ->columnSpanFull(),
+
+                        Forms\Components\Toggle::make('auto_show_category_rails')
+                            ->label('Auto-Display New Categories with Products (নতুন ক্যাটাগরিতে প্রোডাক্ট থাকলে স্বয়ংক্রিয়ভাবে হোমপেজে দেখাও)')
+                            ->helperText('When enabled, any active category that has products will automatically appear on the homepage, even before you manually add it to the list above.')
+                            ->default(true)
                             ->columnSpanFull(),
                     ]),
 
@@ -294,8 +305,13 @@ class HomepageSettings extends Page
         Setting::set('homepage_just_for_you_title', $state['just_for_you_title'] ?? 'Just For You');
         Setting::set('homepage_just_for_you_limit', (int) ($state['just_for_you_limit'] ?? 10));
 
+        Setting::set('homepage_auto_show_category_rails', (bool) ($state['auto_show_category_rails'] ?? true));
+
         Setting::set('homepage_brands', $state['brands'] ?? true);
         Setting::set('homepage_testimonials', $state['testimonials'] ?? true);
+
+        // Immediately flush all catalog & homepage caches so changes appear in real-time
+        \App\Support\Catalog::flushCache();
 
         Notification::make()
             ->title('Homepage settings saved successfully!')

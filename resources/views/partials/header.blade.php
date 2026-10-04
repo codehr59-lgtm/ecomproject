@@ -50,9 +50,10 @@
         $__navCats = \Illuminate\Support\Facades\Cache::remember('layout.nav_cats', 1800, function () {
             return \App\Models\Category::active()
                 ->whereNull('parent_id')
-                ->with(['children' => fn($q) => $q->where('is_active', true)->orderBy('sort')])
+                ->with(['children' => fn($q) => $q->where('is_active', true)->orderBy('sort')->latest('id')])
                 ->withCount(['products' => fn($q) => $q->where('is_active', true)])
                 ->orderBy('sort')
+                ->latest('id')
                 ->get();
         });
         $__quickCategories = $__navCats->take(10);

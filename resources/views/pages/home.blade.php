@@ -186,12 +186,14 @@
      ============================================================ --}}
 @if(!empty($categoryRails))
   @foreach($categoryRails as $index => $rail)
+    @if(!empty($rail['products']))
     <div class="rail">
       <div class="wrap">
         <x-rail-head :title="$rail['title']" :viewAll="$rail['viewAllUrl']" />
         <x-product-slider :products="$rail['products']" />
       </div>
     </div>
+    @endif
 
     {{-- Insert Combo Deals strip after 2nd category rail (or 1st if only 1) --}}
     @if(($showCombos ?? true) && !empty($combos) && ($index === 1 || (count($categoryRails) === 1 && $index === 0)))

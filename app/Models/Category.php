@@ -44,6 +44,14 @@ class Category extends Model
 
     protected static function booted(): void
     {
+        static::saved(function () {
+            \App\Support\Catalog::flushCache();
+        });
+
+        static::deleted(function () {
+            \App\Support\Catalog::flushCache();
+        });
+
         static::deleting(function (Category $category) {
             // Find all affected category IDs (this category + its subcategories)
             $catIds = $category->children()->pluck('id')->push($category->id);

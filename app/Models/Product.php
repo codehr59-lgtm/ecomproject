@@ -51,6 +51,14 @@ class Product extends Model
 
     protected static function booted(): void
     {
+        static::saved(function () {
+            \App\Support\Catalog::flushCache();
+        });
+
+        static::deleted(function () {
+            \App\Support\Catalog::flushCache();
+        });
+
         static::deleting(function (Product $product) {
             // Disassociate order items to prevent foreign key constraint violation
             OrderItem::where('product_id', $product->id)->update(['product_id' => null]);

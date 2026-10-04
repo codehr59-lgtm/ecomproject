@@ -38,6 +38,7 @@ class CatalogController extends Controller
             // 2. Dynamic Category Rails
             $savedRails = \App\Models\Setting::get('homepage_category_rails');
             $categoryRails = [];
+            $usedCategoryIds = [];
 
             if (is_array($savedRails) && ! empty($savedRails)) {
                 foreach ($savedRails as $railConfig) {
@@ -61,30 +62,56 @@ class CatalogController extends Controller
 
                     $products = Catalog::categoryProducts($category->id, $limit, $sortBy);
 
+                    // Skip empty rails so blank sections never appear on homepage
+                    if (empty($products)) {
+                        continue;
+                    }
+
+                    $usedCategoryIds[] = $category->id;
+
                     $categoryRails[] = [
                         'category'   => $category,
                         'title'      => $title,
                         'viewAllUrl' => route('category', $category->slug),
-                        'products'   => $products ?? [],
+                        'products'   => $products,
                     ];
                 }
             } else {
-                // Default 4 rails if settings have not been customized yet
-                $defaultDefs = [
-                    ['slug' => 'mango', 'title' => 'Mango'],
-                    ['slug' => 'honey', 'title' => 'All Natural Honey'],
-                    ['slug' => 'dates', 'title' => 'Premium Dates'],
-                    ['slug' => 'oil-ghee', 'title' => 'Cooking Essentials'],
-                ];
-
-                foreach ($defaultDefs as $def) {
-                    $products = Catalog::byCategory($def['slug']);
-                    if (! empty($products)) {
+                // Default rails: dynamically show all active categories that have products
+                $defaultCats = \App\Models\Category::active()->has('products')->orderBy('sort')->latest('id')->get();
+                foreach ($defaultCats as $dCat) {
+                    $dProds = Catalog::categoryProducts($dCat->id, 10, 'sort_order');
+                    if (! empty($dProds)) {
+                        $usedCategoryIds[] = $dCat->id;
                         $categoryRails[] = [
-                            'category'   => (object) ['slug' => $def['slug'], 'name' => $def['title']],
-                            'title'      => $def['title'],
-                            'viewAllUrl' => route('category', $def['slug']),
-                            'products'   => array_slice($products, 0, 10),
+                            'category'   => $dCat,
+                            'title'      => $dCat->name,
+                            'viewAllUrl' => route('category', $dCat->slug),
+                            'products'   => $dProds,
+                        ];
+                    }
+                }
+            }
+
+            // ── Auto-Discover New Categories ──
+            // If an admin creates a new category with products, show it on homepage automatically!
+            $autoShowNew = (bool) \App\Models\Setting::get('homepage_auto_show_category_rails', true);
+            if ($autoShowNew) {
+                $extraCats = \App\Models\Category::active()
+                    ->whereNotIn('id', $usedCategoryIds)
+                    ->has('products')
+                    ->orderBy('sort')
+                    ->latest('id')
+                    ->get();
+
+                foreach ($extraCats as $extraCat) {
+                    $extraProds = Catalog::categoryProducts($extraCat->id, 10, 'latest');
+                    if (! empty($extraProds)) {
+                        $categoryRails[] = [
+                            'category'   => $extraCat,
+                            'title'      => $extraCat->name,
+                            'viewAllUrl' => route('category', $extraCat->slug),
+                            'products'   => $extraProds,
                         ];
                     }
                 }

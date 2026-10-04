@@ -38,6 +38,7 @@ class Catalog
             return Product::active()
                 ->with(['category', 'productReviews', 'variations'])
                 ->orderBy('sort')
+                ->latest('id')
                 ->get()
                 ->map(fn (Product $p) => $p->toCardArray())
                 ->all();
@@ -56,6 +57,7 @@ class Catalog
             return Category::active()
                 ->withCount(['products' => fn ($q) => $q->where('is_active', true)])
                 ->orderBy('sort')
+                ->latest('id')
                 ->get()
                 ->map(fn (Category $c) => [
                     'id'       => $c->slug,
@@ -179,65 +181,68 @@ class Catalog
     // ── Collection queries ────────────────────────────────────────────────
 
     /**
-     * Products belonging to a category (identified by slug).
-     * Uses cached products collection in memory for instantaneous sub-millisecond response.
+     * Products belonging to a category (identified by slug or ID).
+     * Includes child categories and sorts by sort order + latest.
      */
     public static function byCategory(string $catSlug): array
     {
-        return array_values(array_filter(self::products(), fn ($p) => ($p['cat'] ?? '') === $catSlug));
+        $cat = Category::where('slug', $catSlug)->first();
+        if (! $cat) {
+            return [];
+        }
+
+        $catIds = $cat->children()->pluck('id')->push($cat->id);
+
+        return Product::active()
+            ->with(['category', 'productReviews', 'variations'])
+            ->whereIn('category_id', $catIds)
+            ->orderBy('sort')
+            ->latest('id')
+            ->get()
+            ->map(fn (Product $p) => $p->toCardArray())
+            ->all();
     }
 
     /**
      * Products belonging to a category with customizable limit and sort.
+     * Includes child categories and honors requested sort.
      */
-    public static function categoryProducts(int $categoryId, int $limit = 5, string $sortBy = 'sort_order'): array
+    public static function categoryProducts(int $categoryId, int $limit = 10, string $sortBy = 'sort_order'): array
     {
-        // Resolve slug from cached categories in memory
-        $allCats = self::categories();
-        $catSlug = null;
-        foreach ($allCats as $c) {
-            if (($c['model_id'] ?? null) == $categoryId || ($c['id'] ?? null) == $categoryId) {
-                $catSlug = $c['id'];
+        $cat = Category::find($categoryId);
+        if (! $cat) {
+            return [];
+        }
+
+        $catIds = $cat->children()->pluck('id')->push($cat->id);
+
+        $query = Product::active()
+            ->with(['category', 'productReviews', 'variations'])
+            ->whereIn('category_id', $catIds);
+
+        switch ($sortBy) {
+            case 'latest':
+                $query->latest('id');
                 break;
-            }
+            case 'popular':
+                $query->orderByDesc('reviews')->latest('id');
+                break;
+            case 'price_asc':
+                $query->orderBy('price', 'asc')->latest('id');
+                break;
+            case 'price_desc':
+                $query->orderBy('price', 'desc')->latest('id');
+                break;
+            case 'sort_order':
+            default:
+                $query->orderBy('sort')->latest('id');
+                break;
         }
 
-        if ($catSlug) {
-            $filtered = self::byCategory($catSlug);
-            if (! empty($filtered)) {
-                return array_slice($filtered, 0, $limit);
-            }
-        }
-
-        return \Illuminate\Support\Facades\Cache::remember("catalog.cat_products.{$categoryId}.{$limit}.{$sortBy}", 1800, function () use ($categoryId, $limit, $sortBy) {
-            $query = Product::active()
-                ->with(['category', 'productReviews', 'variations'])
-                ->where('category_id', $categoryId);
-
-            switch ($sortBy) {
-                case 'latest':
-                    $query->latest('id');
-                    break;
-                case 'popular':
-                    $query->orderByDesc('reviews');
-                    break;
-                case 'price_asc':
-                    $query->orderBy('price', 'asc');
-                    break;
-                case 'price_desc':
-                    $query->orderBy('price', 'desc');
-                    break;
-                case 'sort_order':
-                default:
-                    $query->orderBy('sort')->orderBy('id');
-                    break;
-            }
-
-            return $query->take($limit)
-                ->get()
-                ->map(fn (Product $p) => $p->toCardArray())
-                ->all();
-        });
+        return $query->take($limit)
+            ->get()
+            ->map(fn (Product $p) => $p->toCardArray())
+            ->all();
     }
 
     /**
@@ -332,14 +337,21 @@ class Catalog
 
     /**
      * First $limit active products — used for "Just For You" rail.
+     * Orders by latest ID so newly added products immediately show up.
      */
     public static function featured(int $limit = 10): array
     {
-        return array_slice(self::products(), 0, $limit);
+        return Product::active()
+            ->with(['category', 'productReviews', 'variations'])
+            ->latest('id')
+            ->take($limit)
+            ->get()
+            ->map(fn (Product $p) => $p->toCardArray())
+            ->all();
     }
 
     /**
-     * Invalidate catalog caches when admin edits products/categories.
+     * Invalidate catalog caches when admin edits products/categories/settings.
      */
     public static function flushCache(): void
     {
@@ -349,5 +361,8 @@ class Catalog
         \Illuminate\Support\Facades\Cache::forget('catalog.combos');
         \Illuminate\Support\Facades\Cache::forget('storefront.home_view_data');
         \Illuminate\Support\Facades\Cache::forget('storefront.home_view_data_v2');
+        \Illuminate\Support\Facades\Cache::forget('layout.nav_cats');
+        \Illuminate\Support\Facades\Cache::forget('layout.announcements');
+        \Illuminate\Support\Facades\Cache::forget('layout.popup');
     }
 }

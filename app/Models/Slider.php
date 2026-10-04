@@ -15,6 +15,12 @@ class Slider extends Model
         'is_active' => 'boolean',
     ];
 
+    protected static function booted(): void
+    {
+        static::saved(fn () => \App\Support\Catalog::flushCache());
+        static::deleted(fn () => \App\Support\Catalog::flushCache());
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true)->orderBy('sort');

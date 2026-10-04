@@ -48,6 +48,14 @@ class Combo extends Model
         return $query->where('is_featured', true);
     }
 
+    // ── Booted ────────────────────────────────────────────────────────────
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => \App\Support\Catalog::flushCache());
+        static::deleted(fn () => \App\Support\Catalog::flushCache());
+    }
+
     // ── Relationships ─────────────────────────────────────────────────────
 
     public function items(): HasMany
