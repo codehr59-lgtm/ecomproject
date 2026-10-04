@@ -6,17 +6,19 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @php
         $__siteName    = \App\Models\Setting::get('site_name', 'Masala Valley');
-        $__siteTagline = \App\Models\Setting::get('site_tagline', 'Pure, Organic & Halal');
+        $__siteTagline = \App\Models\Setting::get('site_tagline');
         $__tabTitle    = \App\Models\Setting::get('tab_title')
             ?: (\App\Models\Setting::get('meta_title')
-            ?: ($__siteName . ($__siteTagline ? ' — ' . $__siteTagline : '')));
+            ?: (!empty($__siteTagline) ? ($__siteName . ' — ' . $__siteTagline) : $__siteName));
     @endphp
     <title>@php
         $__pageTitle = trim($__env->yieldContent('title'));
         if (!empty($__pageTitle)) {
-            echo e(str_replace([' — Shuvo', ' - Shuvo', ' — Ghorer Bazar', ' - Ghorer Bazar'], ' — ' . $__siteName, $__pageTitle));
+            // Trim any trailing dash or spaces if user didn't provide tagline
+            $__cleanTitle = rtrim(str_replace([' — Shuvo', ' - Shuvo', ' — Ghorer Bazar', ' - Ghorer Bazar'], ' — ' . $__siteName, $__pageTitle), " —-");
+            echo e($__cleanTitle);
         } else {
-            echo e($__tabTitle);
+            echo e(rtrim($__tabTitle, " —-"));
         }
     @endphp</title>
     @hasSection('meta_description')

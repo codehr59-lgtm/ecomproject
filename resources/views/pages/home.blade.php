@@ -1,5 +1,7 @@
 @extends('layouts.app')
-@section('title', \App\Models\Setting::get('tab_title') ?: (\App\Models\Setting::get('meta_title') ?: (\App\Models\Setting::get('site_name', 'Masala Valley') . ' — ' . \App\Models\Setting::get('site_tagline', 'Pure, Organic & Halal'))))
+@if(\App\Models\Setting::get('tab_title'))
+@section('title', \App\Models\Setting::get('tab_title'))
+@endif
 
 @section('content')
 
