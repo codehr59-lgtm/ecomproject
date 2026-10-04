@@ -14,8 +14,12 @@ Route::get('/setup-now', function () {
         $log = [];
 
         if (request()->has('pull')) {
-            $gitOutput = @shell_exec('git pull origin main 2>&1');
-            $log[] = "<h3>0. Git Pull:</h3><pre>" . e($gitOutput ?: 'No output or shell_exec disabled') . "</pre>";
+            if (function_exists('shell_exec')) {
+                $gitOutput = @shell_exec('git pull origin main 2>&1');
+                $log[] = "<h3>0. Git Pull:</h3><pre>" . e($gitOutput ?: 'No output') . "</pre>";
+            } else {
+                $log[] = "<h3>0. Git Pull:</h3><p>shell_exec is disabled on this server. Please use Hostinger Git / Deploy.</p>";
+            }
         }
         
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);

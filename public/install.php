@@ -37,8 +37,12 @@ header('Content-Type: text/html; charset=utf-8');
     <div class="step">
         <h3>0. Git Pull</h3>
         <?php
-        $gitOutput = @shell_exec('git pull origin main 2>&1');
-        echo '<pre>' . htmlspecialchars($gitOutput ?: 'No output or shell_exec disabled') . '</pre>';
+        if (function_exists('shell_exec')) {
+            $gitOutput = @shell_exec('git pull origin main 2>&1');
+            echo '<pre>' . htmlspecialchars($gitOutput ?: 'No output') . '</pre>';
+        } else {
+            echo '<p class="err">shell_exec() is disabled on this server. Please use Hostinger Git / Deploy or FTP.</p>';
+        }
         ?>
     </div>
     <?php endif; ?>
