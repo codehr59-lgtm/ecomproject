@@ -119,16 +119,19 @@
                 @endif
 
                 {{-- App badges --}}
+                @if(\App\Models\Setting::get('footer_show_apps', true))
+                @php
+                    $__playUrl = \App\Models\Setting::get('app_play_store_url');
+                    $__appStoreUrl = \App\Models\Setting::get('app_store_url');
+                @endphp
                 <div class="app-badges">
-                    <a href="#" class="app-badge" aria-label="Get Shuvo on Google Play">
-                        {{-- Play / shopping bag icon --}}
+                    <a href="{{ $__playUrl ?: '#' }}" class="app-badge" aria-label="Get {{ $__ftrName ?: 'App' }} on Google Play" @if($__playUrl) target="_blank" rel="noopener" @endif>
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M5 3l14 9-14 9V3z"/>
                         </svg>
                         <b>Google Play</b>
                     </a>
-                    <a href="#" class="app-badge" aria-label="Download Shuvo on the App Store">
-                        {{-- Apple-like icon --}}
+                    <a href="{{ $__appStoreUrl ?: '#' }}" class="app-badge" aria-label="Download {{ $__ftrName ?: 'App' }} on the App Store" @if($__appStoreUrl) target="_blank" rel="noopener" @endif>
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M12 2a2 2 0 0 1 2 2 6 6 0 0 1-6 6 2 2 0 0 1-2-2 6 6 0 0 1 6-6z"/>
                             <path d="M5 11a7 7 0 0 0 13.6 2.4c.3-.8.4-1.6.4-2.4H5z"/>
@@ -136,6 +139,7 @@
                         <b>App Store</b>
                     </a>
                 </div>
+                @endif
             </div>
 
             {{-- Col 2: Categories (from admin footer menu) --}}
@@ -152,20 +156,20 @@
 
             {{-- Col 3: Information --}}
             <div>
-                <h4>Information</h4>
+                <h4>{{ \App\Models\Setting::get('footer_col1_title', 'Information') }}</h4>
                 <ul aria-label="Information links">
                     <li><a href="{{ route('about') }}">About</a></li>
                     <li><a href="{{ route('blog') }}">Blog</a></li>
                     <li><a href="{{ route('contact') }}">Contact</a></li>
                     <li><a href="{{ route('terms') }}">Terms &amp; Conditions</a></li>
                     <li><a href="{{ route('privacy') }}">Privacy Policy</a></li>
-                    <li><a href="#">Careers</a></li>
+                    <li><a href="{{ route('page.show', 'careers') }}">Careers</a></li>
                 </ul>
             </div>
 
             {{-- Col 4: Support --}}
             <div>
-                <h4>Support</h4>
+                <h4>{{ \App\Models\Setting::get('footer_col2_title', 'Support') }}</h4>
                 <ul aria-label="Support links">
                     <li><a href="{{ route('page.show', 'support-center') }}">Support Center</a></li>
                     <li><a href="{{ route('page.show', 'how-to-order') }}">How to Order</a></li>
@@ -178,7 +182,7 @@
 
             {{-- Col 5: Consumer Policy --}}
             <div>
-                <h4>Consumer Policy</h4>
+                <h4>{{ \App\Models\Setting::get('footer_col3_title', 'Consumer Policy') }}</h4>
                 <ul aria-label="Consumer policy links">
                     <li><a href="{{ route('page.show', 'happy-return') }}">Happy Return</a></li>
                     <li><a href="{{ route('page.show', 'refund-policy') }}">Refund Policy</a></li>
@@ -193,8 +197,9 @@
 
         {{-- ── Bottom strip ── --}}
         <div class="ftr-bottom">
-            <span>&copy; {{ date('Y') }} {{ $__ftrName ?: 'Masala Valley' }}. {{ \App\Models\Setting::get('site_tagline', 'Pure, organic & halal — delivered with care.') }}</span>
+            <span>{{ \App\Models\Setting::get('footer_text', '© ' . date('Y') . ' ' . ($__ftrName ?: 'Masala Valley') . '. Pure, organic & halal — delivered with care.') }}</span>
 
+            @if(\App\Models\Setting::get('footer_show_payment_methods', true))
             <div class="pay-row" aria-label="Accepted payment methods">
                 <span class="pay-chip">VISA</span>
                 <span class="pay-chip">Mastercard</span>
@@ -204,6 +209,7 @@
                 <span class="pay-chip">DBBL</span>
                 <span class="pay-chip">COD</span>
             </div>
+            @endif
         </div>
 
     </div>

@@ -86,6 +86,12 @@ class PageResource extends Resource
                     ->sortable(),
             ])
             ->actions([
+                Tables\Actions\Action::make('view_live')
+                    ->label('View')
+                    ->icon('heroicon-o-eye')
+                    ->color('info')
+                    ->url(fn (Page $record): string => in_array($record->slug, ['about', 'privacy', 'terms']) ? url('/' . $record->slug) : url('/page/' . $record->slug))
+                    ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

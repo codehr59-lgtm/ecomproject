@@ -8,6 +8,10 @@
     @endphp
 
     {{-- ── Announce bar ── --}}
+    @if(\App\Models\Setting::get('topbar_enabled', true))
+    @php
+        $__topbarCustom = \App\Models\Setting::get('topbar_custom_text');
+    @endphp
     <div class="announce">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M3 6h11v9H3z"/>
@@ -15,14 +19,19 @@
             <path d="M7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
             <path d="M17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
         </svg>
-        <span>Free delivery over <strong>৳{{ number_format($__freeShipMin) }}</strong> in Dhaka</span>
-        <span class="dot" aria-hidden="true"></span>
-        <span>Cash on delivery available</span>
-        @if($__giftEnabled)
-        <span class="dot" aria-hidden="true"></span>
-        <span>Add <strong>৳{{ number_format($__giftMin) }}</strong> &amp; unlock a {{ $__giftName }}</span>
+        @if(!empty($__topbarCustom))
+            <span>{!! $__topbarCustom !!}</span>
+        @else
+            <span>Free delivery over <strong>৳{{ number_format($__freeShipMin) }}</strong> in Dhaka</span>
+            <span class="dot" aria-hidden="true"></span>
+            <span>Cash on delivery available</span>
+            @if($__giftEnabled)
+            <span class="dot" aria-hidden="true"></span>
+            <span>Add <strong>৳{{ number_format($__giftMin) }}</strong> &amp; unlock a {{ $__giftName }}</span>
+            @endif
         @endif
     </div>
+    @endif
 
     {{-- ── Data ── --}}
     @php
@@ -96,7 +105,7 @@
         <div class="mh-search-row">
             <form action="{{ route('shop') }}" method="get" class="mh-search-form" role="search">
                 <svg class="mh-search-ico" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input type="search" name="q" placeholder="Search honey, dates, ghee, grocery…" value="{{ request('q') }}" autocomplete="off">
+                <input type="search" name="q" placeholder="{{ \App\Models\Setting::get('search_placeholder', 'Search honey, dates, ghee, spices…') }}" value="{{ request('q') }}" autocomplete="off">
                 <button type="submit" class="mh-search-go" aria-label="Search">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                 </button>
@@ -154,7 +163,7 @@
                     <path d="M21 21l-4.3-4.3"/>
                 </svg>
                 <label for="site-search" class="sr-only">Search products</label>
-                <input type="search" id="site-search" name="q" placeholder="Search honey, dates, ghee…" value="{{ request('q') }}" autocomplete="off">
+                <input type="search" id="site-search" name="q" placeholder="{{ \App\Models\Setting::get('search_placeholder', 'Search honey, dates, ghee, spices…') }}" value="{{ request('q') }}" autocomplete="off">
             </form>
 
             {{-- Header actions --}}

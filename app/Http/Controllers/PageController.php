@@ -24,6 +24,10 @@ class PageController extends Controller
 
     public function about(): \Illuminate\View\View
     {
+        $page = Page::where('slug', 'about')->where('is_published', true)->first();
+        if ($page) {
+            return view('pages.cms-page', compact('page'));
+        }
         return view('pages.about');
     }
 
@@ -48,11 +52,19 @@ class PageController extends Controller
 
     public function privacy(): \Illuminate\View\View
     {
+        $page = Page::where('slug', 'privacy')->where('is_published', true)->first();
+        if ($page) {
+            return view('pages.cms-page', compact('page'));
+        }
         return view('pages.privacy');
     }
 
     public function terms(): \Illuminate\View\View
     {
+        $page = Page::where('slug', 'terms')->where('is_published', true)->first();
+        if ($page) {
+            return view('pages.cms-page', compact('page'));
+        }
         return view('pages.terms');
     }
 
