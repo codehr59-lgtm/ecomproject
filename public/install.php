@@ -200,6 +200,41 @@ ENV;
                     }
                 } catch (\Throwable) {}
 
+                // Default Footer CMS Pages
+                try {
+                    $defaultPages = [
+                        'about'          => ['title' => 'About Us', 'sort' => 1, 'body' => '<h2>Welcome to Masala Valley</h2><p>At <strong>Masala Valley</strong>, we are committed to delivering 100% pure, natural, and premium organic groceries, aromatic spices, raw honey, premium dates, and pure mustard oil directly to your doorstep across Bangladesh.</p><h3>Our Mission</h3><p>To provide healthy, authentic, and chemical-free food products sourced directly from farmers and certified suppliers.</p>'],
+                        'terms'          => ['title' => 'Terms & Conditions', 'sort' => 2, 'body' => '<h2>Terms & Conditions</h2><p>Please read these terms and conditions carefully before placing an order on Masala Valley.</p><h3>1. Orders and Acceptance</h3><p>By placing an order through our website, you agree to product pricing and delivery terms.</p>'],
+                        'privacy'        => ['title' => 'Privacy Policy', 'sort' => 3, 'body' => '<h2>Privacy Policy</h2><p>Your privacy is important to us. Masala Valley does not share, sell, or rent your personal details to third parties.</p>'],
+                        'careers'        => ['title' => 'Careers', 'sort' => 4, 'body' => '<h2>Join the Masala Valley Team</h2><p>We are constantly expanding and looking for passionate individuals. Send your CV to <strong>contact@masalavalley.com</strong>.</p>'],
+                        'support-center' => ['title' => 'Support Center', 'sort' => 5, 'body' => '<h2>Customer Support Center</h2><p>Need assistance with an existing order or product inquiry? Our dedicated team is available 9:00 AM to 10:00 PM every day.</p>'],
+                        'how-to-order'   => ['title' => 'How to Order', 'sort' => 6, 'body' => '<h2>How to Order</h2><ol><li>Browse products and add to cart.</li><li>Click checkout and enter your delivery address.</li><li>Choose Cash on Delivery or Online Payment and confirm.</li></ol>'],
+                        'payment'        => ['title' => 'Payment Methods', 'sort' => 7, 'body' => '<h2>Payment Methods</h2><p>We accept Cash on Delivery (COD), bKash, Nagad, Rocket, and all major cards securely.</p>'],
+                        'shipping'       => ['title' => 'Shipping & Delivery', 'sort' => 8, 'body' => '<h2>Shipping & Delivery</h2><p>We deliver nationwide across Bangladesh. Delivery within Dhaka is 24-48 hours (৳60, free over ৳1,500). Outside Dhaka 48-72 hours (৳120).</p>'],
+                        'happy-return'   => ['title' => 'Happy Return', 'sort' => 9, 'body' => '<h2>Happy Return Guarantee</h2><p>Check your parcel at your doorstep. If any item is damaged or not as expected, return it instantly to the delivery rider.</p>'],
+                        'refund-policy'  => ['title' => 'Refund Policy', 'sort' => 10, 'body' => '<h2>Refund Policy</h2><p>Approved refunds for online payments are processed within 2-5 working days for bKash/Nagad and 5-10 days for cards.</p>'],
+                        'exchange'       => ['title' => 'Exchange Policy', 'sort' => 11, 'body' => '<h2>Exchange Policy</h2><p>If you receive a defective or incorrect item, notify us within 48 hours for a free replacement.</p>'],
+                        'cancellation'   => ['title' => 'Cancellation Policy', 'sort' => 12, 'body' => '<h2>Cancellation Policy</h2><p>You can cancel your order anytime before it has been dispatched from our warehouse.</p>'],
+                        'pre-order'      => ['title' => 'Pre-Order Policy', 'sort' => 13, 'body' => '<h2>Pre-Order Policy</h2><p>Pre-order seasonal organic crops and fresh harvest items to guarantee stock as soon as harvest arrives.</p>'],
+                        'extra-discount' => ['title' => 'Extra Discount & Offers', 'sort' => 14, 'body' => '<h2>Extra Discounts & Offers</h2><p>Save more with our combo bundles, active coupon codes, and free delivery promotions.</p>'],
+                    ];
+                    foreach ($defaultPages as $slug => $p) {
+                        \App\Models\Page::firstOrCreate(
+                            ['slug' => $slug],
+                            [
+                                'title' => $p['title'],
+                                'body' => $p['body'],
+                                'meta_title' => $p['title'] . ' — Masala Valley',
+                                'is_published' => true,
+                                'sort' => $p['sort'],
+                            ]
+                        );
+                    }
+                    echo '<p class="ok">✓ Standard footer CMS pages verified/created in database.</p>';
+                } catch (\Throwable $pe) {
+                    echo '<p class="err">CMS Pages note: ' . htmlspecialchars($pe->getMessage()) . '</p>';
+                }
+
                 // Storage link
                 try {
                     $publicStorage = __DIR__ . '/storage';
