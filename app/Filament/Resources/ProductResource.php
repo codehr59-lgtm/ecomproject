@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
 use App\Models\Category;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Tag;
 use Filament\Forms;
@@ -12,6 +13,7 @@ use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 
 class ProductResource extends Resource
@@ -388,11 +390,18 @@ class ProductResource extends Resource
                     ->url(fn (Product $record): string => url("/product/{$record->id}"))
                     ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->before(function (Product $record) {
+                        OrderItem::where('product_id', $record->id)->update(['product_id' => null]);
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->before(function (Collection $records) {
+                            $productIds = $records->pluck('id');
+                            OrderItem::whereIn('product_id', $productIds)->update(['product_id' => null]);
+                        }),
                 ]),
             ]);
     }

@@ -4,12 +4,15 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\CategoryResource\Pages;
 use App\Models\Category;
+use App\Models\Product;
+use App\Models\OrderItem;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 
 class CategoryResource extends Resource
@@ -100,11 +103,27 @@ class CategoryResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->before(function (Category $record) {
+                        $allCatIds = $record->children()->pluck('id')->push($record->id);
+                        $productIds = Product::whereIn('category_id', $allCatIds)->pluck('id');
+                        if ($productIds->isNotEmpty()) {
+                            OrderItem::whereIn('product_id', $productIds)->update(['product_id' => null]);
+                        }
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->before(function (Collection $records) {
+                            $parentIds = $records->pluck('id');
+                            $childIds = Category::whereIn('parent_id', $parentIds)->pluck('id');
+                            $allCatIds = $parentIds->merge($childIds)->unique();
+                            $productIds = Product::whereIn('category_id', $allCatIds)->pluck('id');
+                            if ($productIds->isNotEmpty()) {
+                                OrderItem::whereIn('product_id', $productIds)->update(['product_id' => null]);
+                            }
+                        }),
                 ]),
             ]);
     }

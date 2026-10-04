@@ -40,6 +40,32 @@ class Category extends Model
         return $query->whereNull('parent_id');
     }
 
+    // ── Booted ────────────────────────────────────────────────────────────
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Category $category) {
+            // Find all affected category IDs (this category + its subcategories)
+            $catIds = $category->children()->pluck('id')->push($category->id);
+
+            // Disassociate order_items so foreign key constraint never blocks deletion
+            $productIds = Product::whereIn('category_id', $catIds)->pluck('id');
+            if ($productIds->isNotEmpty()) {
+                OrderItem::whereIn('product_id', $productIds)->update(['product_id' => null]);
+            }
+
+            // Delete child categories
+            foreach ($category->children as $child) {
+                $child->delete();
+            }
+
+            // Delete products belonging to this category
+            foreach ($category->products as $product) {
+                $product->delete();
+            }
+        });
+    }
+
     // ── Relationships ─────────────────────────────────────────────────────
 
     public function parent(): BelongsTo
@@ -57,3 +83,4 @@ class Category extends Model
         return $this->hasMany(Product::class);
     }
 }
+

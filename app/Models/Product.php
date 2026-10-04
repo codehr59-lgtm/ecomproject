@@ -47,6 +47,27 @@ class Product extends Model
         ];
     }
 
+    // ── Booted ────────────────────────────────────────────────────────────
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Product $product) {
+            // Disassociate order items to prevent foreign key constraint violation
+            OrderItem::where('product_id', $product->id)->update(['product_id' => null]);
+
+            // Disassociate/delete related rows
+            ComboItem::where('product_id', $product->id)->delete();
+            Wishlist::where('product_id', $product->id)->delete();
+            $product->variations()->delete();
+            $product->images()->delete();
+            $product->productReviews()->delete();
+            $product->specifications()->delete();
+            $product->faqs()->delete();
+            $product->tags()->detach();
+            $product->relatedProducts()->detach();
+        });
+    }
+
     // ── Stock Management ──────────────────────────────────────────────────
 
     public function getStockAttribute(): int

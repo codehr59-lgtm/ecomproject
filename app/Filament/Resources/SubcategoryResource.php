@@ -4,12 +4,15 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\SubcategoryResource\Pages;
 use App\Models\Category;
+use App\Models\Product;
+use App\Models\OrderItem;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 
 class SubcategoryResource extends Resource
@@ -105,11 +108,24 @@ class SubcategoryResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->before(function (Category $record) {
+                        $productIds = $record->products()->pluck('id');
+                        if ($productIds->isNotEmpty()) {
+                            OrderItem::whereIn('product_id', $productIds)->update(['product_id' => null]);
+                        }
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->before(function (Collection $records) {
+                            $categoryIds = $records->pluck('id');
+                            $productIds = Product::whereIn('category_id', $categoryIds)->pluck('id');
+                            if ($productIds->isNotEmpty()) {
+                                OrderItem::whereIn('product_id', $productIds)->update(['product_id' => null]);
+                            }
+                        }),
                 ]),
             ]);
     }
