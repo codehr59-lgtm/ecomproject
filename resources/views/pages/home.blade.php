@@ -33,6 +33,74 @@
       max-height: 250px;
     }
   }
+  /* Professional compact slider button */
+  .hero-slide-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--green, #2e7d32);
+    color: #ffffff !important;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 999px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+    transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+    border: 1px solid rgba(255,255,255,0.25);
+    letter-spacing: .01em;
+  }
+  .hero-slide-btn:hover {
+    background: var(--green-deep, #1b4332);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+  }
+  .hero-slide:hover .hero-slide-btn svg {
+    transform: translateX(3px);
+  }
+  .hero-slide-btn svg {
+    transition: transform .18s ease;
+  }
+
+  /* Responsive styles for slider overlay & button */
+  @media (max-width: 640px) {
+    .hero-slide-overlay {
+      padding: 14px 16px !important;
+    }
+    .hero-slide-overlay h2 {
+      font-size: 16px !important;
+      line-height: 1.25 !important;
+      margin: 0 0 3px !important;
+    }
+    .hero-slide-overlay p {
+      font-size: 11.5px !important;
+      line-height: 1.35 !important;
+      margin: 0 0 8px !important;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      max-width: 90%;
+    }
+    .hero-slide-btn {
+      font-size: 11.5px !important;
+      padding: 5px 13px !important;
+      gap: 5px !important;
+    }
+    .hero-slide-btn svg {
+      width: 12px !important;
+      height: 12px !important;
+    }
+    .hero-arrow {
+      width: 28px !important;
+      height: 28px !important;
+      background: rgba(255,255,255,0.85) !important;
+    }
+    .hero-arrow svg {
+      width: 16px !important;
+      height: 16px !important;
+    }
+  }
 </style>
 <div class="home-hero">
   <div class="wrap">
@@ -68,9 +136,9 @@
                   @if($s->title)<h2>{{ $s->title }}</h2>@endif
                   @if($s->subtitle)<p>{{ $s->subtitle }}</p>@endif
                   @if($s->button_text)
-                    <span class="btn btn-primary">
+                    <span class="hero-slide-btn">
                       {{ $s->button_text }}
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                     </span>
                   @endif
                 </div>

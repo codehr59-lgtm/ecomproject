@@ -258,16 +258,16 @@
 
         /* ── Slider / CTA ── */
         @if($__sliderBg)
-        .hero .btn, .slider .btn, .heroA .btn, .heroB .btn { background: {{ $__sliderBg }} !important; }
+        .hero .btn, .slider .btn, .heroA .btn, .heroB .btn, .hero-slide-btn { background: {{ $__sliderBg }} !important; }
         @endif
         @if($__sliderBgHover)
-        .hero .btn:hover, .slider .btn:hover, .heroA .btn:hover, .heroB .btn:hover { background: {{ $__sliderBgHover }} !important; }
+        .hero .btn:hover, .slider .btn:hover, .heroA .btn:hover, .heroB .btn:hover, .hero-slide-btn:hover { background: {{ $__sliderBgHover }} !important; }
         @endif
         @if($__sliderText)
-        .hero .btn, .slider .btn, .heroA .btn, .heroB .btn { color: {{ $__sliderText }} !important; }
+        .hero .btn, .slider .btn, .heroA .btn, .heroB .btn, .hero-slide-btn { color: {{ $__sliderText }} !important; }
         @endif
         @if($__sliderTextHover)
-        .hero .btn:hover, .slider .btn:hover, .heroA .btn:hover, .heroB .btn:hover { color: {{ $__sliderTextHover }} !important; }
+        .hero .btn:hover, .slider .btn:hover, .heroA .btn:hover, .heroB .btn:hover, .hero-slide-btn:hover { color: {{ $__sliderTextHover }} !important; }
         @endif
 
         /* ── Links ── */
@@ -561,6 +561,9 @@
 
     {{-- Floating Quick Contact Widget --}}
     @include('partials.floating-contact')
+
+    {{-- Floating Cart Widget --}}
+    @include('partials.floating-cart')
 
     @stack('scripts')
 </body>

@@ -83,6 +83,27 @@ class HeaderFooterSettings extends FilamentPage
             'floating_email_enabled'          => (bool) Setting::get('floating_email_enabled', true),
             'floating_email_address'          => Setting::get('floating_email_address', ''),
             'floating_email_label'            => Setting::get('floating_email_label', 'Email Us'),
+
+            // Contact Us Page Settings
+            'contact_page_title'              => Setting::get('contact_page_title', 'Get in Touch'),
+            'contact_page_subtitle'           => Setting::get('contact_page_subtitle', "Questions about an order, a product, or just want to say hello? We'd love to hear from you."),
+            'contact_page_form_title'         => Setting::get('contact_page_form_title', 'Send us a message'),
+            'contact_phone_timing'            => Setting::get('contact_phone_timing', 'Sat–Thu 9 am – 9 pm'),
+            'contact_email_timing'            => Setting::get('contact_email_timing', 'We reply within 6 hours'),
+            'contact_hours_1'                 => Setting::get('contact_hours_1', 'Sat – Thu: 9:00 am – 9:00 pm'),
+            'contact_hours_2'                 => Setting::get('contact_hours_2', 'Friday: 2:00 pm – 8:00 pm'),
+            'contact_map_label'               => Setting::get('contact_map_label', 'Rampura, Dhaka'),
+            'contact_map_iframe'              => Setting::get('contact_map_iframe', ''),
+            'contact_show_map'                => (bool) Setting::get('contact_show_map', true),
+            'contact_show_social'             => (bool) Setting::get('contact_show_social', true),
+
+            // Floating Cart Button Settings
+            'floating_cart_enabled'           => (bool) Setting::get('floating_cart_enabled', true),
+            'floating_cart_position'          => Setting::get('floating_cart_position', 'bottom_right'),
+            'floating_cart_btn_bg'            => Setting::get('floating_cart_btn_bg', '#2e7d32'),
+            'floating_cart_btn_text_color'    => Setting::get('floating_cart_btn_text_color', '#ffffff'),
+            'floating_cart_show_price'        => (bool) Setting::get('floating_cart_show_price', true),
+            'floating_cart_hide_empty'        => (bool) Setting::get('floating_cart_hide_empty', false),
         ]);
     }
 
@@ -397,6 +418,130 @@ class HeaderFooterSettings extends FilamentPage
                                             ])->columns(3),
                                     ]),
                             ]),
+
+                        // ── TAB 5: CONTACT PAGE ──
+                        Forms\Components\Tabs\Tab::make('Contact Page')
+                            ->icon('heroicon-o-envelope')
+                            ->schema([
+                                Forms\Components\Section::make('Page Header & Titles (যোগাযোগ পেজ হেডার)')
+                                    ->description('Customize main titles and headings displayed on the /contact page')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('contact_page_title')
+                                            ->label('Page Title (পেজের শিরোনাম)')
+                                            ->default('Get in Touch')
+                                            ->required(),
+
+                                        Forms\Components\TextInput::make('contact_page_form_title')
+                                            ->label('Form Card Title (ফর্ম কার্ড শিরোনাম)')
+                                            ->default('Send us a message')
+                                            ->required(),
+
+                                        Forms\Components\Textarea::make('contact_page_subtitle')
+                                            ->label('Page Subtitle (উপশিরোনাম)')
+                                            ->rows(2)
+                                            ->columnSpanFull(),
+                                    ])->columns(2),
+
+                                Forms\Components\Section::make('Store Contact Information (অফিস ও যোগাযোগের তথ্য)')
+                                    ->description('These details are shown in the contact details card and can be updated anytime.')
+                                    ->schema([
+                                        Forms\Components\Textarea::make('contact_address')
+                                            ->label('Office / Store Address (অফিস ঠিকানা)')
+                                            ->placeholder('House 14, Road 5, Block B, Rampura, Dhaka 1219, Bangladesh')
+                                            ->rows(2)
+                                            ->columnSpanFull(),
+
+                                        Forms\Components\TextInput::make('contact_phone')
+                                            ->label('Phone / WhatsApp Number (ফোন নম্বর)')
+                                            ->placeholder('09642-XXXXXX'),
+
+                                        Forms\Components\TextInput::make('contact_phone_timing')
+                                            ->label('Phone Availability (ফোনের সময়সূচি)')
+                                            ->placeholder('Sat–Thu 9 am – 9 pm'),
+
+                                        Forms\Components\TextInput::make('contact_email')
+                                            ->label('Support Email (ইমেইল ঠিকানা)')
+                                            ->placeholder('hello@masalavalley.com'),
+
+                                        Forms\Components\TextInput::make('contact_email_timing')
+                                            ->label('Email Response Promise (ইমেইল রিপ্লাই সময়)')
+                                            ->placeholder('We reply within 6 hours'),
+
+                                        Forms\Components\TextInput::make('contact_hours_1')
+                                            ->label('Business Hours - Line 1 (কার্যদিবস)')
+                                            ->placeholder('Sat – Thu: 9:00 am – 9:00 pm'),
+
+                                        Forms\Components\TextInput::make('contact_hours_2')
+                                            ->label('Business Hours - Line 2 (ছুটির দিন/শুক্রবার)')
+                                            ->placeholder('Friday: 2:00 pm – 8:00 pm'),
+                                    ])->columns(2),
+
+                                Forms\Components\Section::make('Location Map & Social Links (ম্যাপ ও সোশ্যাল মিডিয়া)')
+                                    ->schema([
+                                        Forms\Components\Toggle::make('contact_show_map')
+                                            ->label('Show Map Card on Contact Page')
+                                            ->default(true),
+
+                                        Forms\Components\TextInput::make('contact_map_label')
+                                            ->label('Map Location Name')
+                                            ->placeholder('Rampura, Dhaka')
+                                            ->helperText('Shown on the map badge if no custom Google Maps iframe is provided'),
+
+                                        Forms\Components\Textarea::make('contact_map_iframe')
+                                            ->label('Google Maps Embed Code (iframe)')
+                                            ->helperText('Paste <iframe> code from Google Maps > Share > Embed a map (optional)')
+                                            ->placeholder('<iframe src="https://www.google.com/maps/embed?..." ...></iframe>')
+                                            ->rows(3)
+                                            ->columnSpanFull(),
+
+                                        Forms\Components\Toggle::make('contact_show_social')
+                                            ->label('Show Social Media Links (Facebook, Instagram, WhatsApp)')
+                                            ->default(true)
+                                            ->columnSpanFull(),
+                                    ])->columns(2),
+                            ]),
+
+                        // ── TAB 6: FLOATING CART BUTTON ──
+                        Forms\Components\Tabs\Tab::make('Floating Cart Button')
+                            ->icon('heroicon-o-shopping-bag')
+                            ->schema([
+                                Forms\Components\Section::make('Floating Cart Button (ভাসমান কার্ট বাটন)')
+                                    ->description('A modern floating sticky shopping cart button on desktop and mobile so customers can quickly see cart items and checkout from any page.')
+                                    ->schema([
+                                        Forms\Components\Toggle::make('floating_cart_enabled')
+                                            ->label('Enable Floating Cart Button (কার্ট বাটন অন/অফ)')
+                                            ->helperText('Show the floating cart widget on mobile and desktop storefront.')
+                                            ->default(true),
+
+                                        Forms\Components\Select::make('floating_cart_position')
+                                            ->label('Screen Position (স্ক্রিনের অবস্থান)')
+                                            ->options([
+                                                'bottom_right' => 'Bottom Right (Stacks cleanly above contact button)',
+                                                'bottom_left'  => 'Bottom Left',
+                                                'middle_right' => 'Middle Right (Sticky Side Tab)',
+                                            ])
+                                            ->default('bottom_right')
+                                            ->required(),
+
+                                        Forms\Components\ColorPicker::make('floating_cart_btn_bg')
+                                            ->label('Button Background Color')
+                                            ->default('#2e7d32'),
+
+                                        Forms\Components\ColorPicker::make('floating_cart_btn_text_color')
+                                            ->label('Button Text & Icon Color')
+                                            ->default('#ffffff'),
+
+                                        Forms\Components\Toggle::make('floating_cart_show_price')
+                                            ->label('Show Total Price (৳ মূল্য দেখান)')
+                                            ->helperText('Display total cart amount along with the item count.')
+                                            ->default(true),
+
+                                        Forms\Components\Toggle::make('floating_cart_hide_empty')
+                                            ->label('Hide When Cart is Empty (কার্ট খালি থাকলে লুকান)')
+                                            ->helperText('If enabled, the button only appears after at least 1 product is added.')
+                                            ->default(false),
+                                    ])->columns(2),
+                            ]),
                     ])
                     ->columnSpanFull(),
             ])
@@ -460,6 +605,11 @@ class HeaderFooterSettings extends FilamentPage
             'floating_messenger_enabled', 'floating_messenger_url', 'floating_messenger_label',
             'floating_phone_enabled', 'floating_phone_number', 'floating_phone_label',
             'floating_email_enabled', 'floating_email_address', 'floating_email_label',
+            'contact_page_title', 'contact_page_subtitle', 'contact_page_form_title',
+            'contact_phone_timing', 'contact_email_timing', 'contact_hours_1', 'contact_hours_2',
+            'contact_map_label', 'contact_map_iframe', 'contact_show_map', 'contact_show_social',
+            'floating_cart_enabled', 'floating_cart_position', 'floating_cart_btn_bg',
+            'floating_cart_btn_text_color', 'floating_cart_show_price', 'floating_cart_hide_empty',
         ];
 
         foreach ($keys as $key) {
