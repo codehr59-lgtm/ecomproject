@@ -47,6 +47,16 @@
         $__showCart       = (bool) \App\Models\Setting::get('header_show_cart', true);
         $__headerMenu     = \App\Models\Menu::getByLocation('header');
         $__menuItems      = $__headerMenu ? $__headerMenu->rootItems : collect();
+        if ($__menuItems->isEmpty()) {
+            $__menuItems = collect([
+                (object) ['label' => 'Home', 'url' => route('home'), 'target' => '_self', 'children' => collect(), 'resolvedUrl' => route('home')],
+                (object) ['label' => 'All Products', 'url' => route('shop'), 'target' => '_self', 'children' => collect(), 'resolvedUrl' => route('shop')],
+                (object) ['label' => 'Combo Offers', 'url' => route('combos'), 'target' => '_self', 'children' => collect(), 'resolvedUrl' => route('combos')],
+                (object) ['label' => 'Track Order', 'url' => route('track'), 'target' => '_self', 'children' => collect(), 'resolvedUrl' => route('track')],
+                (object) ['label' => 'About Us', 'url' => route('about'), 'target' => '_self', 'children' => collect(), 'resolvedUrl' => route('about')],
+                (object) ['label' => 'Contact Us', 'url' => route('contact'), 'target' => '_self', 'children' => collect(), 'resolvedUrl' => route('contact')],
+            ]);
+        }
         $__navCats = \Illuminate\Support\Facades\Cache::remember('layout.nav_cats', 1800, function () {
             return \App\Models\Category::active()
                 ->whereNull('parent_id')
@@ -272,9 +282,40 @@
                     </div>
                 </div>
 
-                {{-- Admin-configured menu items --}}
+                {{-- Admin-configured menu items (with fallback) --}}
                 @foreach($__menuItems as $mi)
-                    <a href="{{ $mi->resolvedUrl() }}" class="nav-link" @if($mi->target === '_blank') target="_blank" rel="noopener" @endif>{{ $mi->label }}</a>
+                    @php
+                        $mUrl = is_string($mi->resolvedUrl ?? null) ? $mi->resolvedUrl : (method_exists($mi, 'resolvedUrl') ? $mi->resolvedUrl() : ($mi->url ?? '#'));
+                        $hasChildren = isset($mi->children) && $mi->children->count() > 0;
+                        $isActive = request()->url() === $mUrl;
+                    @endphp
+                    @if($hasChildren)
+                    <div class="nav-item-dropdown" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false" style="position:relative;display:inline-flex;align-items:center;height:100%;">
+                        <a href="{{ $mUrl }}" class="nav-link {{ $isActive ? 'active' : '' }}" @if(($mi->target ?? '_self') === '_blank') target="_blank" rel="noopener" @endif style="display:inline-flex;align-items:center;gap:4px;">
+                            {{ $mi->label }}
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;" :style="open ? 'transform:rotate(180deg)' : ''"><path d="M6 9l6 6 6-6"/></svg>
+                        </a>
+                        <div class="nav-sub-dropdown" x-show="open" x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-1"
+                             style="position:absolute;top:calc(100% + 4px);left:0;min-width:180px;background:#ffffff;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.08);padding:8px 0;z-index:130;">
+                            @foreach($mi->children as $sub)
+                                @php
+                                    $subUrl = is_string($sub->resolvedUrl ?? null) ? $sub->resolvedUrl : (method_exists($sub, 'resolvedUrl') ? $sub->resolvedUrl() : ($sub->url ?? '#'));
+                                @endphp
+                                <a href="{{ $subUrl }}" style="display:block;padding:9px 18px;font-size:13.5px;font-weight:600;color:#1e293b;text-decoration:none;transition:background .15s, color .15s;" onmouseover="this.style.background='#f0faf3';this.style.color='var(--green, #356B3E)'" onmouseout="this.style.background='none';this.style.color='#1e293b'" @if(($sub->target ?? '_self') === '_blank') target="_blank" rel="noopener" @endif>
+                                    {{ $sub->label }}
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                    @else
+                    <a href="{{ $mUrl }}" class="nav-link {{ $isActive ? 'active' : '' }}" @if(($mi->target ?? '_self') === '_blank') target="_blank" rel="noopener" @endif>{{ $mi->label }}</a>
+                    @endif
                 @endforeach
 
             </div>
@@ -313,10 +354,23 @@
             <div class="mob-menu-section-title">Menu</div>
             <nav class="mob-menu-nav">
                 @foreach($__menuItems as $mi)
-                <a href="{{ $mi->resolvedUrl() }}" @if($mi->target === '_blank') target="_blank" rel="noopener" @endif>
+                @php
+                    $mUrl = is_string($mi->resolvedUrl ?? null) ? $mi->resolvedUrl : (method_exists($mi, 'resolvedUrl') ? $mi->resolvedUrl() : ($mi->url ?? '#'));
+                @endphp
+                <a href="{{ $mUrl }}" @if(($mi->target ?? '_self') === '_blank') target="_blank" rel="noopener" @endif>
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
                     {{ $mi->label }}
                 </a>
+                @if(isset($mi->children) && $mi->children->count())
+                    @foreach($mi->children as $sub)
+                    @php
+                        $subUrl = is_string($sub->resolvedUrl ?? null) ? $sub->resolvedUrl : (method_exists($sub, 'resolvedUrl') ? $sub->resolvedUrl() : ($sub->url ?? '#'));
+                    @endphp
+                    <a href="{{ $subUrl }}" style="padding-left:36px;font-size:13px;opacity:0.85;" @if(($sub->target ?? '_self') === '_blank') target="_blank" rel="noopener" @endif>
+                        — {{ $sub->label }}
+                    </a>
+                    @endforeach
+                @endif
                 @endforeach
             </nav>
             @endif

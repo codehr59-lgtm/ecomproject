@@ -30,5 +30,6 @@ class DatabaseSeeder extends Seeder
         // Combo offers & Grocery demo catalog
         $this->call(ComboSeeder::class);
         $this->call(GroceryDemoSeeder::class);
+        $this->call(HeaderMenuSeeder::class);
     }
 }
