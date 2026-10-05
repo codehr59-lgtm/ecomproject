@@ -787,6 +787,15 @@ body { background: #F6F6F2; }
    ============================================================ */
 .home-hero { padding: 22px 0 8px; }
 .hero-split { display: grid; grid-template-columns: 1.85fr 1fr; gap: 16px; }
+.hero-split.hero-full,
+.hero-split:has(> :only-child) {
+  grid-template-columns: 1fr;
+}
+.hero-split.hero-full .hero-slide img,
+.hero-split:has(> :only-child) .hero-slide img {
+  aspect-ratio: 21/8;
+  max-height: 440px;
+}
 
 /* Left: Slider carousel */
 .hero-slider { position: relative; border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-s); border: 1px solid var(--line); }

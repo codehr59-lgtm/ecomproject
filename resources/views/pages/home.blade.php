@@ -9,9 +9,34 @@
      1. SPLIT HERO — Left: slider carousel, Right: static banner
      ============================================================ --}}
 @if($sliders->count() || $banner)
+<style>
+  .hero-split.hero-full,
+  .hero-split:has(> :only-child) {
+    grid-template-columns: 1fr !important;
+  }
+  .hero-split.hero-full .hero-slide img,
+  .hero-split:has(> :only-child) .hero-slide img {
+    aspect-ratio: 21/8;
+    max-height: 440px;
+  }
+  @media (max-width: 860px) {
+    .hero-split.hero-full .hero-slide img,
+    .hero-split:has(> :only-child) .hero-slide img {
+      aspect-ratio: 16/9;
+      max-height: 320px;
+    }
+  }
+  @media (max-width: 480px) {
+    .hero-split.hero-full .hero-slide img,
+    .hero-split:has(> :only-child) .hero-slide img {
+      aspect-ratio: 16/10;
+      max-height: 250px;
+    }
+  }
+</style>
 <div class="home-hero">
   <div class="wrap">
-    <div class="hero-split">
+    <div class="hero-split {{ (!$banner || !$sliders->count()) ? 'hero-full' : '' }}">
 
       {{-- LEFT: Slider carousel --}}
       @if($sliders->count())
