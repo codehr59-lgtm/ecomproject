@@ -148,7 +148,7 @@
                 <h4>Categories</h4>
                 <ul aria-label="Category links">
                     @foreach($__ftrMenuItems as $fmi)
-                        <li><a href="{{ $fmi->resolvedUrl() }}" @if($fmi->target === '_blank') target="_blank" rel="noopener" @endif>{{ $fmi->label }}</a></li>
+                        <li><a href="{{ method_exists($fmi, 'resolvedUrl') ? $fmi->resolvedUrl() : ($fmi->url ?? '#') }}" @if(($fmi->target ?? '_self') === '_blank') target="_blank" rel="noopener" @endif>{{ $fmi->label }}</a></li>
                     @endforeach
                 </ul>
             </div>

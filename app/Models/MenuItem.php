@@ -37,14 +37,19 @@ class MenuItem extends Model
     public function resolvedUrl(): string
     {
         return match ($this->type) {
-            'page' => $this->reference_id
-                ? route('page.show', optional(Page::find($this->reference_id))->slug ?? '#')
-                : '#',
-            'category' => $this->reference_id
-                ? route('category', optional(Category::find($this->reference_id))->slug ?? '#')
-                : '#',
+            'page' => $this->reference_id && ($slug = optional(Page::find($this->reference_id))->slug)
+                ? route('page.show', $slug)
+                : ($this->url ?: '#'),
+            'category' => $this->reference_id && ($slug = optional(Category::find($this->reference_id))->slug)
+                ? route('category', $slug)
+                : ($this->url ?: '#'),
             default => $this->url ?: '#',
         };
+    }
+
+    public function getResolvedUrlAttribute(): string
+    {
+        return $this->resolvedUrl();
     }
 
     protected static function booted(): void

@@ -285,7 +285,7 @@
                 {{-- Admin-configured menu items (with fallback) --}}
                 @foreach($__menuItems as $mi)
                     @php
-                        $mUrl = is_string($mi->resolvedUrl ?? null) ? $mi->resolvedUrl : (method_exists($mi, 'resolvedUrl') ? $mi->resolvedUrl() : ($mi->url ?? '#'));
+                        $mUrl = method_exists($mi, 'resolvedUrl') ? $mi->resolvedUrl() : ($mi->url ?? '#');
                         $hasChildren = isset($mi->children) && $mi->children->count() > 0;
                         $isActive = request()->url() === $mUrl;
                     @endphp
@@ -305,7 +305,7 @@
                              style="position:absolute;top:calc(100% + 4px);left:0;min-width:180px;background:#ffffff;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.12);border:1px solid rgba(0,0,0,0.08);padding:8px 0;z-index:130;">
                             @foreach($mi->children as $sub)
                                 @php
-                                    $subUrl = is_string($sub->resolvedUrl ?? null) ? $sub->resolvedUrl : (method_exists($sub, 'resolvedUrl') ? $sub->resolvedUrl() : ($sub->url ?? '#'));
+                                    $subUrl = method_exists($sub, 'resolvedUrl') ? $sub->resolvedUrl() : ($sub->url ?? '#');
                                 @endphp
                                 <a href="{{ $subUrl }}" style="display:block;padding:9px 18px;font-size:13.5px;font-weight:600;color:#1e293b;text-decoration:none;transition:background .15s, color .15s;" onmouseover="this.style.background='#f0faf3';this.style.color='var(--green, #356B3E)'" onmouseout="this.style.background='none';this.style.color='#1e293b'" @if(($sub->target ?? '_self') === '_blank') target="_blank" rel="noopener" @endif>
                                     {{ $sub->label }}
@@ -355,7 +355,7 @@
             <nav class="mob-menu-nav">
                 @foreach($__menuItems as $mi)
                 @php
-                    $mUrl = is_string($mi->resolvedUrl ?? null) ? $mi->resolvedUrl : (method_exists($mi, 'resolvedUrl') ? $mi->resolvedUrl() : ($mi->url ?? '#'));
+                    $mUrl = method_exists($mi, 'resolvedUrl') ? $mi->resolvedUrl() : ($mi->url ?? '#');
                 @endphp
                 <a href="{{ $mUrl }}" @if(($mi->target ?? '_self') === '_blank') target="_blank" rel="noopener" @endif>
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
@@ -364,7 +364,7 @@
                 @if(isset($mi->children) && $mi->children->count())
                     @foreach($mi->children as $sub)
                     @php
-                        $subUrl = is_string($sub->resolvedUrl ?? null) ? $sub->resolvedUrl : (method_exists($sub, 'resolvedUrl') ? $sub->resolvedUrl() : ($sub->url ?? '#'));
+                        $subUrl = method_exists($sub, 'resolvedUrl') ? $sub->resolvedUrl() : ($sub->url ?? '#');
                     @endphp
                     <a href="{{ $subUrl }}" style="padding-left:36px;font-size:13px;opacity:0.85;" @if(($sub->target ?? '_self') === '_blank') target="_blank" rel="noopener" @endif>
                         — {{ $sub->label }}
