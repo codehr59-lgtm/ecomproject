@@ -50,21 +50,20 @@ Route::get('/setup-now', function () {
 });
 
 Route::get('/cleanup-demo-products', function() {
-    $products = \App\Models\Product::select('id', 'name', 'image', 'slug', 'created_at')->orderBy('id')->get();
-    $categories = \App\Models\Category::select('id', 'name', 'slug', 'image', 'created_at')->orderBy('id')->get();
-    $logs = \App\Models\ActivityLog::latest('id')->take(30)->get(['id', 'description', 'subject_type', 'subject_id', 'created_at']);
-
-    // Check files in storage/products
-    $productFiles = \Illuminate\Support\Facades\File::exists(public_path('storage/products'))
-        ? collect(\Illuminate\Support\Facades\File::files(public_path('storage/products')))->map(fn($f) => $f->getFilename())
-        : [];
+    $products = \App\Models\Product::orderBy('id')->get(['id', 'name', 'image', 'slug', 'category_id', 'created_at']);
+    $categories = \App\Models\Category::orderBy('id')->get(['id', 'name', 'slug', 'image']);
+    $combos = \App\Models\Combo::orderBy('id')->get(['id', 'name', 'slug']);
 
     return response()->json([
         'total_products' => $products->count(),
-        'products_overview' => $products->map(fn($p) => "{$p->id}: {$p->name} [{$p->image}]"),
-        'categories' => $categories->map(fn($c) => "{$c->id}: {$c->name} ({$c->slug})"),
-        'logs' => $logs,
-        'files_in_storage' => $productFiles,
+        'products' => $products->map(fn($p) => [
+            'id' => $p->id,
+            'name' => $p->name,
+            'image' => $p->image,
+            'cat_id' => $p->category_id,
+        ]),
+        'categories' => $categories,
+        'combos' => $combos,
     ]);
 });
 
