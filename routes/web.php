@@ -74,9 +74,9 @@ Route::get('/cleanup-demo-products', function() {
             $deletedProducts = \App\Models\Product::whereIn('id', $demoIds)->delete();
             $deletedCategories = \App\Models\Category::whereIn('slug', ['dairy', 'fruits-veggies', 'sutki'])->delete();
             
-            \App\Services\Catalog::flushCache();
+            \App\Support\Catalog::flushCache();
             \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-            $msg = "Successfully deleted {$deletedProducts} demo products and {$deletedCategories} demo categories!";
+            $msg = "Successfully deleted demo products and demo categories!";
             $allProductCount = \App\Models\Product::count();
         } catch (\Throwable $e) {
             $error = $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
