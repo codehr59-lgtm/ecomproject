@@ -58,16 +58,29 @@ Route::get('/cleanup-demo-products', function() {
 
     $action = request()->get('action');
     $msg = null;
+    $error = null;
     if ($action === 'clean_grocery_demo') {
-        // Delete the new demo products (IDs 36 to 76) created by GroceryDemoSeeder
-        $deletedProducts = \App\Models\Product::where('id', '>=', 36)->where('id', '<=', 76)->delete();
-        // Delete the demo categories added by GroceryDemoSeeder
-        $deletedCategories = \App\Models\Category::whereIn('slug', ['dairy', 'fruits-veggies', 'sutki'])->delete();
-        // Flush all caches
-        \App\Services\Catalog::flushCache();
-        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-        $msg = "Successfully deleted {$deletedProducts} demo products and {$deletedCategories} demo categories!";
-        $allProductCount = \App\Models\Product::count();
+        try {
+            $demoIds = \App\Models\Product::where('id', '>=', 36)->where('id', '<=', 76)->pluck('id')->toArray();
+            
+            // Clean child relations if any
+            \DB::table('product_images')->whereIn('product_id', $demoIds)->delete();
+            \DB::table('product_variations')->whereIn('product_id', $demoIds)->delete();
+            \DB::table('product_specifications')->whereIn('product_id', $demoIds)->delete();
+            \DB::table('product_faqs')->whereIn('product_id', $demoIds)->delete();
+            \DB::table('wishlists')->whereIn('product_id', $demoIds)->delete();
+            \DB::table('reviews')->whereIn('product_id', $demoIds)->delete();
+            
+            $deletedProducts = \App\Models\Product::whereIn('id', $demoIds)->delete();
+            $deletedCategories = \App\Models\Category::whereIn('slug', ['dairy', 'fruits-veggies', 'sutki'])->delete();
+            
+            \App\Services\Catalog::flushCache();
+            \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+            $msg = "Successfully deleted {$deletedProducts} demo products and {$deletedCategories} demo categories!";
+            $allProductCount = \App\Models\Product::count();
+        } catch (\Throwable $e) {
+            $error = $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
+        }
     }
 
     $remainingProducts = \App\Models\Product::orderBy('id')->get(['id', 'name', 'category_id', 'price']);
@@ -75,6 +88,7 @@ Route::get('/cleanup-demo-products', function() {
 
     return response()->json([
         'message' => $msg,
+        'error' => $error,
         'total_products_count' => $allProductCount,
         'remaining_products' => $remainingProducts,
         'remaining_categories' => $remainingCategories,
