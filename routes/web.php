@@ -24,9 +24,6 @@ Route::get('/setup-now', function () {
         
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         $log[] = "<h3>1. Migrations:</h3><pre>" . e(\Illuminate\Support\Facades\Artisan::output()) . "</pre>";
-        
-        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
-        $log[] = "<h3>2. Seeders:</h3><pre>" . e(\Illuminate\Support\Facades\Artisan::output()) . "</pre>";
 
         try {
             \Illuminate\Support\Facades\Artisan::call('storage:link');
@@ -50,6 +47,88 @@ Route::get('/setup-now', function () {
             . '<pre style="background:#1e293b;padding:15px;border-radius:6px;overflow:auto;">' . e($e->getTraceAsString()) . '</pre>'
             . '</body></html>', 500);
     }
+});
+
+Route::get('/cleanup-demo-products', function() {
+    $allProducts = \App\Models\Product::with(['category', 'brand'])->orderBy('id')->get();
+    
+    // Demo images from GroceryDemoSeeder & config/products.php
+    $demoImageNames = [
+        'ajwa_dates', 'black_cumin', 'black_seed', 'brown_eggs', 'california_almonds',
+        'chepa_shutki', 'chhola_boot', 'chia_seeds', 'chili_powder', 'chinigura_rice',
+        'coriander_powder', 'cow_milk', 'cream_butter', 'ctc_black_tea', 'fresh_garlic',
+        'fresh_ginger', 'gawa_ghee', 'ghani_mustard', 'green_apples', 'himsagar_mango',
+        'loitta_shutki', 'lychee_honey', 'medjool_dates', 'moong_dal', 'natural_honeycomb',
+        'nazirshail_rice', 'pumpkin_seeds', 'red_onions', 'safawi_dates', 'shahi_garam',
+        'sukkari_dates', 'sundarban_honey', 'sylhet_green', 'turmeric_powder', 'virgin_coconut',
+        'whole_jeera', 'test_honey'
+    ];
+    
+    $demoConfigSlugs = [
+        'sundarban-wild-honey-1-kg', 'black-seed-honey-500-g', 'lychee-flower-honey-500-g',
+        'mustard-flower-honey-500-g', 'berry-flower-honey-500-g', 'ajwa-dates-500-g',
+        'medjool-dates-500-g', 'amber-dates-500-g', 'sukkari-dates-500-g', 'mabroom-dates-500-g',
+        'cold-pressed-mustard-oil-1-l', 'wood-pressed-coconut-oil-500-ml', 'deshi-ghee-bati-500-g',
+        'black-seed-oil-100-ml', 'extra-virgin-olive-oil-500-ml', 'turmeric-powder-200-g',
+        'chili-powder-200-g', 'coriander-powder-200-g', 'cumin-powder-200-g', 'garam-masala-blend-100-g',
+        'walnuts-akhrot-250-g', 'almonds-badam-250-g', 'cashews-kaju-250-g', 'pistachios-pesta-200-g',
+        'chia-seeds-250-g', 'kalijira-polao-rice-1-kg', 'nazirshail-rice-5-kg', 'miniket-rice-5-kg',
+        'chinigura-aromatic-rice-1-kg', 'red-rice-lal-chal-2-kg', 'himsagar-mango-5-kg',
+        'langra-mango-5-kg', 'amrapali-mango-5-kg', 'fazli-mango-5-kg', 'haribhanga-mango-5-kg',
+        'sreemangal-ctc-black-tea-400-g', 'panchagarh-green-tea-100-g', 'organic-masala-chai-250-g',
+        'roasted-arabica-coffee-200-g'
+    ];
+
+    $demoList = [];
+    $realList = [];
+
+    foreach ($allProducts as $p) {
+        $img = (string) ($p->image ?? '');
+        $isDemo = false;
+
+        // Check if image matches demo pattern
+        foreach ($demoImageNames as $dName) {
+            if (str_contains($img, $dName)) {
+                $isDemo = true;
+                break;
+            }
+        }
+
+        // Check if slug is from CatalogSeeder config with no image
+        if (empty($img) && in_array($p->slug, $demoConfigSlugs, true)) {
+            $isDemo = true;
+        }
+
+        if ($isDemo) {
+            $demoList[] = $p;
+        } else {
+            $realList[] = $p;
+        }
+    }
+
+    $doDelete = request()->has('confirm');
+    $deletedCount = 0;
+
+    if ($doDelete) {
+        foreach ($demoList as $dp) {
+            // Detach / delete variations and reviews if any
+            $dp->variations()->delete();
+            $dp->productReviews()->delete();
+            $dp->images()->delete();
+            $dp->delete();
+            $deletedCount++;
+        }
+        \App\Support\Catalog::flushCache();
+    }
+
+    return response()->json([
+        'status'         => $doDelete ? 'deleted' : 'preview',
+        'deleted_count'  => $deletedCount,
+        'demo_count'     => count($demoList),
+        'demo_products'  => collect($demoList)->map(fn($p) => ['id' => $p->id, 'name' => $p->name, 'image' => $p->image, 'slug' => $p->slug]),
+        'real_count'     => count($realList),
+        'real_products'  => collect($realList)->map(fn($p) => ['id' => $p->id, 'name' => $p->name, 'image' => $p->image, 'slug' => $p->slug]),
+    ]);
 });
 
 Route::get('/', [CatalogController::class, 'home'])->name('home');

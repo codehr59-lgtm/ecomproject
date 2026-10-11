@@ -22,7 +22,106 @@
     </nav>
 
     {{-- Top Grid: Image + Details & Pricing --}}
-    <div class="combo-hero-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 36px; margin-top: 10px; background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 28px; box-shadow: 0 4px 20px rgba(19,68,35,0.04);">
+    <style>
+      .combo-hero-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 36px;
+        margin-top: 10px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 4px 20px rgba(19,68,35,0.04);
+      }
+      .combo-visual {
+        min-width: 0;
+        width: 100%;
+      }
+      .combo-info {
+        min-width: 0;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .combo-btn-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        gap: 10px;
+        margin-top: 6px;
+      }
+      .combo-trust-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 14px;
+        text-align: center;
+      }
+      .combo-card-section {
+        margin-top: 36px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 28px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+      }
+      .combo-items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+      }
+
+      @media (max-width: 860px) {
+        .combo-hero-grid {
+          grid-template-columns: 1fr !important;
+          gap: 20px !important;
+          padding: 16px 14px !important;
+          border-radius: 16px !important;
+        }
+        .combo-visual-box {
+          max-height: min(85vw, 360px);
+          margin: 0 auto;
+        }
+        .combo-btn-grid {
+          grid-template-columns: 1fr !important;
+          gap: 10px !important;
+        }
+        .combo-btn-grid button {
+          width: 100% !important;
+          padding: 14px !important;
+          font-size: 15px !important;
+          justify-content: center !important;
+        }
+        .combo-trust-grid {
+          gap: 6px !important;
+        }
+        .combo-trust-grid > div {
+          padding: 8px 4px !important;
+        }
+        .combo-trust-grid > div > div:first-child {
+          font-size: 11px !important;
+        }
+        .combo-trust-grid > div > div:last-child {
+          font-size: 9.5px !important;
+        }
+        .combo-card-section {
+          padding: 18px 14px !important;
+          border-radius: 16px !important;
+          margin-top: 22px !important;
+        }
+        .combo-items-grid {
+          grid-template-columns: 1fr !important;
+          gap: 10px !important;
+        }
+        .combo-info h1 {
+          font-size: 20px !important;
+          line-height: 1.3 !important;
+        }
+      }
+    </style>
+
+    <div class="combo-hero-grid">
 
       {{-- Left: Combo Photo / Banner --}}
       <div class="combo-visual">
@@ -55,7 +154,7 @@
         </div>
 
         {{-- Trust micro-bar --}}
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; text-align: center;">
+        <div class="combo-trust-grid">
           <div style="background: #f7f9f6; border: 1px solid #e5ebe2; border-radius: 10px; padding: 10px 8px;">
             <div style="font-weight: 700; font-size: 12px; color: var(--green-deep, #134423);">100% Pure</div>
             <div style="font-size: 11px; color: var(--muted, #777);">Direct from Source</div>
@@ -72,7 +171,7 @@
       </div>
 
       {{-- Right: Content, Pricing, Buy Action --}}
-      <div class="combo-info" style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="combo-info">
         <div>
           <div style="display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: var(--honey, #FA8B01); margin-bottom: 6px;">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
@@ -130,7 +229,7 @@
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; margin-top: 6px;">
+          <div class="combo-btn-grid">
             <button type="button"
                     class="btn btn-secondary"
                     @click="$store.shop.addCombo({ id: {{ $combo->id }}, slug: '{{ $combo->slug }}', name: '{{ addslashes($combo->name) }}', price: {{ $combo->price }}, old_price: {{ $combo->original_price ?? 0 }}, image: '{{ $imageUrl }}', items: '{{ addslashes($combo->items_summary) }}' }, qty)"
@@ -154,7 +253,7 @@
     </div>
 
     {{-- Items Breakdown: What's inside this Combo Pack --}}
-    <div style="margin-top: 36px; background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 28px; box-shadow: 0 2px 12px rgba(0,0,0,0.03);">
+    <div class="combo-card-section">
       <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 14px; margin-bottom: 20px;">
         <h2 style="font-size: 20px; font-weight: 800; color: var(--green-deep, #134423); margin: 0; display: flex; align-items: center; gap: 10px;">
           <span style="background: rgba(86,167,28,0.12); color: var(--green-deep); width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center;">
@@ -207,7 +306,7 @@
 
     {{-- Detailed Description (if any) --}}
     @if($combo->description)
-    <div style="margin-top: 30px; background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 28px; box-shadow: 0 2px 12px rgba(0,0,0,0.03);">
+    <div class="combo-card-section">
       <h3 style="font-size: 18px; font-weight: 800; color: var(--green-deep, #134423); margin-top: 0; margin-bottom: 14px;">Package Details & Benefits</h3>
       <div class="prose" style="font-size: 14.5px; line-height: 1.7; color: var(--ink-soft);">
         {!! $combo->description !!}
