@@ -123,11 +123,10 @@ Route::get('/cleanup-demo-products', function() {
 
     return response()->json([
         'status'         => $doDelete ? 'deleted' : 'preview',
-        'deleted_count'  => $deletedCount,
-        'demo_count'     => count($demoList),
-        'demo_products'  => collect($demoList)->map(fn($p) => ['id' => $p->id, 'name' => $p->name, 'image' => $p->image, 'slug' => $p->slug]),
         'real_count'     => count($realList),
         'real_products'  => collect($realList)->map(fn($p) => ['id' => $p->id, 'name' => $p->name, 'image' => $p->image, 'slug' => $p->slug]),
+        'deleted_count'  => $deletedCount,
+        'demo_count'     => count($demoList),
     ]);
 });
 
