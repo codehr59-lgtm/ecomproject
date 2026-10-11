@@ -57,7 +57,8 @@ class GroceryDemoSeeder extends Seeder
 
     public function run(): void
     {
-        $this->command->info('Starting Grocery Demo Seeding...');
+        // Permanently disabled to prevent seeding unwanted demo products
+        return;
 
         // Ensure directories exist
         foreach (['products', 'categories', 'sliders', 'banners'] as $dir) {

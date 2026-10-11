@@ -58,20 +58,26 @@ Route::get('/cleanup-demo-products', function() {
 
     $action = request()->get('action');
     $msg = null;
-    if ($action === 'delete_demo_seeders') {
-        // Delete seeded demo products (IDs 1-75)
-        $deleted = \App\Models\Product::where('id', '<=', 75)->delete();
+    if ($action === 'clean_grocery_demo') {
+        // Delete the new demo products (IDs 36 to 76) created by GroceryDemoSeeder
+        $deletedProducts = \App\Models\Product::where('id', '>=', 36)->where('id', '<=', 76)->delete();
+        // Delete the demo categories added by GroceryDemoSeeder
+        $deletedCategories = \App\Models\Category::whereIn('slug', ['dairy', 'fruits-veggies', 'sutki'])->delete();
+        // Flush all caches
         \App\Services\Catalog::flushCache();
-        $msg = "Successfully deleted {$deleted} demo products!";
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        $msg = "Successfully deleted {$deletedProducts} demo products and {$deletedCategories} demo categories!";
         $allProductCount = \App\Models\Product::count();
     }
+
+    $remainingProducts = \App\Models\Product::orderBy('id')->get(['id', 'name', 'category_id', 'price']);
+    $remainingCategories = \App\Models\Category::withCount('products')->get(['id', 'name', 'slug']);
 
     return response()->json([
         'message' => $msg,
         'total_products_count' => $allProductCount,
-        'products_created_before_seeder' => $beforeSeedProducts,
-        'products_with_high_id' => $highIdProducts,
-        'categories' => $categories,
+        'remaining_products' => $remainingProducts,
+        'remaining_categories' => $remainingCategories,
         'combos' => $combos,
     ]);
 });
