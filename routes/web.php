@@ -49,53 +49,6 @@ Route::get('/setup-now', function () {
     }
 });
 
-Route::get('/cleanup-demo-products', function() {
-    $beforeSeedProducts = \App\Models\Product::where('created_at', '<', '2026-10-11 23:00:00')->get(['id', 'name', 'image', 'created_at']);
-    $highIdProducts = \App\Models\Product::where('id', '>=', 70)->get(['id', 'name', 'image', 'created_at']);
-    $allProductCount = \App\Models\Product::count();
-    $categories = \App\Models\Category::withCount('products')->get(['id', 'name', 'slug', 'created_at']);
-    $combos = \App\Models\Combo::get(['id', 'name', 'slug', 'created_at']);
-
-    $action = request()->get('action');
-    $msg = null;
-    $error = null;
-    if ($action === 'clean_grocery_demo') {
-        try {
-            $demoIds = \App\Models\Product::where('id', '>=', 36)->where('id', '<=', 76)->pluck('id')->toArray();
-            
-            // Clean child relations if any
-            \DB::table('product_images')->whereIn('product_id', $demoIds)->delete();
-            \DB::table('product_variations')->whereIn('product_id', $demoIds)->delete();
-            \DB::table('product_specifications')->whereIn('product_id', $demoIds)->delete();
-            \DB::table('product_faqs')->whereIn('product_id', $demoIds)->delete();
-            \DB::table('wishlists')->whereIn('product_id', $demoIds)->delete();
-            \DB::table('reviews')->whereIn('product_id', $demoIds)->delete();
-            
-            $deletedProducts = \App\Models\Product::whereIn('id', $demoIds)->delete();
-            $deletedCategories = \App\Models\Category::whereIn('slug', ['dairy', 'fruits-veggies', 'sutki'])->delete();
-            
-            \App\Support\Catalog::flushCache();
-            \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-            $msg = "Successfully deleted demo products and demo categories!";
-            $allProductCount = \App\Models\Product::count();
-        } catch (\Throwable $e) {
-            $error = $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine();
-        }
-    }
-
-    $remainingProducts = \App\Models\Product::orderBy('id')->get(['id', 'name', 'category_id', 'price']);
-    $remainingCategories = \App\Models\Category::withCount('products')->get(['id', 'name', 'slug']);
-
-    return response()->json([
-        'message' => $msg,
-        'error' => $error,
-        'total_products_count' => $allProductCount,
-        'remaining_products' => $remainingProducts,
-        'remaining_categories' => $remainingCategories,
-        'combos' => $combos,
-    ]);
-});
-
 Route::get('/', [CatalogController::class, 'home'])->name('home');
 Route::get('/shop', [CatalogController::class, 'shop'])->name('shop');
 Route::get('/category/{slug}', [CatalogController::class, 'category'])->name('category'); // alias → shop view filtered
