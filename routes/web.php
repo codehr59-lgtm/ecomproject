@@ -50,21 +50,85 @@ Route::get('/setup-now', function () {
 });
 
 Route::get('/cleanup-demo-products', function() {
-    $products = \App\Models\Product::orderBy('id')->get(['id', 'name', 'image', 'slug', 'category_id', 'created_at']);
-    $categories = \App\Models\Category::orderBy('id')->get(['id', 'name', 'slug', 'image']);
-    $combos = \App\Models\Combo::orderBy('id')->get(['id', 'name', 'slug']);
+    $gitHead = 'unknown';
+    if (file_exists(base_path('.git/HEAD'))) {
+        $headRef = trim(file_get_contents(base_path('.git/HEAD')));
+        if (str_starts_with($headRef, 'ref: ')) {
+            $refPath = base_path('.git/' . substr($headRef, 5));
+            if (file_exists($refPath)) {
+                $gitHead = trim(file_get_contents($refPath));
+            } else {
+                $gitHead = $headRef;
+            }
+        } else {
+            $gitHead = $headRef;
+        }
+    }
 
-    return response()->json([
-        'total_products' => $products->count(),
-        'products' => $products->map(fn($p) => [
-            'id' => $p->id,
-            'name' => $p->name,
-            'image' => $p->image,
-            'cat_id' => $p->category_id,
-        ]),
-        'categories' => $categories,
-        'combos' => $combos,
-    ]);
+    $disabledFunctions = ini_get('disable_functions');
+
+    $products = \App\Models\Product::with('category')->orderBy('id')->get();
+    $categories = \App\Models\Category::withCount('products')->orderBy('id')->get();
+    $combos = \App\Models\Combo::with('items')->orderBy('id')->get();
+
+    $doDelete = request()->get('action') === 'delete_demo' && request()->get('token') === 'mv_clean_2026';
+    $deletedCount = 0;
+    if ($doDelete) {
+        $idsToDelete = request()->get('ids');
+        if ($idsToDelete === 'all_seeders') {
+            // Delete demo products created by seeders (CatalogSeeder IDs 1-35 and GroceryDemoSeeder IDs 36-75)
+            // But let's only delete if confirmed
+            $deletedCount = \App\Models\Product::where(function($q) {
+                // Products from GroceryDemoSeeder have image starting with products/ or null with seeder names
+                $q->where('image', 'like', 'products/%')
+                  ->orWhereNull('image');
+            })->where('id', '<=', 75)->delete();
+
+            \App\Services\Catalog::flushCache();
+        } elseif (is_array($idsToDelete)) {
+            $deletedCount = \App\Models\Product::whereIn('id', $idsToDelete)->delete();
+            \App\Services\Catalog::flushCache();
+        }
+    }
+
+    $html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Catalog Manager</title>'
+          . '<style>body{font-family:sans-serif;background:#0f172a;color:#f8fafc;padding:24px;font-size:13px;}'
+          . 'table{width:100%;border-collapse:collapse;margin:15px 0;background:#1e293b;border-radius:8px;overflow:hidden;}'
+          . 'th,td{padding:8px 12px;border:1px solid #334155;text-align:left;}th{background:#334155;color:#38bdf8;}'
+          . '.demo{color:#f87171;font-weight:bold;}.user{color:#4ade80;font-weight:bold;}'
+          . 'a.btn{display:inline-block;padding:8px 16px;background:#ef4444;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold;margin:10px 0;}'
+          . '</style></head><body>';
+    $html .= "<h2>Git HEAD: <span style='color:#38bdf8;'>" . e(substr($gitHead, 0, 10)) . "</span></h2>";
+    $html .= "<p>Disabled functions: " . e($disabledFunctions) . "</p>";
+    if ($doDelete) {
+        $html .= "<div style='padding:12px;background:#14532d;color:#4ade80;border-radius:6px;margin:10px 0;'>Deleted {$deletedCount} demo products!</div>";
+    }
+
+    $html .= "<h3>Categories (" . $categories->count() . ")</h3><table><tr><th>ID</th><th>Name</th><th>Slug</th><th>Image</th><th>Products Count</th><th>Created At</th></tr>";
+    foreach ($categories as $cat) {
+        $html .= "<tr><td>{$cat->id}</td><td>" . e($cat->name) . "</td><td>{$cat->slug}</td><td>" . e($cat->image) . "</td><td>{$cat->products_count}</td><td>{$cat->created_at}</td></tr>";
+    }
+    $html .= "</table>";
+
+    $html .= "<h3>Combos (" . $combos->count() . ")</h3><table><tr><th>ID</th><th>Name</th><th>Slug</th><th>Price</th><th>Items</th><th>Created At</th></tr>";
+    foreach ($combos as $combo) {
+        $itemNames = $combo->items->pluck('product_name')->implode(', ');
+        $html .= "<tr><td>{$combo->id}</td><td>" . e($combo->name) . "</td><td>{$combo->slug}</td><td>{$combo->price}</td><td>" . e($itemNames) . "</td><td>{$combo->created_at}</td></tr>";
+    }
+    $html .= "</table>";
+
+    $html .= "<h3>Products (" . $products->count() . ")</h3>";
+    $html .= "<a href='?action=delete_demo&token=mv_clean_2026&ids=all_seeders' class='btn' onclick='return confirm(\"Are you sure you want to delete demo products IDs 1-75?\")'>Delete Demo Products (IDs 1-75)</a>";
+    $html .= "<table><tr><th>ID</th><th>Type</th><th>Name</th><th>Category</th><th>Image</th><th>Price</th><th>Created At</th></tr>";
+    foreach ($products as $p) {
+        $isUser = ($p->id > 75) || (str_starts_with($p->image ?? '', '01') || str_starts_with($p->image ?? '', 'products/01'));
+        $typeTag = $isUser ? "<span class='user'>USER</span>" : "<span class='demo'>DEMO</span>";
+        $catName = $p->category ? $p->category->name : 'None';
+        $html .= "<tr><td>{$p->id}</td><td>{$typeTag}</td><td>" . e($p->name) . "</td><td>" . e($catName) . "</td><td>" . e($p->image) . "</td><td>{$p->price}</td><td>{$p->created_at}</td></tr>";
+    }
+    $html .= "</table></body></html>";
+
+    return response($html);
 });
 
 Route::get('/', [CatalogController::class, 'home'])->name('home');
