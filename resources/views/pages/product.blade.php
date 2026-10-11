@@ -145,7 +145,7 @@
 
     {{-- Gallery column --}}
     <div class="pdp-gallery">
-      <div class="pdp-main-img" style="background:#f8f6f3;border-radius:12px;overflow:hidden;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;">
+      <div class="pdp-main-img">
         <template x-if="images[img]">
           <img :src="images[img]" alt="{{ $product['name'] }}" style="width:100%;height:100%;object-fit:contain;">
         </template>
@@ -157,7 +157,7 @@
       @if(count($allImages) > 1)
       <div class="pdp-thumbs">
         @foreach($allImages as $i => $imgUrl)
-          <div class="pdp-thumb" :class="img === {{ $i }} ? 'on' : ''" @click="img = {{ $i }}" style="border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid transparent;aspect-ratio:1/1;" :style="img === {{ $i }} ? 'border-color:var(--green)' : ''">
+          <div class="pdp-thumb" :class="img === {{ $i }} ? 'on' : ''" @click="img = {{ $i }}" :style="img === {{ $i }} ? 'border-color:var(--green)' : ''">
             @if($imgUrl)
               <img src="{{ $imgUrl }}" alt="Thumbnail {{ $i + 1 }}" style="width:100%;height:100%;object-fit:cover;">
             @endif
@@ -304,10 +304,10 @@
 
 {{-- Full Description --}}
 @if($model->description)
-<div class="wrap" style="margin-top:40px;">
-  <div style="background:#fff;border-radius:12px;padding:24px 28px;border:1px solid #eee;">
-    <h2 style="font-size:20px;margin:0 0 12px;color:var(--ink);">Description</h2>
-    <div style="color:var(--ink-soft);line-height:1.7;font-size:15px;" class="prose">
+<div class="wrap" style="margin-top:32px;">
+  <div class="pdp-card">
+    <h2 style="font-size:19px;margin:0 0 12px;color:var(--ink);">Description</h2>
+    <div style="color:var(--ink-soft);line-height:1.7;font-size:14.5px;word-break:break-word;" class="prose">
       {!! $model->description !!}
     </div>
   </div>
@@ -316,34 +316,36 @@
 
 {{-- Specifications --}}
 @if($model->specifications->count())
-<div class="wrap" style="margin-top:24px;">
-  <div style="background:#fff;border-radius:12px;padding:24px 28px;border:1px solid #eee;">
-    <h2 style="font-size:20px;margin:0 0 16px;color:var(--ink);">Specifications</h2>
-    <table style="width:100%;border-collapse:collapse;">
-      @foreach($model->specifications as $spec)
-        <tr style="border-bottom:1px solid #f0f0f0;">
-          <td style="padding:10px 12px;font-weight:600;color:var(--ink);width:35%;font-size:14px;">{{ $spec->label }}</td>
-          <td style="padding:10px 12px;color:var(--ink-soft);font-size:14px;">{{ $spec->value }}</td>
-        </tr>
-      @endforeach
-    </table>
+<div class="wrap" style="margin-top:20px;">
+  <div class="pdp-card">
+    <h2 style="font-size:19px;margin:0 0 14px;color:var(--ink);">Specifications</h2>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;">
+      <table style="width:100%;border-collapse:collapse;min-width:260px;">
+        @foreach($model->specifications as $spec)
+          <tr style="border-bottom:1px solid #f0f0f0;">
+            <td style="padding:10px 12px;font-weight:600;color:var(--ink);width:35%;font-size:13.5px;white-space:nowrap;">{{ $spec->label }}</td>
+            <td style="padding:10px 12px;color:var(--ink-soft);font-size:13.5px;word-break:break-word;">{{ $spec->value }}</td>
+          </tr>
+        @endforeach
+      </table>
+    </div>
   </div>
 </div>
 @endif
 
 {{-- FAQs --}}
 @if($model->faqs->count())
-<div class="wrap" style="margin-top:24px;">
-  <div style="background:#fff;border-radius:12px;padding:24px 28px;border:1px solid #eee;">
-    <h2 style="font-size:20px;margin:0 0 16px;color:var(--ink);">Frequently Asked Questions</h2>
+<div class="wrap" style="margin-top:20px;">
+  <div class="pdp-card">
+    <h2 style="font-size:19px;margin:0 0 14px;color:var(--ink);">Frequently Asked Questions</h2>
     <div x-data="{ open: null }">
       @foreach($model->faqs as $i => $faq)
         <div style="border-bottom:1px solid #f0f0f0;">
-          <button @click="open = open === {{ $i }} ? null : {{ $i }}" style="width:100%;text-align:left;padding:14px 0;font-size:15px;font-weight:600;color:var(--ink);background:none;border:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
-            <span style="flex:1;">{{ $faq->question }}</span>
-            <svg :style="open === {{ $i }} ? 'transform:rotate(180deg)' : ''" width="18" height="18" style="min-width:18px;min-height:18px;max-width:18px;max-height:18px;transition:transform .2s;flex-shrink:0;margin-left:12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          <button @click="open = open === {{ $i }} ? null : {{ $i }}" style="width:100%;text-align:left;padding:12px 0;font-size:14.5px;font-weight:600;color:var(--ink);background:none;border:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+            <span style="flex:1;word-break:break-word;padding-right:8px;">{{ $faq->question }}</span>
+            <svg :style="open === {{ $i }} ? 'transform:rotate(180deg)' : ''" width="18" height="18" style="min-width:18px;min-height:18px;max-width:18px;max-height:18px;transition:transform .2s;flex-shrink:0;margin-left:8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
           </button>
-          <div x-show="open === {{ $i }}" x-transition.duration.200ms style="padding:0 0 14px;color:var(--ink-soft);font-size:14px;line-height:1.6;overflow:hidden;">
+          <div x-show="open === {{ $i }}" x-transition.duration.200ms style="padding:0 0 14px;color:var(--ink-soft);font-size:13.5px;line-height:1.6;overflow:hidden;word-break:break-word;">
             {{ $faq->answer }}
           </div>
         </div>
@@ -355,9 +357,9 @@
 
 {{-- Video --}}
 @if($model->video_url)
-<div class="wrap" style="margin-top:24px;">
-  <div style="background:#fff;border-radius:12px;padding:24px 28px;border:1px solid #eee;">
-    <h2 style="font-size:20px;margin:0 0 16px;color:var(--ink);">Product Video</h2>
+<div class="wrap" style="margin-top:20px;">
+  <div class="pdp-card">
+    <h2 style="font-size:19px;margin:0 0 14px;color:var(--ink);">Product Video</h2>
     @php
       preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/', $model->video_url, $m);
       $ytId = $m[1] ?? null;

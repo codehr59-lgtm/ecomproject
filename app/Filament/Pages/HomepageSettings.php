@@ -62,6 +62,15 @@ class HomepageSettings extends Page
         }
 
         $this->form->fill([
+            'hero_slider_height_pc'      => (int) Setting::get('hero_slider_height_pc', 400),
+            'hero_banner_height_pc'      => (int) Setting::get('hero_banner_height_pc', 400),
+            'hero_split_ratio_pc'        => (string) Setting::get('hero_split_ratio_pc', '1.85fr 1fr'),
+            'hero_slider_fit'            => (string) Setting::get('hero_slider_fit', 'cover'),
+            'hero_banner_fit'            => (string) Setting::get('hero_banner_fit', 'cover'),
+            'hero_slider_height_mobile'  => (int) Setting::get('hero_slider_height_mobile', 220),
+            'hero_banner_height_mobile'  => (int) Setting::get('hero_banner_height_mobile', 180),
+            'hero_banner_width_mobile'   => (string) Setting::get('hero_banner_width_mobile', '100%'),
+            'hero_banner_show_mobile'    => (bool) Setting::get('hero_banner_show_mobile', true),
             'slider_autoplay'        => Setting::get('homepage_slider_autoplay', true),
             'slider_speed'           => Setting::get('homepage_slider_speed', 4),
             'slider_arrows'          => Setting::get('homepage_slider_arrows', true),
@@ -90,6 +99,99 @@ class HomepageSettings extends Page
     {
         return $form
             ->schema([
+                Forms\Components\Section::make('Hero Slider & Banner Sizing (হিরো স্লাইডার ও ব্যানার সাইজ নিয়ন্ত্রণ — PC ও Phone)')
+                    ->description('ডেস্কটপ (PC) এবং মোবাইল (Phone) উভয়ের জন্য হিরো স্লাইডার এবং ব্যানারের উচ্চতা (Height), প্রস্থ (Width), এবং ডিসপ্লে স্টাইল প্রয়োজনমতো বাড়ান বা কমান।')
+                    ->schema([
+                        Forms\Components\Fieldset::make('Desktop / PC Sizing (কম্পিউটার ও ডেস্কটপ সাইজ)')
+                            ->schema([
+                                Forms\Components\TextInput::make('hero_slider_height_pc')
+                                    ->label('Slider Height on PC (ডেস্কটপ স্লাইডার উচ্চতা)')
+                                    ->numeric()
+                                    ->default(400)
+                                    ->minValue(150)
+                                    ->maxValue(900)
+                                    ->suffix('px')
+                                    ->helperText('ডিফল্ট: 400px (প্রয়োজনে 300px থেকে 600px এর মধ্যে সেট করুন)'),
+
+                                Forms\Components\TextInput::make('hero_banner_height_pc')
+                                    ->label('Banner Height on PC (ডেস্কটপ ব্যানার উচ্চতা)')
+                                    ->numeric()
+                                    ->default(400)
+                                    ->minValue(150)
+                                    ->maxValue(900)
+                                    ->suffix('px')
+                                    ->helperText('ডিফল্ট: 400px (স্লাইডারের সমান সাইজ পেতে একই মান রাখুন)'),
+
+                                Forms\Components\Select::make('hero_split_ratio_pc')
+                                    ->label('Slider vs Banner Width (প্রস্থ অনুপাত — PC)')
+                                    ->options([
+                                        '1.85fr 1fr' => 'Slider 65% / Banner 35% (স্ট্যান্ডার্ড ডিফল্ট)',
+                                        '2fr 1fr'    => 'Slider 67% / Banner 33% (স্লাইডার একটু চওড়া)',
+                                        '2.5fr 1fr'  => 'Slider 71% / Banner 29% (স্লাইডার বেশি চওড়া)',
+                                        '1.5fr 1fr'  => 'Slider 60% / Banner 40% (ব্যানার একটু বড়)',
+                                        '1fr 1fr'    => 'Slider 50% / Banner 50% (স্লাইডার ও ব্যানার সমান)',
+                                        '3fr 1fr'    => 'Slider 75% / Banner 25% (খুব চওড়া স্লাইডার)',
+                                    ])
+                                    ->default('1.85fr 1fr')
+                                    ->helperText('ডেস্কটপে স্লাইডার এবং পাশের ব্যানারের প্রস্থ নির্ধারণ করুন'),
+
+                                Forms\Components\Select::make('hero_slider_fit')
+                                    ->label('Slider Image Fit (স্লাইডার ছবি প্রদর্শনের ধরন)')
+                                    ->options([
+                                        'cover'   => 'Cover (পুরো বক্স ভরাট করবে, কোনো ফাঁকা থাকবে না)',
+                                        'contain' => 'Contain (না কেটে মূল অনুপাত অনুযায়ী পুরো ছবি দেখাবে)',
+                                    ])
+                                    ->default('cover'),
+
+                                Forms\Components\Select::make('hero_banner_fit')
+                                    ->label('Banner Image Fit (ব্যানার ছবি প্রদর্শনের ধরন)')
+                                    ->options([
+                                        'cover'   => 'Cover (পুরো বক্স ভরাট করবে, কোনো ফাঁকা থাকবে না)',
+                                        'contain' => 'Contain (না কেটে মূল অনুপাত অনুযায়ী পুরো ছবি দেখাবে)',
+                                    ])
+                                    ->default('cover'),
+                            ])
+                            ->columns(2),
+
+                        Forms\Components\Fieldset::make('Mobile / Phone Sizing (মোবাইল ও ফোন সাইজ)')
+                            ->schema([
+                                Forms\Components\TextInput::make('hero_slider_height_mobile')
+                                    ->label('Slider Height on Phone (মোবাইল স্লাইডার উচ্চতা)')
+                                    ->numeric()
+                                    ->default(220)
+                                    ->minValue(100)
+                                    ->maxValue(600)
+                                    ->suffix('px')
+                                    ->helperText('ডিফল্ট: 220px (প্রয়োজনে 160px থেকে 320px এর মধ্যে সেট করুন)'),
+
+                                Forms\Components\TextInput::make('hero_banner_height_mobile')
+                                    ->label('Banner Height on Phone (মোবাইল ব্যানার উচ্চতা)')
+                                    ->numeric()
+                                    ->default(180)
+                                    ->minValue(80)
+                                    ->maxValue(600)
+                                    ->suffix('px')
+                                    ->helperText('ডিফল্ট: 180px (প্রয়োজনে 130px থেকে 260px এর মধ্যে সেট করুন)'),
+
+                                Forms\Components\Select::make('hero_banner_width_mobile')
+                                    ->label('Banner Width on Phone (মোবাইল ব্যানার প্রস্থ)')
+                                    ->options([
+                                        '100%' => '100% (Full Width — পুরো স্ক্রিন জুড়ে)',
+                                        '95%'  => '95% (স্ক্রিনের দুই পাশে ৫% ফাঁকা মার্জিন)',
+                                        '90%'  => '90% (স্ক্রিনের দুই পাশে ১০% ফাঁকা মার্জিন)',
+                                        '85%'  => '85%',
+                                    ])
+                                    ->default('100%')
+                                    ->helperText('মোবাইলে ব্যানারের পাশাপাশি বিস্তার'),
+
+                                Forms\Components\Toggle::make('hero_banner_show_mobile')
+                                    ->label('Show Banner on Mobile (মোবাইলে ব্যানার দেখাও)')
+                                    ->default(true)
+                                    ->helperText('বন্ধ করলে মোবাইলে শুধু স্লাইডারটি দেখাবে, ব্যানারটি লুকানো থাকবে'),
+                            ])
+                            ->columns(2),
+                    ]),
+
                 Forms\Components\Section::make('Product Sliders Controls (প্রোডাক্ট স্লাইডার কন্ট্রোল)')
                     ->description('Control auto-sliding, speed, navigation arrows, pagination dots, and cards per view for all category product sliders on the homepage.')
                     ->schema([
@@ -281,6 +383,17 @@ class HomepageSettings extends Page
     public function save(): void
     {
         $state = $this->form->getState();
+
+        Setting::set('hero_slider_height_pc', (int) ($state['hero_slider_height_pc'] ?? 400));
+        Setting::set('hero_banner_height_pc', (int) ($state['hero_banner_height_pc'] ?? 400));
+        Setting::set('hero_split_ratio_pc', (string) ($state['hero_split_ratio_pc'] ?? '1.85fr 1fr'));
+        Setting::set('hero_slider_fit', (string) ($state['hero_slider_fit'] ?? 'cover'));
+        Setting::set('hero_banner_fit', (string) ($state['hero_banner_fit'] ?? 'cover'));
+
+        Setting::set('hero_slider_height_mobile', (int) ($state['hero_slider_height_mobile'] ?? 220));
+        Setting::set('hero_banner_height_mobile', (int) ($state['hero_banner_height_mobile'] ?? 180));
+        Setting::set('hero_banner_width_mobile', (string) ($state['hero_banner_width_mobile'] ?? '100%'));
+        Setting::set('hero_banner_show_mobile', (bool) ($state['hero_banner_show_mobile'] ?? true));
 
         Setting::set('homepage_slider_autoplay', (bool) ($state['slider_autoplay'] ?? true));
         Setting::set('homepage_slider_speed', (int) ($state['slider_speed'] ?? 4));

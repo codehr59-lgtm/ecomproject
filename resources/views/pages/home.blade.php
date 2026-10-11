@@ -9,28 +9,89 @@
      1. SPLIT HERO — Left: slider carousel, Right: static banner
      ============================================================ --}}
 @if($sliders->count() || $banner)
+@php
+  $heroSliderHeightPc     = (int) \App\Models\Setting::get('hero_slider_height_pc', 400);
+  $heroBannerHeightPc     = (int) \App\Models\Setting::get('hero_banner_height_pc', 400);
+  $heroSplitRatioPc       = \App\Models\Setting::get('hero_split_ratio_pc', '1.85fr 1fr');
+  $heroSliderFit          = \App\Models\Setting::get('hero_slider_fit', 'cover');
+  $heroBannerFit          = \App\Models\Setting::get('hero_banner_fit', 'cover');
+
+  $heroSliderHeightMobile = (int) \App\Models\Setting::get('hero_slider_height_mobile', 220);
+  $heroBannerHeightMobile = (int) \App\Models\Setting::get('hero_banner_height_mobile', 180);
+  $heroBannerWidthMobile  = \App\Models\Setting::get('hero_banner_width_mobile', '100%');
+  $heroBannerShowMobile   = (bool) \App\Models\Setting::get('hero_banner_show_mobile', true);
+@endphp
 <style>
+  .hero-split {
+    display: grid !important;
+    grid-template-columns: {{ $heroSplitRatioPc }} !important;
+    gap: 16px;
+    align-items: stretch;
+  }
   .hero-split.hero-full,
   .hero-split:has(> :only-child) {
     grid-template-columns: 1fr !important;
   }
+
+  /* Desktop Slider & Slide Dimensions */
+  .hero-slider,
+  .hero-slide {
+    height: {{ $heroSliderHeightPc }}px !important;
+    max-height: {{ $heroSliderHeightPc }}px !important;
+  }
+  .hero-slide img,
   .hero-split.hero-full .hero-slide img,
   .hero-split:has(> :only-child) .hero-slide img {
-    aspect-ratio: 21/8;
-    max-height: 440px;
+    height: 100% !important;
+    max-height: {{ $heroSliderHeightPc }}px !important;
+    object-fit: {{ $heroSliderFit }} !important;
+    aspect-ratio: auto !important;
   }
+
+  /* Desktop Banner Dimensions */
+  .hero-banner-right {
+    height: {{ $heroBannerHeightPc }}px !important;
+    max-height: {{ $heroBannerHeightPc }}px !important;
+  }
+  .hero-banner-right img {
+    height: 100% !important;
+    max-height: {{ $heroBannerHeightPc }}px !important;
+    object-fit: {{ $heroBannerFit }} !important;
+  }
+
+  /* Mobile / Phone Dimensions (<= 860px) */
   @media (max-width: 860px) {
-    .hero-split.hero-full .hero-slide img,
-    .hero-split:has(> :only-child) .hero-slide img {
-      aspect-ratio: 16/9;
-      max-height: 320px;
+    .hero-split {
+      grid-template-columns: 1fr !important;
+      gap: 14px;
     }
-  }
-  @media (max-width: 480px) {
+    .hero-slider,
+    .hero-slide,
+    .hero-slide img,
+    .hero-split.hero-full .hero-slide,
     .hero-split.hero-full .hero-slide img,
+    .hero-split:has(> :only-child) .hero-slide,
     .hero-split:has(> :only-child) .hero-slide img {
-      aspect-ratio: 16/10;
-      max-height: 250px;
+      height: {{ $heroSliderHeightMobile }}px !important;
+      max-height: {{ $heroSliderHeightMobile }}px !important;
+      aspect-ratio: auto !important;
+    }
+    .hero-banner-right {
+      @if(!$heroBannerShowMobile)
+      display: none !important;
+      @else
+      display: block !important;
+      width: {{ $heroBannerWidthMobile }} !important;
+      max-width: 100% !important;
+      margin: 0 auto !important;
+      height: {{ $heroBannerHeightMobile }}px !important;
+      max-height: {{ $heroBannerHeightMobile }}px !important;
+      @endif
+    }
+    .hero-banner-right img {
+      height: 100% !important;
+      max-height: {{ $heroBannerHeightMobile }}px !important;
+      object-fit: {{ $heroBannerFit }} !important;
     }
   }
   /* Professional compact slider button */
