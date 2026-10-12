@@ -24,29 +24,44 @@ class BannerResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Placeholder::make('sizing_tip')
+                    ->label('Banner Placement Guide')
+                    ->content(new \Illuminate\Support\HtmlString('💡 <strong>Where will this banner appear?</strong><br>• <strong>Hero Banner:</strong> Appears at the very top of the homepage beside the slider.<br>• <strong>Middle Strip Banner:</strong> Appears as the full-width promotional banner between product sections (e.g. <em>"Sourced with care, delivered with trust"</em>). You can customize image, title, subtitle, CTA button & link!'))
+                    ->columnSpanFull(),
+
                 Forms\Components\TextInput::make('title')
+                    ->label('Banner Title')
+                    ->placeholder('e.g. Sourced with care, delivered with trust')
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('subtitle')
+                    ->label('Subtitle')
+                    ->placeholder('e.g. 100% Pure, Organic & Halal Groceries Delivered Direct to Your Door')
                     ->maxLength(255),
                 Forms\Components\FileUpload::make('image')
+                    ->label('Banner Image / Background')
                     ->disk('public')
                     ->directory('banners')
-                    ->image(),
+                    ->image()
+                    ->helperText('Recommended: Wide landscape photo (e.g. 1200x300 or 1400x350)'),
                 Forms\Components\TextInput::make('cta')
-                    ->label('CTA Text')
+                    ->label('CTA Button Text')
+                    ->placeholder('e.g. Order Today or Explore Products')
                     ->maxLength(100),
                 Forms\Components\TextInput::make('href')
                     ->label('Link URL')
+                    ->placeholder('e.g. /shop or https://...')
                     ->maxLength(500),
                 Forms\Components\Select::make('position')
+                    ->label('Banner Position / Section')
                     ->options([
-                        'hero'  => 'Hero',
-                        'strip' => 'Strip',
-                        'promo' => 'Promo',
+                        'hero'  => 'Hero Banner (Top beside slider)',
+                        'strip' => 'Middle Strip Banner (Section between product rails — e.g. "Sourced with care")',
+                        'promo' => 'Promo Banner',
                     ])
                     ->default('hero')
-                    ->required(),
+                    ->required()
+                    ->helperText('Select "Middle Strip Banner" to manage the full-width banner section on the homepage.'),
                 Forms\Components\TextInput::make('sort')
                     ->numeric()
                     ->default(0),
@@ -72,7 +87,13 @@ class BannerResource extends Resource
                         'primary' => 'hero',
                         'warning' => 'strip',
                         'success' => 'promo',
-                    ]),
+                    ])
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'hero'  => 'Hero Banner',
+                        'strip' => 'Middle Strip Banner',
+                        'promo' => 'Promo Banner',
+                        default => ucfirst($state),
+                    }),
                 Tables\Columns\TextColumn::make('sort')
                     ->sortable(),
                 Tables\Columns\ToggleColumn::make('is_active')
@@ -81,9 +102,9 @@ class BannerResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('position')
                     ->options([
-                        'hero'  => 'Hero',
-                        'strip' => 'Strip',
-                        'promo' => 'Promo',
+                        'hero'  => 'Hero Banner',
+                        'strip' => 'Middle Strip Banner',
+                        'promo' => 'Promo Banner',
                     ]),
                 Tables\Filters\TernaryFilter::make('is_active'),
             ])

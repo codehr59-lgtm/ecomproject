@@ -164,6 +164,36 @@
         .announce, .announce strong { color: {{ $__topbarText }} !important; }
         @endif
 
+        @php
+            $__topbarMobileEnabled = (bool) \App\Models\Setting::get('topbar_mobile_enabled', true);
+        @endphp
+        @if($__topbarMobileEnabled)
+        @media (max-width: 620px) {
+            .announce {
+                display: flex !important;
+                font-size: 11px !important;
+                padding: 6px 12px !important;
+                gap: 6px !important;
+                line-height: 1.35 !important;
+                text-align: center !important;
+                justify-content: center !important;
+                flex-wrap: wrap !important;
+            }
+            .announce svg {
+                flex-shrink: 0 !important;
+                width: 13px !important;
+                height: 13px !important;
+            }
+        }
+        @else
+        @media (max-width: 620px) {
+            .announce,
+            .announce.topbar-mobile-hidden {
+                display: none !important;
+            }
+        }
+        @endif
+
         /* ── Header ── */
         @if($__headerBg)
         .hdr { background: {{ $__headerBg }} !important; }

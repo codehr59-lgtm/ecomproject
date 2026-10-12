@@ -26,6 +26,11 @@ class SliderResource extends Resource
             ->schema([
                 Forms\Components\Section::make()
                     ->schema([
+                        Forms\Components\Placeholder::make('sizing_tip')
+                            ->label('Slider & Banner Dimensions')
+                            ->content(new \Illuminate\Support\HtmlString('📐 <strong>Want to customize Slider & Banner height or width?</strong> <a href="' . url('/admin/homepage-settings') . '" class="text-primary-600 font-bold underline" style="color:#16a34a;margin-left:6px;">&rarr; Homepage Builder</a> or <a href="' . url('/admin/theme-customizer') . '" class="text-primary-600 font-bold underline" style="color:#16a34a;margin-left:4px;">Theme Customizer</a> to easily adjust PC and mobile dimensions.'))
+                            ->columnSpanFull(),
+
                         Forms\Components\Select::make('type')
                             ->options([
                                 'slider' => 'Slider (Left - carousel)',

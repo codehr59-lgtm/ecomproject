@@ -12,6 +12,13 @@ class ListAnnouncements extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [Actions\CreateAction::make()];
+        return [
+            Actions\Action::make('topbar_mobile_settings')
+                ->label('📱 Mobile Topbar & Visibility Settings')
+                ->icon('heroicon-o-device-phone-mobile')
+                ->color('success')
+                ->url(url('/admin/homepage-settings')),
+            Actions\CreateAction::make(),
+        ];
     }
 }

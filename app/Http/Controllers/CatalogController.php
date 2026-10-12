@@ -123,6 +123,8 @@ class CatalogController extends Controller
             return [
                 'sliders'            => (bool) \App\Models\Setting::get('homepage_hero_slider', true) ? \App\Models\Slider::active()->get() : collect(),
                 'banner'             => (bool) \App\Models\Setting::get('homepage_hero_slider', true) ? \App\Models\Banner::where('is_active', true)->where('position', 'hero')->orderBy('sort')->first() : null,
+                'stripBanner'        => \App\Models\Banner::where('is_active', true)->where('position', 'strip')->orderBy('sort')->first(),
+                'showMiddleBanner'   => (bool) \App\Models\Setting::get('homepage_middle_banner', true),
                 'showHero'           => (bool) \App\Models\Setting::get('homepage_hero_slider', true),
                 'showFeaturedCats'   => $showFeaturedCategories,
                 'categories'         => $categories,

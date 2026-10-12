@@ -62,12 +62,20 @@ class HomepageSettings extends Page
         }
 
         $this->form->fill([
+            'topbar_enabled'             => (bool) Setting::get('topbar_enabled', true),
+            'topbar_mobile_enabled'      => (bool) Setting::get('topbar_mobile_enabled', true),
+            'hero_container_width'       => (string) Setting::get('hero_container_width', 'boxed'),
+            'hero_container_max_width'   => (string) Setting::get('hero_container_max_width', '1280px'),
             'hero_slider_height_pc'      => (int) Setting::get('hero_slider_height_pc', 400),
             'hero_banner_height_pc'      => (int) Setting::get('hero_banner_height_pc', 400),
             'hero_split_ratio_pc'        => (string) Setting::get('hero_split_ratio_pc', '1.85fr 1fr'),
+            'hero_split_ratio_custom'    => (string) Setting::get('hero_split_ratio_custom', ''),
+            'hero_border_radius'         => (int) Setting::get('hero_border_radius', 14),
             'hero_slider_fit'            => (string) Setting::get('hero_slider_fit', 'cover'),
             'hero_banner_fit'            => (string) Setting::get('hero_banner_fit', 'cover'),
+            'hero_banner_show_pc'        => (bool) Setting::get('hero_banner_show_pc', true),
             'hero_slider_height_mobile'  => (int) Setting::get('hero_slider_height_mobile', 220),
+            'hero_slider_width_mobile'   => (string) Setting::get('hero_slider_width_mobile', '100%'),
             'hero_banner_height_mobile'  => (int) Setting::get('hero_banner_height_mobile', 180),
             'hero_banner_width_mobile'   => (string) Setting::get('hero_banner_width_mobile', '100%'),
             'hero_banner_show_mobile'    => (bool) Setting::get('hero_banner_show_mobile', true),
@@ -85,6 +93,7 @@ class HomepageSettings extends Page
             'top_selling_title'      => Setting::get('homepage_top_selling_title', 'Top Selling Products'),
             'top_selling_limit'      => Setting::get('homepage_top_selling_limit', 4),
             'combos'                 => Setting::get('homepage_combos', true),
+            'middle_banner'          => (bool) Setting::get('homepage_middle_banner', true),
             'certified'              => Setting::get('homepage_certified', true),
             'certified_title'        => Setting::get('homepage_certified_title', 'Organic Certified'),
             'just_for_you'           => Setting::get('homepage_just_for_you', true),
@@ -99,109 +108,182 @@ class HomepageSettings extends Page
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Hero Slider & Banner Sizing (হিরো স্লাইডার ও ব্যানার সাইজ নিয়ন্ত্রণ — PC ও Phone)')
-                    ->description('ডেস্কটপ (PC) এবং মোবাইল (Phone) উভয়ের জন্য হিরো স্লাইডার এবং ব্যানারের উচ্চতা (Height), প্রস্থ (Width), এবং ডিসপ্লে স্টাইল প্রয়োজনমতো বাড়ান বা কমান।')
+                Forms\Components\Section::make('Announcement Bar & Mobile Topbar (ON / OFF)')
+                    ->description('Turn the top announcement bar ON or OFF for desktop browsers and mobile phone screens.')
+                    ->icon('heroicon-o-megaphone')
                     ->schema([
-                        Forms\Components\Fieldset::make('Desktop / PC Sizing (কম্পিউটার ও ডেস্কটপ সাইজ)')
+                        Forms\Components\Toggle::make('topbar_enabled')
+                            ->label('Desktop Topbar Announcement')
+                            ->helperText('Master toggle: turn announcement bar ON or OFF on desktop computers.')
+                            ->default(true),
+
+                        Forms\Components\Toggle::make('topbar_mobile_enabled')
+                            ->label('📱 Show Topbar on Mobile Devices')
+                            ->helperText('Turn ON to display the announcement bar on mobile phones. Turn OFF to hide it on phones.')
+                            ->default(true),
+                    ])
+                    ->columns(2),
+
+                Forms\Components\Section::make('Hero Slider & Banner Sizing')
+                    ->description('Control height, width, and display ratios for desktop and mobile hero slider & banner.')
+                    ->icon('heroicon-o-arrows-pointing-out')
+                    ->schema([
+                        Forms\Components\Fieldset::make('Desktop / PC Sizing')
                             ->schema([
+                                Forms\Components\Select::make('hero_container_width')
+                                    ->label('Hero Area Width')
+                                    ->options([
+                                        'boxed'      => 'Boxed Standard (1280px — Default)',
+                                        'wide'       => 'Wide Container (1440px)',
+                                        'extra_wide' => 'Extra Wide (1600px)',
+                                        'full'       => 'Full Width (100%)',
+                                        'custom'     => 'Custom Max Width',
+                                    ])
+                                    ->default('boxed')
+                                    ->live()
+                                    ->helperText('Overall container width for the hero section on desktop'),
+
+                                Forms\Components\TextInput::make('hero_container_max_width')
+                                    ->label('Custom Container Max Width')
+                                    ->placeholder('e.g. 1380px or 94%')
+                                    ->visible(fn (Forms\Get $get) => $get('hero_container_width') === 'custom'),
+
                                 Forms\Components\TextInput::make('hero_slider_height_pc')
-                                    ->label('Slider Height on PC (ডেস্কটপ স্লাইডার উচ্চতা)')
+                                    ->label('Slider Height on PC')
                                     ->numeric()
                                     ->default(400)
                                     ->minValue(150)
                                     ->maxValue(900)
                                     ->suffix('px')
-                                    ->helperText('ডিফল্ট: 400px (প্রয়োজনে 300px থেকে 600px এর মধ্যে সেট করুন)'),
+                                    ->helperText('Default: 400px (Recommended between 300px and 600px)'),
 
                                 Forms\Components\TextInput::make('hero_banner_height_pc')
-                                    ->label('Banner Height on PC (ডেস্কটপ ব্যানার উচ্চতা)')
+                                    ->label('Banner Height on PC')
                                     ->numeric()
                                     ->default(400)
                                     ->minValue(150)
                                     ->maxValue(900)
                                     ->suffix('px')
-                                    ->helperText('ডিফল্ট: 400px (স্লাইডারের সমান সাইজ পেতে একই মান রাখুন)'),
+                                    ->helperText('Default: 400px (Keep same as slider for balanced look)'),
 
                                 Forms\Components\Select::make('hero_split_ratio_pc')
-                                    ->label('Slider vs Banner Width (প্রস্থ অনুপাত — PC)')
+                                    ->label('Slider vs Banner Width Ratio')
                                     ->options([
-                                        '1.85fr 1fr' => 'Slider 65% / Banner 35% (স্ট্যান্ডার্ড ডিফল্ট)',
-                                        '2fr 1fr'    => 'Slider 67% / Banner 33% (স্লাইডার একটু চওড়া)',
-                                        '2.5fr 1fr'  => 'Slider 71% / Banner 29% (স্লাইডার বেশি চওড়া)',
-                                        '1.5fr 1fr'  => 'Slider 60% / Banner 40% (ব্যানার একটু বড়)',
-                                        '1fr 1fr'    => 'Slider 50% / Banner 50% (স্লাইডার ও ব্যানার সমান)',
-                                        '3fr 1fr'    => 'Slider 75% / Banner 25% (খুব চওড়া স্লাইডার)',
+                                        '1.85fr 1fr' => 'Slider 65% / Banner 35% (Standard Default)',
+                                        '2fr 1fr'    => 'Slider 67% / Banner 33%',
+                                        '2.33fr 1fr' => 'Slider 70% / Banner 30%',
+                                        '3fr 1fr'    => 'Slider 75% / Banner 25%',
+                                        '4fr 1fr'    => 'Slider 80% / Banner 20%',
+                                        '1.5fr 1fr'  => 'Slider 60% / Banner 40%',
+                                        '1.22fr 1fr' => 'Slider 55% / Banner 45%',
+                                        '1fr 1fr'    => 'Slider 50% / Banner 50% (Equal)',
+                                        '1fr 1.5fr'  => 'Slider 40% / Banner 60%',
+                                        '1fr 2fr'    => 'Slider 33% / Banner 67%',
+                                        'custom'     => 'Custom Ratio',
                                     ])
                                     ->default('1.85fr 1fr')
-                                    ->helperText('ডেস্কটপে স্লাইডার এবং পাশের ব্যানারের প্রস্থ নির্ধারণ করুন'),
+                                    ->live()
+                                    ->helperText('Width ratio between the left slider and right banner on desktop'),
+
+                                Forms\Components\TextInput::make('hero_split_ratio_custom')
+                                    ->label('Custom Grid Split Ratio')
+                                    ->placeholder('e.g. 700px 1fr or 68% 32%')
+                                    ->visible(fn (Forms\Get $get) => $get('hero_split_ratio_pc') === 'custom'),
+
+                                Forms\Components\Toggle::make('hero_banner_show_pc')
+                                    ->label('Show Banner on PC')
+                                    ->default(true)
+                                    ->helperText('Disable to make the slider full width on desktop'),
+
+                                Forms\Components\Select::make('hero_border_radius')
+                                    ->label('Corner Roundness (Border Radius)')
+                                    ->options([
+                                        0  => '0px (Sharp Corners)',
+                                        8  => '8px (Subtle Rounded)',
+                                        14 => '14px (Standard Rounded — Default)',
+                                        18 => '18px (Smooth Modern)',
+                                        24 => '24px (Pill Style)',
+                                    ])
+                                    ->default(14),
 
                                 Forms\Components\Select::make('hero_slider_fit')
-                                    ->label('Slider Image Fit (স্লাইডার ছবি প্রদর্শনের ধরন)')
+                                    ->label('Slider Image Fit')
                                     ->options([
-                                        'cover'   => 'Cover (পুরো বক্স ভরাট করবে, কোনো ফাঁকা থাকবে না)',
-                                        'contain' => 'Contain (না কেটে মূল অনুপাত অনুযায়ী পুরো ছবি দেখাবে)',
+                                        'cover'   => 'Cover (Fills entire container)',
+                                        'contain' => 'Contain (Shows full image without cropping)',
                                     ])
                                     ->default('cover'),
 
                                 Forms\Components\Select::make('hero_banner_fit')
-                                    ->label('Banner Image Fit (ব্যানার ছবি প্রদর্শনের ধরন)')
+                                    ->label('Banner Image Fit')
                                     ->options([
-                                        'cover'   => 'Cover (পুরো বক্স ভরাট করবে, কোনো ফাঁকা থাকবে না)',
-                                        'contain' => 'Contain (না কেটে মূল অনুপাত অনুযায়ী পুরো ছবি দেখাবে)',
+                                        'cover'   => 'Cover (Fills entire container)',
+                                        'contain' => 'Contain (Shows full image without cropping)',
                                     ])
                                     ->default('cover'),
                             ])
                             ->columns(2),
 
-                        Forms\Components\Fieldset::make('Mobile / Phone Sizing (মোবাইল ও ফোন সাইজ)')
+                        Forms\Components\Fieldset::make('Mobile / Phone Sizing')
                             ->schema([
                                 Forms\Components\TextInput::make('hero_slider_height_mobile')
-                                    ->label('Slider Height on Phone (মোবাইল স্লাইডার উচ্চতা)')
+                                    ->label('Slider Height on Phone')
                                     ->numeric()
                                     ->default(220)
                                     ->minValue(100)
                                     ->maxValue(600)
                                     ->suffix('px')
-                                    ->helperText('ডিফল্ট: 220px (প্রয়োজনে 160px থেকে 320px এর মধ্যে সেট করুন)'),
+                                    ->helperText('Default: 220px (Recommended between 160px and 320px)'),
+
+                                Forms\Components\Select::make('hero_slider_width_mobile')
+                                    ->label('Slider Width on Phone')
+                                    ->options([
+                                        '100%' => '100% (Full Width)',
+                                        '96%'  => '96% (Subtle side margin)',
+                                        '92%'  => '92% (Side margin)',
+                                        '88%'  => '88%',
+                                    ])
+                                    ->default('100%')
+                                    ->helperText('Horizontal width of slider on mobile devices'),
 
                                 Forms\Components\TextInput::make('hero_banner_height_mobile')
-                                    ->label('Banner Height on Phone (মোবাইল ব্যানার উচ্চতা)')
+                                    ->label('Banner Height on Phone')
                                     ->numeric()
                                     ->default(180)
                                     ->minValue(80)
                                     ->maxValue(600)
                                     ->suffix('px')
-                                    ->helperText('ডিফল্ট: 180px (প্রয়োজনে 130px থেকে 260px এর মধ্যে সেট করুন)'),
+                                    ->helperText('Default: 180px (Recommended between 130px and 260px)'),
 
                                 Forms\Components\Select::make('hero_banner_width_mobile')
-                                    ->label('Banner Width on Phone (মোবাইল ব্যানার প্রস্থ)')
+                                    ->label('Banner Width on Phone')
                                     ->options([
-                                        '100%' => '100% (Full Width — পুরো স্ক্রিন জুড়ে)',
-                                        '95%'  => '95% (স্ক্রিনের দুই পাশে ৫% ফাঁকা মার্জিন)',
-                                        '90%'  => '90% (স্ক্রিনের দুই পাশে ১০% ফাঁকা মার্জিন)',
-                                        '85%'  => '85%',
+                                        '100%' => '100% (Full Width)',
+                                        '96%'  => '96% (Subtle side margin)',
+                                        '92%'  => '92% (Side margin)',
+                                        '88%'  => '88%',
                                     ])
                                     ->default('100%')
-                                    ->helperText('মোবাইলে ব্যানারের পাশাপাশি বিস্তার'),
+                                    ->helperText('Horizontal width of banner on mobile devices'),
 
                                 Forms\Components\Toggle::make('hero_banner_show_mobile')
-                                    ->label('Show Banner on Mobile (মোবাইলে ব্যানার দেখাও)')
+                                    ->label('Show Banner on Mobile')
                                     ->default(true)
-                                    ->helperText('বন্ধ করলে মোবাইলে শুধু স্লাইডারটি দেখাবে, ব্যানারটি লুকানো থাকবে'),
+                                    ->helperText('Disable to hide the banner and display only the slider on mobile'),
                             ])
                             ->columns(2),
                     ]),
 
-                Forms\Components\Section::make('Product Sliders Controls (প্রোডাক্ট স্লাইডার কন্ট্রোল)')
+                Forms\Components\Section::make('Product Sliders Controls')
                     ->description('Control auto-sliding, speed, navigation arrows, pagination dots, and cards per view for all category product sliders on the homepage.')
                     ->schema([
                         Forms\Components\Toggle::make('slider_autoplay')
-                            ->label('Enable Autoplay (স্বয়ংক্রিয় স্লাইড)')
+                            ->label('Enable Autoplay')
                             ->helperText('Automatically slide products continuously in a smooth loop')
                             ->default(true),
 
                         Forms\Components\Select::make('slider_speed')
-                            ->label('Autoplay Interval (স্লাইড বিরতি)')
+                            ->label('Autoplay Interval')
                             ->options([
                                 2 => '2 Seconds (Fast)',
                                 3 => '3 Seconds (Normal)',
@@ -214,17 +296,17 @@ class HomepageSettings extends Page
                             ->helperText('How long each slide stays before moving to the next'),
 
                         Forms\Components\Toggle::make('slider_arrows')
-                            ->label('Show Next / Previous Arrows (তীর চিহ্ন)')
+                            ->label('Show Next / Previous Arrows')
                             ->helperText('Display left & right circular navigation buttons')
                             ->default(true),
 
                         Forms\Components\Toggle::make('slider_dots')
-                            ->label('Show Pagination Dots (নিচের ডটসমূহ)')
+                            ->label('Show Pagination Dots')
                             ->helperText('Display interactive dots below the products to jump to slides')
                             ->default(true),
 
                         Forms\Components\Select::make('slider_per_view')
-                            ->label('Desktop Cards Visible (ডেস্কটপে একসাথে দৃশ্যমান প্রোডাক্ট)')
+                            ->label('Desktop Cards Visible')
                             ->options([
                                 '4' => '4 Cards (Recommended — larger cards with smooth sliding)',
                                 '5' => '5 Cards (Compact)',
@@ -252,9 +334,11 @@ class HomepageSettings extends Page
                                             ->options(fn () => Category::withCount('products')
                                                 ->orderBy('name')
                                                 ->get()
-                                                ->mapWithKeys(fn ($c) => [
-                                                    $c->id => "{$c->name} ({$c->products_count} " . ($c->products_count === 1 ? 'product' : 'products') . ")"
-                                                ]))
+                                                ->mapWithKeys(function ($c) {
+                                                    $cleanName = trim(preg_replace('/\s*\([^)]*[\x{0980}-\x{09FF}]+[^)]*\)/u', '', $c->name));
+                                                    $cleanName = trim(preg_replace('/[\x{0980}-\x{09FF}]+/u', '', $cleanName)) ?: $c->name;
+                                                    return [$c->id => "{$cleanName} ({$c->products_count} " . ($c->products_count === 1 ? 'product' : 'products') . ")"];
+                                                }))
                                             ->required()
                                             ->searchable()
                                             ->columnSpan(4),
@@ -295,9 +379,13 @@ class HomepageSettings extends Page
                                     $title = ! empty($state['title']) ? $state['title'] : 'Deleted Category';
                                     return $title . ' (⚠ Deleted Category — please reselect or delete)';
                                 }
-                                $title = ! empty($state['title']) ? $state['title'] : $cat->name;
+                                $catName = trim(preg_replace('/\s*\([^)]*[\x{0980}-\x{09FF}]+[^)]*\)/u', '', $cat->name));
+                                $catName = trim(preg_replace('/[\x{0980}-\x{09FF}]+/u', '', $catName)) ?: $cat->name;
+                                $title = ! empty($state['title']) ? $state['title'] : $catName;
+                                $title = trim(preg_replace('/\s*\([^)]*[\x{0980}-\x{09FF}]+[^)]*\)/u', '', $title));
+                                $title = trim(preg_replace('/[\x{0980}-\x{09FF}]+/u', '', $title)) ?: $title;
                                 $count = $cat->products_count ?? 0;
-                                return $title . ' (' . $cat->name . ' — ' . $count . ' ' . ($count === 1 ? 'product' : 'products') . ')';
+                                return $title . ' (' . $catName . ' — ' . $count . ' ' . ($count === 1 ? 'product' : 'products') . ')';
                             })
                             ->collapsible()
                             ->cloneable()
@@ -306,7 +394,7 @@ class HomepageSettings extends Page
                             ->columnSpanFull(),
 
                         Forms\Components\Toggle::make('auto_show_category_rails')
-                            ->label('Auto-Display New Categories with Products (নতুন ক্যাটাগরিতে প্রোডাক্ট থাকলে স্বয়ংক্রিয়ভাবে হোমপেজে দেখাও)')
+                            ->label('Auto-Display New Categories with Products')
                             ->helperText('When enabled, any active category that has products will automatically appear on the homepage, even before you manually add it to the list above.')
                             ->default(true)
                             ->columnSpanFull(),
@@ -323,7 +411,11 @@ class HomepageSettings extends Page
                             ->label('Select Specific Categories to Show')
                             ->helperText('Leave empty to show all active categories automatically.')
                             ->multiple()
-                            ->options(Category::pluck('name', 'id'))
+                            ->options(fn () => Category::all()->mapWithKeys(function ($c) {
+                                $cleanName = trim(preg_replace('/\s*\([^)]*[\x{0980}-\x{09FF}]+[^)]*\)/u', '', $c->name));
+                                $cleanName = trim(preg_replace('/[\x{0980}-\x{09FF}]+/u', '', $cleanName)) ?: $c->name;
+                                return [$c->id => $cleanName];
+                            }))
                             ->searchable(),
                     ])
                     ->columns(1),
@@ -349,6 +441,11 @@ class HomepageSettings extends Page
 
                         Forms\Components\Toggle::make('combos')
                             ->label('Exclusive Combo Deals Rail'),
+
+                        Forms\Components\Toggle::make('middle_banner')
+                            ->label('Middle Strip Banner Section')
+                            ->helperText('Full-width lifestyle banner between product sections (managed in Banners with Position: Middle Strip Banner)')
+                            ->default(true),
 
                         Forms\Components\Toggle::make('certified')
                             ->label('Organic Certified Rail'),
@@ -384,13 +481,22 @@ class HomepageSettings extends Page
     {
         $state = $this->form->getState();
 
+        Setting::set('topbar_enabled', (bool) ($state['topbar_enabled'] ?? true));
+        Setting::set('topbar_mobile_enabled', (bool) ($state['topbar_mobile_enabled'] ?? true));
+
+        Setting::set('hero_container_width', (string) ($state['hero_container_width'] ?? 'boxed'));
+        Setting::set('hero_container_max_width', (string) ($state['hero_container_max_width'] ?? '1280px'));
         Setting::set('hero_slider_height_pc', (int) ($state['hero_slider_height_pc'] ?? 400));
         Setting::set('hero_banner_height_pc', (int) ($state['hero_banner_height_pc'] ?? 400));
         Setting::set('hero_split_ratio_pc', (string) ($state['hero_split_ratio_pc'] ?? '1.85fr 1fr'));
+        Setting::set('hero_split_ratio_custom', (string) ($state['hero_split_ratio_custom'] ?? ''));
+        Setting::set('hero_border_radius', (int) ($state['hero_border_radius'] ?? 14));
         Setting::set('hero_slider_fit', (string) ($state['hero_slider_fit'] ?? 'cover'));
         Setting::set('hero_banner_fit', (string) ($state['hero_banner_fit'] ?? 'cover'));
+        Setting::set('hero_banner_show_pc', (bool) ($state['hero_banner_show_pc'] ?? true));
 
         Setting::set('hero_slider_height_mobile', (int) ($state['hero_slider_height_mobile'] ?? 220));
+        Setting::set('hero_slider_width_mobile', (string) ($state['hero_slider_width_mobile'] ?? '100%'));
         Setting::set('hero_banner_height_mobile', (int) ($state['hero_banner_height_mobile'] ?? 180));
         Setting::set('hero_banner_width_mobile', (string) ($state['hero_banner_width_mobile'] ?? '100%'));
         Setting::set('hero_banner_show_mobile', (bool) ($state['hero_banner_show_mobile'] ?? true));
@@ -401,7 +507,17 @@ class HomepageSettings extends Page
         Setting::set('homepage_slider_dots', (bool) ($state['slider_dots'] ?? true));
         Setting::set('homepage_slider_per_view', (string) ($state['slider_per_view'] ?? '4'));
 
-        Setting::set('homepage_category_rails', $state['category_rails'] ?? []);
+        $categoryRails = $state['category_rails'] ?? [];
+        if (is_array($categoryRails)) {
+            foreach ($categoryRails as &$rail) {
+                if (! empty($rail['title'])) {
+                    $rail['title'] = trim(preg_replace('/\s*\([^)]*[\x{0980}-\x{09FF}]+[^)]*\)/u', '', $rail['title']));
+                    $rail['title'] = trim(preg_replace('/[\x{0980}-\x{09FF}]+/u', '', $rail['title']));
+                }
+            }
+            unset($rail);
+        }
+        Setting::set('homepage_category_rails', $categoryRails);
         Setting::set('homepage_featured_categories', $state['featured_categories'] ?? true);
         Setting::set('homepage_featured_category_ids', $state['featured_category_ids'] ?? []);
 
@@ -411,6 +527,7 @@ class HomepageSettings extends Page
         Setting::set('homepage_top_selling_limit', (int) ($state['top_selling_limit'] ?? 4));
 
         Setting::set('homepage_combos', $state['combos'] ?? true);
+        Setting::set('homepage_middle_banner', (bool) ($state['middle_banner'] ?? true));
         Setting::set('homepage_certified', $state['certified'] ?? true);
         Setting::set('homepage_certified_title', $state['certified_title'] ?? 'Organic Certified');
 

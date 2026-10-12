@@ -8,11 +8,15 @@
     @endphp
 
     {{-- ── Announce bar ── --}}
-    @if(\App\Models\Setting::get('topbar_enabled', true))
+    @php
+        $__topbarEnabled       = (bool) \App\Models\Setting::get('topbar_enabled', true);
+        $__topbarMobileEnabled = (bool) \App\Models\Setting::get('topbar_mobile_enabled', true);
+    @endphp
+    @if($__topbarEnabled)
     @php
         $__topbarCustom = \App\Models\Setting::get('topbar_custom_text');
     @endphp
-    <div class="announce">
+    <div class="announce {{ !$__topbarMobileEnabled ? 'topbar-mobile-hidden' : '' }}">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M3 6h11v9H3z"/>
             <path d="M14 9h4l3 3v3h-7"/>

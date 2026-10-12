@@ -28,6 +28,11 @@ class AnnouncementResource extends Resource
             ->schema([
                 Forms\Components\Section::make()
                     ->schema([
+                        Forms\Components\Placeholder::make('topbar_info')
+                            ->label('')
+                            ->content(new \Illuminate\Support\HtmlString('📱 <strong>Want to enable or disable the Announcement Topbar on Mobile?</strong> You can toggle it directly in <a href="' . url('/admin/homepage-settings') . '" class="text-primary-600 font-bold underline" style="color:#16a34a;margin-left:4px;">Homepage Builder</a> or <a href="' . url('/admin/header-footer-settings') . '" class="text-primary-600 font-bold underline" style="color:#16a34a;margin-left:4px;">Header & Footer Settings</a>.'))
+                            ->columnSpanFull(),
+
                         Forms\Components\TextInput::make('text')
                             ->required()
                             ->maxLength(255)

@@ -28,6 +28,7 @@ class HeaderFooterSettings extends FilamentPage
         $this->form->fill([
             // Header Settings
             'topbar_enabled'           => (bool) Setting::get('topbar_enabled', true),
+            'topbar_mobile_enabled'    => (bool) Setting::get('topbar_mobile_enabled', true),
             'topbar_custom_text'       => Setting::get('topbar_custom_text', ''),
             'theme_topbar_bg'          => Setting::get('theme_topbar_bg', '#000000'),
             'theme_topbar_text'        => Setting::get('theme_topbar_text', '#ffffff'),
@@ -122,6 +123,11 @@ class HeaderFooterSettings extends FilamentPage
                                     ->schema([
                                         Forms\Components\Toggle::make('topbar_enabled')
                                             ->label('Enable Topbar Announcement')
+                                            ->default(true),
+
+                                        Forms\Components\Toggle::make('topbar_mobile_enabled')
+                                            ->label('Show Topbar on Mobile')
+                                            ->helperText('When enabled, the announcement topbar will also appear on mobile phones.')
                                             ->default(true),
 
                                         Forms\Components\TextInput::make('topbar_custom_text')
@@ -423,60 +429,60 @@ class HeaderFooterSettings extends FilamentPage
                         Forms\Components\Tabs\Tab::make('Contact Page')
                             ->icon('heroicon-o-envelope')
                             ->schema([
-                                Forms\Components\Section::make('Page Header & Titles (যোগাযোগ পেজ হেডার)')
+                                Forms\Components\Section::make('Page Header & Titles')
                                     ->description('Customize main titles and headings displayed on the /contact page')
                                     ->schema([
                                         Forms\Components\TextInput::make('contact_page_title')
-                                            ->label('Page Title (পেজের শিরোনাম)')
+                                            ->label('Page Title')
                                             ->default('Get in Touch')
                                             ->required(),
 
                                         Forms\Components\TextInput::make('contact_page_form_title')
-                                            ->label('Form Card Title (ফর্ম কার্ড শিরোনাম)')
+                                            ->label('Form Card Title')
                                             ->default('Send us a message')
                                             ->required(),
 
                                         Forms\Components\Textarea::make('contact_page_subtitle')
-                                            ->label('Page Subtitle (উপশিরোনাম)')
+                                            ->label('Page Subtitle')
                                             ->rows(2)
                                             ->columnSpanFull(),
                                     ])->columns(2),
 
-                                Forms\Components\Section::make('Store Contact Information (অফিস ও যোগাযোগের তথ্য)')
+                                Forms\Components\Section::make('Store Contact Information')
                                     ->description('These details are shown in the contact details card and can be updated anytime.')
                                     ->schema([
                                         Forms\Components\Textarea::make('contact_address')
-                                            ->label('Office / Store Address (অফিস ঠিকানা)')
+                                            ->label('Office / Store Address')
                                             ->placeholder('House 14, Road 5, Block B, Rampura, Dhaka 1219, Bangladesh')
                                             ->rows(2)
                                             ->columnSpanFull(),
 
                                         Forms\Components\TextInput::make('contact_phone')
-                                            ->label('Phone / WhatsApp Number (ফোন নম্বর)')
+                                            ->label('Phone / WhatsApp Number')
                                             ->placeholder('09642-XXXXXX'),
 
                                         Forms\Components\TextInput::make('contact_phone_timing')
-                                            ->label('Phone Availability (ফোনের সময়সূচি)')
+                                            ->label('Phone Availability')
                                             ->placeholder('Sat–Thu 9 am – 9 pm'),
 
                                         Forms\Components\TextInput::make('contact_email')
-                                            ->label('Support Email (ইমেইল ঠিকানা)')
+                                            ->label('Support Email')
                                             ->placeholder('hello@masalavalley.com'),
 
                                         Forms\Components\TextInput::make('contact_email_timing')
-                                            ->label('Email Response Promise (ইমেইল রিপ্লাই সময়)')
+                                            ->label('Email Response Promise')
                                             ->placeholder('We reply within 6 hours'),
 
                                         Forms\Components\TextInput::make('contact_hours_1')
-                                            ->label('Business Hours - Line 1 (কার্যদিবস)')
+                                            ->label('Business Hours - Line 1')
                                             ->placeholder('Sat – Thu: 9:00 am – 9:00 pm'),
 
                                         Forms\Components\TextInput::make('contact_hours_2')
-                                            ->label('Business Hours - Line 2 (ছুটির দিন/শুক্রবার)')
+                                            ->label('Business Hours - Line 2')
                                             ->placeholder('Friday: 2:00 pm – 8:00 pm'),
                                     ])->columns(2),
 
-                                Forms\Components\Section::make('Location Map & Social Links (ম্যাপ ও সোশ্যাল মিডিয়া)')
+                                Forms\Components\Section::make('Location Map & Social Links')
                                     ->schema([
                                         Forms\Components\Toggle::make('contact_show_map')
                                             ->label('Show Map Card on Contact Page')
@@ -505,16 +511,16 @@ class HeaderFooterSettings extends FilamentPage
                         Forms\Components\Tabs\Tab::make('Floating Cart Button')
                             ->icon('heroicon-o-shopping-bag')
                             ->schema([
-                                Forms\Components\Section::make('Floating Cart Button (ভাসমান কার্ট বাটন)')
+                                Forms\Components\Section::make('Floating Cart Button')
                                     ->description('A modern floating sticky shopping cart button on desktop and mobile so customers can quickly see cart items and checkout from any page.')
                                     ->schema([
                                         Forms\Components\Toggle::make('floating_cart_enabled')
-                                            ->label('Enable Floating Cart Button (কার্ট বাটন অন/অফ)')
+                                            ->label('Enable Floating Cart Button')
                                             ->helperText('Show the floating cart widget on mobile and desktop storefront.')
                                             ->default(true),
 
                                         Forms\Components\Select::make('floating_cart_position')
-                                            ->label('Screen Position (স্ক্রিনের অবস্থান)')
+                                            ->label('Screen Position')
                                             ->options([
                                                 'bottom_right' => 'Bottom Right (Stacks cleanly above contact button)',
                                                 'bottom_left'  => 'Bottom Left',
@@ -532,12 +538,12 @@ class HeaderFooterSettings extends FilamentPage
                                             ->default('#ffffff'),
 
                                         Forms\Components\Toggle::make('floating_cart_show_price')
-                                            ->label('Show Total Price (৳ মূল্য দেখান)')
+                                            ->label('Show Total Price')
                                             ->helperText('Display total cart amount along with the item count.')
                                             ->default(true),
 
                                         Forms\Components\Toggle::make('floating_cart_hide_empty')
-                                            ->label('Hide When Cart is Empty (কার্ট খালি থাকলে লুকান)')
+                                            ->label('Hide When Cart is Empty')
                                             ->helperText('If enabled, the button only appears after at least 1 product is added.')
                                             ->default(false),
                                     ])->columns(2),
@@ -591,7 +597,7 @@ class HeaderFooterSettings extends FilamentPage
         $state = $this->form->getState();
 
         $keys = [
-            'topbar_enabled', 'topbar_custom_text', 'theme_topbar_bg', 'theme_topbar_text',
+            'topbar_enabled', 'topbar_mobile_enabled', 'topbar_custom_text', 'theme_topbar_bg', 'theme_topbar_text',
             'site_name', 'tab_title', 'site_tagline', 'site_logo', 'site_favicon', 'site_logo_height',
             'search_placeholder', 'header_show_track', 'header_show_account', 'header_show_wishlist', 'header_show_cart',
             'footer_about', 'contact_phone', 'contact_email', 'contact_address',

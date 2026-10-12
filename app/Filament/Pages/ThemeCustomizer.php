@@ -36,9 +36,27 @@ class ThemeCustomizer extends Page
             'secondary_color'  => ['key' => 'theme_secondary_color'],
             'accent_color'     => ['key' => 'theme_accent_color'],
             // topbar
+            'topbar_enabled'           => ['default' => true],
+            'topbar_mobile_enabled'    => ['default' => true],
             'topbar_bg'        => ['key' => 'theme_topbar_bg'],
             'topbar_bg_hover'  => ['key' => 'theme_topbar_bg_hover'],
             'topbar_text'      => ['key' => 'theme_topbar_text'],
+            // hero slider & banner dimensions
+            'hero_container_width'     => ['default' => 'boxed'],
+            'hero_container_max_width' => ['default' => '1280px'],
+            'hero_slider_height_pc'    => ['default' => 400],
+            'hero_banner_height_pc'    => ['default' => 400],
+            'hero_split_ratio_pc'      => ['default' => '1.85fr 1fr'],
+            'hero_split_ratio_custom'  => ['default' => ''],
+            'hero_border_radius'       => ['default' => 14],
+            'hero_slider_fit'          => ['default' => 'cover'],
+            'hero_banner_fit'          => ['default' => 'cover'],
+            'hero_banner_show_pc'      => ['default' => true],
+            'hero_slider_height_mobile'=> ['default' => 220],
+            'hero_slider_width_mobile' => ['default' => '100%'],
+            'hero_banner_height_mobile'=> ['default' => 180],
+            'hero_banner_width_mobile' => ['default' => '100%'],
+            'hero_banner_show_mobile'  => ['default' => true],
             // header action buttons visibility
             'header_show_track'    => ['default' => true],
             'header_show_account'  => ['default' => true],
@@ -195,12 +213,171 @@ class ThemeCustomizer extends Page
                     ->columns(3),
 
                 Forms\Components\Section::make('Top Bar (Announcement)')
+                    ->description('Configure the announcement bar visibility and colors for desktop and mobile')
                     ->schema([
+                        Forms\Components\Toggle::make('topbar_enabled')
+                            ->label('Enable Topbar')
+                            ->default(true),
+                        Forms\Components\Toggle::make('topbar_mobile_enabled')
+                            ->label('Show Topbar on Mobile')
+                            ->helperText('When enabled, the announcement bar will also appear on mobile devices')
+                            ->default(true),
                         $cp('topbar_bg', 'BG'),
                         $cp('topbar_bg_hover', 'BG Hover'),
                         $cp('topbar_text', 'Text'),
                     ])
                     ->columns(3),
+
+                Forms\Components\Section::make('Hero Slider & Banner Sizing')
+                    ->description('Control height, width, and display ratios for desktop and mobile hero slider & banner.')
+                    ->icon('heroicon-o-arrows-pointing-out')
+                    ->schema([
+                        Forms\Components\Fieldset::make('Desktop / PC Sizing')
+                            ->schema([
+                                Forms\Components\Select::make('hero_container_width')
+                                    ->label('Hero Area Width')
+                                    ->options([
+                                        'boxed'      => 'Boxed Standard (1280px — Default)',
+                                        'wide'       => 'Wide Container (1440px)',
+                                        'extra_wide' => 'Extra Wide (1600px)',
+                                        'full'       => 'Full Width (100%)',
+                                        'custom'     => 'Custom Max Width',
+                                    ])
+                                    ->default('boxed')
+                                    ->live()
+                                    ->helperText('Overall container width for the hero section on desktop'),
+
+                                Forms\Components\TextInput::make('hero_container_max_width')
+                                    ->label('Custom Container Max Width')
+                                    ->placeholder('e.g. 1380px or 94%')
+                                    ->visible(fn (Forms\Get $get) => $get('hero_container_width') === 'custom'),
+
+                                Forms\Components\TextInput::make('hero_slider_height_pc')
+                                    ->label('Slider Height on PC')
+                                    ->numeric()
+                                    ->default(400)
+                                    ->minValue(150)
+                                    ->maxValue(900)
+                                    ->suffix('px')
+                                    ->helperText('Default: 400px (Recommended between 300px and 600px)'),
+
+                                Forms\Components\TextInput::make('hero_banner_height_pc')
+                                    ->label('Banner Height on PC')
+                                    ->numeric()
+                                    ->default(400)
+                                    ->minValue(150)
+                                    ->maxValue(900)
+                                    ->suffix('px')
+                                    ->helperText('Default: 400px (Keep same as slider for balanced look)'),
+
+                                Forms\Components\Select::make('hero_split_ratio_pc')
+                                    ->label('Slider vs Banner Width Ratio')
+                                    ->options([
+                                        '1.85fr 1fr' => 'Slider 65% / Banner 35% (Standard Default)',
+                                        '2fr 1fr'    => 'Slider 67% / Banner 33%',
+                                        '2.33fr 1fr' => 'Slider 70% / Banner 30%',
+                                        '3fr 1fr'    => 'Slider 75% / Banner 25%',
+                                        '4fr 1fr'    => 'Slider 80% / Banner 20%',
+                                        '1.5fr 1fr'  => 'Slider 60% / Banner 40%',
+                                        '1.22fr 1fr' => 'Slider 55% / Banner 45%',
+                                        '1fr 1fr'    => 'Slider 50% / Banner 50% (Equal)',
+                                        '1fr 1.5fr'  => 'Slider 40% / Banner 60%',
+                                        '1fr 2fr'    => 'Slider 33% / Banner 67%',
+                                        'custom'     => 'Custom Ratio',
+                                    ])
+                                    ->default('1.85fr 1fr')
+                                    ->live()
+                                    ->helperText('Width ratio between the left slider and right banner on desktop'),
+
+                                Forms\Components\TextInput::make('hero_split_ratio_custom')
+                                    ->label('Custom Grid Split Ratio')
+                                    ->placeholder('e.g. 700px 1fr or 68% 32%')
+                                    ->visible(fn (Forms\Get $get) => $get('hero_split_ratio_pc') === 'custom'),
+
+                                Forms\Components\Toggle::make('hero_banner_show_pc')
+                                    ->label('Show Banner on PC')
+                                    ->default(true)
+                                    ->helperText('Disable to make the slider full width on desktop'),
+
+                                Forms\Components\Select::make('hero_border_radius')
+                                    ->label('Corner Roundness (Border Radius)')
+                                    ->options([
+                                        0  => '0px (Sharp Corners)',
+                                        8  => '8px (Subtle Rounded)',
+                                        14 => '14px (Standard Rounded — Default)',
+                                        18 => '18px (Smooth Modern)',
+                                        24 => '24px (Pill Style)',
+                                    ])
+                                    ->default(14),
+
+                                Forms\Components\Select::make('hero_slider_fit')
+                                    ->label('Slider Image Fit')
+                                    ->options([
+                                        'cover'   => 'Cover (Fills entire container)',
+                                        'contain' => 'Contain (Shows full image without cropping)',
+                                    ])
+                                    ->default('cover'),
+
+                                Forms\Components\Select::make('hero_banner_fit')
+                                    ->label('Banner Image Fit')
+                                    ->options([
+                                        'cover'   => 'Cover (Fills entire container)',
+                                        'contain' => 'Contain (Shows full image without cropping)',
+                                    ])
+                                    ->default('cover'),
+                            ])
+                            ->columns(2),
+
+                        Forms\Components\Fieldset::make('Mobile / Phone Sizing')
+                            ->schema([
+                                Forms\Components\TextInput::make('hero_slider_height_mobile')
+                                    ->label('Slider Height on Phone')
+                                    ->numeric()
+                                    ->default(220)
+                                    ->minValue(100)
+                                    ->maxValue(600)
+                                    ->suffix('px')
+                                    ->helperText('Default: 220px (Recommended between 160px and 320px)'),
+
+                                Forms\Components\Select::make('hero_slider_width_mobile')
+                                    ->label('Slider Width on Phone')
+                                    ->options([
+                                        '100%' => '100% (Full Width)',
+                                        '96%'  => '96% (Subtle side margin)',
+                                        '92%'  => '92% (Side margin)',
+                                        '88%'  => '88%',
+                                    ])
+                                    ->default('100%')
+                                    ->helperText('Horizontal width of slider on mobile devices'),
+
+                                Forms\Components\TextInput::make('hero_banner_height_mobile')
+                                    ->label('Banner Height on Phone')
+                                    ->numeric()
+                                    ->default(180)
+                                    ->minValue(80)
+                                    ->maxValue(600)
+                                    ->suffix('px')
+                                    ->helperText('Default: 180px (Recommended between 130px and 260px)'),
+
+                                Forms\Components\Select::make('hero_banner_width_mobile')
+                                    ->label('Banner Width on Phone')
+                                    ->options([
+                                        '100%' => '100% (Full Width)',
+                                        '96%'  => '96% (Subtle side margin)',
+                                        '92%'  => '92% (Side margin)',
+                                        '88%'  => '88%',
+                                    ])
+                                    ->default('100%')
+                                    ->helperText('Horizontal width of banner on mobile devices'),
+
+                                Forms\Components\Toggle::make('hero_banner_show_mobile')
+                                    ->label('Show Banner on Mobile')
+                                    ->default(true)
+                                    ->helperText('Disable to hide the banner and display only the slider on mobile'),
+                            ])
+                            ->columns(2),
+                    ])
+                    ->collapsible(),
 
                 Forms\Components\Section::make('Header & Action Buttons')
                     ->description('Search bar section, action button visibility & color styling')
@@ -450,6 +627,7 @@ class ThemeCustomizer extends Page
         }
 
         \Illuminate\Support\Facades\Cache::forget('storefront.home_view_data_v2');
+        \App\Support\Catalog::flushCache();
 
         Notification::make()
             ->title('Theme settings saved')

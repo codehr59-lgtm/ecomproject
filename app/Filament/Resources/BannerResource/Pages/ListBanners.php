@@ -13,6 +13,11 @@ class ListBanners extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('sizing_settings')
+                ->label('Slider & Banner Sizing')
+                ->icon('heroicon-o-arrows-pointing-out')
+                ->color('success')
+                ->url(url('/admin/homepage-settings')),
             Actions\CreateAction::make(),
         ];
     }

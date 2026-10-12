@@ -28,32 +28,32 @@ class StatsOverview extends BaseWidget
         $revenue = Order::where('status', '!=', 'cancelled')->sum('total');
 
         return [
-            Stat::make('পণ্য', $totalProducts)
+            Stat::make('Products', $totalProducts)
                 ->description('Active ' . $activeProducts . ' · Low stock ' . $lowStock)
                 ->descriptionIcon('heroicon-m-shopping-bag')
                 ->icon('heroicon-o-shopping-bag')
                 ->color('primary'),
 
-            Stat::make('অর্ডার', $totalOrders)
+            Stat::make('Orders', $totalOrders)
                 ->description('Pending ' . $pendingOrders)
                 ->descriptionIcon('heroicon-m-clock')
                 ->icon('heroicon-o-shopping-cart')
                 ->color('warning'),
 
             Stat::make('Revenue', '৳ ' . number_format($revenue))
-                ->description('Cancelled বাদে সব অর্ডার')
+                ->description('All orders excluding cancelled')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->icon('heroicon-o-banknotes')
                 ->color('success'),
 
-            Stat::make('কাস্টমার', $totalCustomers)
-                ->description('নিবন্ধিত ব্যবহারকারী')
+            Stat::make('Customers', $totalCustomers)
+                ->description('Registered customers')
                 ->descriptionIcon('heroicon-m-users')
                 ->icon('heroicon-o-users')
                 ->color('info'),
 
-            Stat::make('ক্যাটাগরি', $totalCategories)
-                ->description('সাবক্যাটাগরি ' . $subCategories)
+            Stat::make('Categories', $totalCategories)
+                ->description('Subcategories: ' . $subCategories)
                 ->descriptionIcon('heroicon-m-tag')
                 ->icon('heroicon-o-tag')
                 ->color('success'),

@@ -10,18 +10,41 @@
      ============================================================ --}}
 @if($sliders->count() || $banner)
 @php
+  $heroContainerWidth     = \App\Models\Setting::get('hero_container_width', 'boxed');
+  $heroContainerMaxWidth  = \App\Models\Setting::get('hero_container_max_width', '1280px');
   $heroSliderHeightPc     = (int) \App\Models\Setting::get('hero_slider_height_pc', 400);
   $heroBannerHeightPc     = (int) \App\Models\Setting::get('hero_banner_height_pc', 400);
   $heroSplitRatioPc       = \App\Models\Setting::get('hero_split_ratio_pc', '1.85fr 1fr');
+  $heroSplitRatioCustom   = \App\Models\Setting::get('hero_split_ratio_custom', '');
+  if ($heroSplitRatioPc === 'custom' && !empty($heroSplitRatioCustom)) {
+      $heroSplitRatioPc = $heroSplitRatioCustom;
+  }
   $heroSliderFit          = \App\Models\Setting::get('hero_slider_fit', 'cover');
   $heroBannerFit          = \App\Models\Setting::get('hero_banner_fit', 'cover');
+  $heroBorderRadius       = (int) \App\Models\Setting::get('hero_border_radius', 14);
+  $heroBannerShowPc       = (bool) \App\Models\Setting::get('hero_banner_show_pc', true);
 
   $heroSliderHeightMobile = (int) \App\Models\Setting::get('hero_slider_height_mobile', 220);
+  $heroSliderWidthMobile  = \App\Models\Setting::get('hero_slider_width_mobile', '100%');
   $heroBannerHeightMobile = (int) \App\Models\Setting::get('hero_banner_height_mobile', 180);
   $heroBannerWidthMobile  = \App\Models\Setting::get('hero_banner_width_mobile', '100%');
   $heroBannerShowMobile   = (bool) \App\Models\Setting::get('hero_banner_show_mobile', true);
 @endphp
 <style>
+  .home-hero .wrap {
+    @if($heroContainerWidth === 'full')
+    max-width: 100% !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    @elseif($heroContainerWidth === 'wide')
+    max-width: 1440px !important;
+    @elseif($heroContainerWidth === 'extra_wide')
+    max-width: 1600px !important;
+    @elseif($heroContainerWidth === 'custom' && !empty($heroContainerMaxWidth))
+    max-width: {{ $heroContainerMaxWidth }} !important;
+    @endif
+  }
+
   .hero-split {
     display: grid !important;
     grid-template-columns: {{ $heroSplitRatioPc }} !important;
@@ -31,6 +54,21 @@
   .hero-split.hero-full,
   .hero-split:has(> :only-child) {
     grid-template-columns: 1fr !important;
+  }
+  @if(!$heroBannerShowPc)
+  @media (min-width: 861px) {
+    .hero-split {
+      grid-template-columns: 1fr !important;
+    }
+    .hero-banner-right {
+      display: none !important;
+    }
+  }
+  @endif
+
+  .hero-slider,
+  .hero-banner-right {
+    border-radius: {{ $heroBorderRadius }}px !important;
   }
 
   /* Desktop Slider & Slide Dimensions */
@@ -65,7 +103,13 @@
       grid-template-columns: 1fr !important;
       gap: 14px;
     }
-    .hero-slider,
+    .hero-slider {
+      width: {{ $heroSliderWidthMobile }} !important;
+      max-width: 100% !important;
+      margin: 0 auto !important;
+      height: {{ $heroSliderHeightMobile }}px !important;
+      max-height: {{ $heroSliderHeightMobile }}px !important;
+    }
     .hero-slide,
     .hero-slide img,
     .hero-split.hero-full .hero-slide,
@@ -77,7 +121,7 @@
       aspect-ratio: auto !important;
     }
     .hero-banner-right {
-      @if(!$heroBannerShowMobile)
+      @if(!$heroBannerShowMobile || !$heroBannerShowPc)
       display: none !important;
       @else
       display: block !important;
@@ -410,16 +454,46 @@
 @endif
 
 {{-- ============================================================
-     6. FULL-WIDTH IMAGE BAND
+     6. FULL-WIDTH MIDDLE STRIP BANNER (from Banners: position=strip)
      ============================================================ --}}
-<div class="rail">
+@php
+  $stripBanner = $stripBanner ?? \App\Models\Banner::where('is_active', true)->where('position', 'strip')->orderBy('sort')->first();
+  $showMiddleBanner = isset($showMiddleBanner) ? (bool)$showMiddleBanner : (bool)\App\Models\Setting::get('homepage_middle_banner', true);
+@endphp
+
+@if($showMiddleBanner)
+<div class="rail middle-banner-rail">
   <div class="wrap">
-    <div class="img-band">
-      <h3>Sourced with care, delivered with trust</h3>
-      <span class="hbanner-tag">lifestyle · banner</span>
-    </div>
+    @if($stripBanner)
+      <a href="{{ $stripBanner->href ?: 'javascript:void(0)' }}"
+         class="img-band {{ empty($stripBanner->href) ? 'img-band-static' : '' }}"
+         style="@if(!empty($stripBanner->image)) background-image: url('{{ asset('storage/' . $stripBanner->image) }}'); background-size: cover; background-position: center; @endif">
+        @if(!empty($stripBanner->image))
+          <div class="img-band-overlay"></div>
+        @endif
+        <div class="img-band-content">
+          @if(!empty($stripBanner->title))
+            <h3>{{ $stripBanner->title }}</h3>
+          @endif
+          @if(!empty($stripBanner->subtitle))
+            <p class="img-band-sub">{{ $stripBanner->subtitle }}</p>
+          @endif
+          @if(!empty($stripBanner->cta))
+            <span class="btn btn-honey img-band-btn">{{ $stripBanner->cta }}</span>
+          @endif
+        </div>
+      </a>
+    @else
+      <div class="img-band">
+        <div class="img-band-content">
+          <h3>Sourced with care, delivered with trust</h3>
+          <p class="img-band-sub">100% Pure, Organic & Halal Groceries Delivered Direct to Your Door</p>
+        </div>
+      </div>
+    @endif
   </div>
 </div>
+@endif
 
 {{-- ============================================================
      7. ORGANIC CERTIFIED RAIL
