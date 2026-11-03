@@ -504,7 +504,8 @@ class OrderResource extends Resource
                                 Infolists\Components\TextEntry::make('name')
                                     ->label('Product')
                                     ->weight(\Filament\Support\Enums\FontWeight::SemiBold)
-                                    ->description(fn ($record) => $record->weight ? 'Variant: ' . $record->weight : null),
+                                    ->formatStateUsing(fn ($state, $record) => $state . ($record->weight ? "\nVariant: {$record->weight}" : ''))
+                                    ->extraAttributes(['style' => 'white-space: pre-line;']),
                                 Infolists\Components\TextEntry::make('price')
                                     ->label('Unit Price')
                                     ->formatStateUsing(fn ($state) => '৳' . number_format($state)),
