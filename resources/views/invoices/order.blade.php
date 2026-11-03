@@ -237,6 +237,7 @@
     <thead>
         <tr>
             <th style="width: 30px;">#</th>
+            <th style="width: 60px;">Image</th>
             <th>Item Description</th>
             <th class="center" style="width: 60px;">Qty</th>
             <th class="right" style="width: 100px;">Unit Price</th>
@@ -245,8 +246,31 @@
     </thead>
     <tbody>
         @foreach($order->items as $i => $item)
+            @php
+                $imgBase64 = null;
+                if ($item->product && $item->product->image) {
+                    $imgPath = storage_path('app/public/' . $item->product->image);
+                    if (file_exists($imgPath)) {
+                        $ext = strtolower(pathinfo($imgPath, PATHINFO_EXTENSION));
+                        $mime = match($ext) {
+                            'png'  => 'image/png',
+                            'gif'  => 'image/gif',
+                            'webp' => 'image/webp',
+                            default => 'image/jpeg',
+                        };
+                        $imgBase64 = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($imgPath));
+                    }
+                }
+            @endphp
             <tr>
                 <td style="color:#9CA3AF;">{{ $i + 1 }}</td>
+                <td style="text-align:center; vertical-align:middle;">
+                    @if($imgBase64)
+                        <img src="{{ $imgBase64 }}" alt="{{ $item->name }}" style="width:48px;height:48px;object-fit:cover;border-radius:4px;border:1px solid #E5E7EB;">
+                    @else
+                        <div style="width:48px;height:48px;background:#F3F4F6;border-radius:4px;border:1px solid #E5E7EB;display:inline-block;"></div>
+                    @endif
+                </td>
                 <td>
                     <div class="item-name">{{ $item->name }}</div>
                     @if($item->weight)<div class="item-weight">Variant: {{ $item->weight }}</div>@endif
