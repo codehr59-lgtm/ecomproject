@@ -171,19 +171,25 @@ class ViewOrder extends ViewRecord
                 ->url(fn (Order $record): string => route('order.invoice', $record->number))
                 ->openUrlInNewTab(),
 
-            Actions\Action::make('downloadPackingSlip')
-                ->label('Packing Slip')
-                ->icon('heroicon-o-clipboard-document-list')
-                ->color('gray')
-                ->url(fn (Order $record): string => route('order.packing-slip', $record->number))
-                ->openUrlInNewTab(),
+            Actions\ActionGroup::make([
+                Actions\Action::make('downloadPackingSlip')
+                    ->label('Packing Slip')
+                    ->icon('heroicon-o-clipboard-document-list')
+                    ->color('gray')
+                    ->url(fn (Order $record): string => route('order.packing-slip', $record->number))
+                    ->openUrlInNewTab(),
 
-            Actions\Action::make('downloadShippingLabel')
-                ->label('Shipping Label')
-                ->icon('heroicon-o-tag')
+                Actions\Action::make('downloadShippingLabel')
+                    ->label('Shipping Label')
+                    ->icon('heroicon-o-tag')
+                    ->color('gray')
+                    ->url(fn (Order $record): string => route('order.shipping-label', $record->number))
+                    ->openUrlInNewTab(),
+            ])
+                ->label('Print')
+                ->icon('heroicon-o-printer')
                 ->color('gray')
-                ->url(fn (Order $record): string => route('order.shipping-label', $record->number))
-                ->openUrlInNewTab(),
+                ->button(),
 
             Actions\EditAction::make(),
         ];

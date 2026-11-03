@@ -491,33 +491,8 @@ class OrderResource extends Resource
                 Infolists\Components\Section::make('Order Items')
                     ->icon('heroicon-o-shopping-bag')
                     ->schema([
-                        Infolists\Components\RepeatableEntry::make('items')
-                            ->hiddenLabel()
-                            ->schema([
-                                Infolists\Components\ImageEntry::make('product.image')
-                                    ->label('Image')
-                                    ->disk('public')
-                                    ->height(64)
-                                    ->width(64)
-                                    ->extraImgAttributes(['style' => 'object-fit:cover;border-radius:6px;'])
-                                    ->defaultImageUrl(asset('images/placeholder.png')),
-                                Infolists\Components\TextEntry::make('name')
-                                    ->label('Product')
-                                    ->weight(\Filament\Support\Enums\FontWeight::SemiBold)
-                                    ->formatStateUsing(fn ($state, $record) => $state . ($record->weight ? "\nVariant: {$record->weight}" : ''))
-                                    ->extraAttributes(['style' => 'white-space: pre-line;']),
-                                Infolists\Components\TextEntry::make('price')
-                                    ->label('Unit Price')
-                                    ->formatStateUsing(fn ($state) => '৳' . number_format($state)),
-                                Infolists\Components\TextEntry::make('qty')
-                                    ->label('Qty')
-                                    ->alignCenter(),
-                                Infolists\Components\TextEntry::make('line_total')
-                                    ->label('Subtotal')
-                                    ->formatStateUsing(fn ($state) => '৳' . number_format($state))
-                                    ->weight(\Filament\Support\Enums\FontWeight::Bold),
-                            ])
-                            ->columns(5),
+                        Infolists\Components\View::make('filament.infolists.components.order-items')
+                            ->columnSpanFull(),
                     ]),
 
                 Infolists\Components\Section::make('Courier & Shipping')
